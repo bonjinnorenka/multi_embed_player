@@ -1,0 +1,17 @@
+multi-embed-player{
+    display: block;
+    position: relative;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+}
+multi-embed-player>iframe{
+    width: 100%;
+    height: 100%;
+}
+multi-embed-player>picture{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}

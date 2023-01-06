@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        window.addEventListener("message",(e)=>console.log(e));
+    </script>
+    <iframe src="https://player.bilibili.com/player.html?bvid=BV1N24y1C7CY&page=1" width="1000" height="630" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>    
+    <script src="http://127.0.0.1:5500/multi_embed_player/bilibili_embed/v1.0/bilibili-api.js"></script>
+    <script>
+        let maindoc = document.createElement("div");
+        document.body.appendChild(maindoc);
+        let main_datas = new mep_bilibili(maindoc,{
+            "videoid":"BV1Yq4y1Z785",
+            "width":1030,
+            "height":630,
+            "playerVars":{"endSeconds":30}
+        });
+        console.log("ended")
+    </script>
+</body>
+</html>

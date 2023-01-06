@@ -1,0 +1,55 @@
+var extention_json_url = chrome.runtime.getURL("extention.json");
+var liteplayer_js_url = chrome.runtime.getURL("liteplayer.js");
+var player_selector_js_url = chrome.runtime.getURL("player-selector.js");
+
+chrome.declarativeNetRequest.updateDynamicRules(
+    {
+        removeRuleIds:[20,21,22],
+        addRules:[{
+            "id":20,
+            "action":{
+                "type":"redirect",
+                "redirect":{
+                    "url":extention_json_url
+                }
+            },
+            "condition":{
+                "urlFilter":"https://js.ryokuryu.com/multi_embed_player/no_extention.json",
+                "resourceTypes":[
+                    "xmlhttprequest"
+                ]
+            }
+        },
+        {
+            "id":21,
+            "action":{
+                "type":"redirect",
+                "redirect":{
+                    "url":liteplayer_js_url
+                }
+            },
+            "condition":{
+                "urlFilter":"https://player.bilibili.com/main/html5/outer/liteplayer.min.js*",
+                "resourceTypes":[
+                    "script"
+                ]
+            }
+        },
+        {
+            "id":22,
+            "action":{
+                "type":"redirect",
+                "redirect":{
+                    "url":player_selector_js_url
+                }
+            },
+            "condition":{
+                "urlFilter":"https://player.bilibili.com/tools/player-selector/player-selector.min.js*",
+                "resourceTypes":[
+                    "script"
+                ]
+            }
+        }
+    ]
+    }
+)

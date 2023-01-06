@@ -1,0 +1,31 @@
+{
+	"description": "Demonstrating webRequests",
+	"manifest_version": 3,
+	"name": "webRequest-demo",
+	"version": "1.0",
+  
+	"permissions": [
+		"declarativeNetRequest"
+	],
+
+	"web_accessible_resources":[
+		{
+			"resources":["extention.json"],
+			"matches":["*://js.ryokuryu.com/*"]
+		},
+		{
+			"resources":["liteplayer.js","player-selector.js"],
+			"matches":["*://player.bilibili.com/*"]
+		}
+	],
+
+	"host_permissions":[
+		"*://player.bilibili.com/*",
+		"*://js.ryokuryu.com/*"
+	],
+
+	"background":{
+		"service_worker":"background.js"
+	}
+}
+  
