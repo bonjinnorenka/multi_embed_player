@@ -1,6 +1,6 @@
 class multi_embed_player extends HTMLElement{
-    //static script_origin = "https://js.ryokuryu.com/";
-    static script_origin = "http://localhost:5500/";
+    static script_origin = "https://js.ryokuryu.com/";
+    //static script_origin = "http://localhost:5500/";
     static niconicoapi = "https://niconico-imager.ryokuryu.workers.dev/";
     static bilibiliapi = "https://bilibili-api-gate.ryokuryu.workers.dev/";
     static mep_status_load_youtube_api = false;
