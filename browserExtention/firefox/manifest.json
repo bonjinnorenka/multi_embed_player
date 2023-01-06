@@ -1,7 +1,7 @@
 {
-	"description": "Demonstrating webRequests",
+	"description": "Make it possible to use some of the video playback support functions of the multi embed player.",
 	"manifest_version": 2,
-	"name": "webRequest-demo",
+	"name": "multiEmbedPlayerExtention",
 	"version": "1.0",
   
 	"permissions": [
