@@ -191,7 +191,7 @@ class mep_bilibili{
             })
         }
     }
-    play(){
+    playVideo(){
         if(!mep_bilibili.mep_extension_bilibili){
             console.log(mep_bilibili.no_extention_error);
         }
@@ -199,7 +199,7 @@ class mep_bilibili{
             this.player.contentWindow.postMessage({eventName:"play"},"*");
         }
     }
-    pause(){
+    pauseVideo(){
         if(!mep_bilibili.mep_extension_bilibili){
             console.log(mep_bilibili.no_extention_error);
         }
