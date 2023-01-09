@@ -175,7 +175,7 @@ class mep_niconico{
         })
     }
     getPlayerState(){
-        if(this.getCurrentTime()>=this.getDuration()-100||(this.endSeconds!=-1&&this.getCurrentTime()>=(this.endSeconds-1))){//最後まで行った
+        if(this.getCurrentTime()>=this.getDuration()-0.5||(this.endSeconds!=-1&&this.getCurrentTime()>=(this.endSeconds-0.5))){//最後まで行った
             return 4
         }
         else{
@@ -213,7 +213,7 @@ class mep_niconico{
                 }
                 case 'playerStatusChange':{
                     this.player.dispatchEvent(new Event("onStateChange"));
-                    if(this.getCurrentTime()>=this.getDuration()-100||(this.endSeconds!=-1&&this.getCurrentTime()>=(this.endSeconds-1))){//最後まで行った
+                    if(this.getCurrentTime()>=this.getDuration()-0.5||(this.endSeconds!=-1&&this.getCurrentTime()>=(this.endSeconds-0.5))){//最後まで行った
                         this.player.dispatchEvent(new Event("onEndVideo"));
                     }
                     break;
