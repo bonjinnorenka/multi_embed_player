@@ -2,6 +2,7 @@
 //Copyright 2021 LudwigWS
 //LICENCE Apache-2.0 license
 var global_bilibili_player_object,global_bilibili_danmaku_object;
+try{
 ! function (e) {
     // console.log('init');
     if ("object" == typeof exports && "undefined" != typeof module) module.exports = e();
@@ -26395,6 +26396,7 @@ var global_bilibili_player_object,global_bilibili_danmaku_object;
         }
     }
 ]);
+}catch{window.postMessage({type:"error"},"*")}
 //add to react post message
 
 window.addEventListener("message",(res_data)=>{
@@ -26407,26 +26409,11 @@ window.addEventListener("message",(res_data)=>{
     else if(eventname=="pause"){
         global_bilibili_player_object.pause()
     }
-    else if(eventname=="currentTime"){
-        return_value = {eventName:"currentTime",currentTime:global_bilibili_player_object.currentTime()}
-    }
-    else if(eventname=="dulation"){
-        return_value = {eventName:"dulation",dulation:global_bilibili_player_object.duration()}
-    }
-    else if(eventname=="volumeValue"){
-        return_value = {eventName:"volumeValue",volumeValue:global_bilibili_player_object.volume()}
-    }
     else if(eventname=="setVolume"){
         global_bilibili_player_object.volume(res_data.data.volume)
     }
-    else if(eventname=="getTitle"){
-        return_value = {eventName:"getTitle",getTitle:global_bilibili_player_object.Xe.title}
-    }
     else if(eventname=="seek"){
         global_bilibili_player_object.seek(res_data.data.seekTime)
-    }
-    else if(eventname=="getPlayerState"){
-        return_value = {eventName:"getPlayerState",getPlayerState:global_bilibili_player_object.getState()}
     }
     else if(eventname=="displayComment"){
         global_bilibili_danmaku_object.wp(res_data.data.commentVisibility)
@@ -26435,3 +26422,18 @@ window.addEventListener("message",(res_data)=>{
         window.parent.postMessage(return_value,"*")
     }
 })
+
+const bilibili_state_change_event = ()=>{
+    try{
+    window.parent.postMessage({
+        type:"data_change",
+        currentTime:global_bilibili_player_object.currentTime(),
+        dulation:global_bilibili_player_object.duration(),
+        volumeValue:global_bilibili_player_object.volume(),
+        getPlayerState:global_bilibili_player_object.getState(),
+        getTitle:global_bilibili_player_object.Xe.title
+    },"*")
+    }catch{}
+}
+
+setInterval(bilibili_state_change_event,250)

@@ -113,7 +113,7 @@ class multi_embed_player extends HTMLElement{
                 playerVars["endSeconds"] = this.endSeconds;
             }
             this.player = new mep_niconico(divdoc,{
-                "videoid":this.videoid,
+                "videoId":this.videoid,
                 "width":"560",
                 "height":"315",
                 "playerVars":playerVars
@@ -135,7 +135,7 @@ class multi_embed_player extends HTMLElement{
                 playerVars["endSeconds"] = this.endSeconds;
             }
             this.player = new mep_bilibili(divdoc,{
-                "videoid":this.videoid,
+                "videoId":this.videoid,
                 "width":"560",
                 "height":"315",
                 "playerVars":playerVars
@@ -282,7 +282,7 @@ class multi_embed_player extends HTMLElement{
                         playerVars.endSeconds = data["endSeconds"];
                     }
                     this.player = new mep_niconico(divdoc,{
-                        "videoid":this.videoid,
+                        "videoId":this.videoid,
                         "width":"560",
                         "height":"315",
                         "playerVars":playerVars
@@ -316,7 +316,7 @@ class multi_embed_player extends HTMLElement{
                         playerVars["endSeconds"] = this.endSeconds;
                     }
                     this.player = new mep_bilibili(divdoc,{
-                        "videoid":this.videoid,
+                        "videoId":this.videoid,
                         "width":"560",
                         "height":"315",
                         "playerVars":playerVars
@@ -370,8 +370,13 @@ class multi_embed_player extends HTMLElement{
     stopVideo(){
         this.player.pauseVideo();
     }
-    getCurrentTime(){
-        return this.player.getCurrentTime();
+    async getCurrentTime(){
+        if(this.service=="bilibili"){
+            return await this.player.getCurrentTime();
+        }
+        else{
+            return this.player.getCurrentTime();
+        }
     }
     seekTo(seconds){
         this.player.seekTo(seconds);

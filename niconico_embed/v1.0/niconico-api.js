@@ -13,7 +13,7 @@ class mep_niconico{
             this.startSeconds = content["playerVars"]["startSeconds"];
         }
         let niconico_doc = document.createElement("iframe");
-        niconico_doc.src = "https://embed.nicovideo.jp/watch/" + content["videoid"] + "?jsapi=1&playerId=" + String(mep_niconico.playerId) + "&from=" + String(this.startSeconds);
+        niconico_doc.src = "https://embed.nicovideo.jp/watch/" + content["videoId"] + "?jsapi=1&playerId=" + String(mep_niconico.playerId) + "&from=" + String(this.startSeconds);
         this.playerId = String(mep_niconico.playerId);
         mep_niconico.playerId++;
         niconico_doc.width = content["width"];
@@ -86,7 +86,7 @@ class mep_niconico{
         if(content["endSeconds"]!=undefined){
             this.endSeconds = content["endSeconds"];
         }
-        this.player.src = "https://embed.nicovideo.jp/watch/" + content["videoid"] + "?jsapi=1&playerId=" + String(this.playerId) + "&from=" + String(this.startSeconds);
+        this.player.src = "https://embed.nicovideo.jp/watch/" + content["videoId"] + "?jsapi=1&playerId=" + String(this.playerId) + "&from=" + String(this.startSeconds);
         this.autoplay_flag = false;
     }
     loadVideoById(content){
