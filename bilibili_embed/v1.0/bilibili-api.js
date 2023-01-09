@@ -269,7 +269,7 @@ class mep_bilibili{
             return this.state.getTitle
         }
     }
-    getPlayerState(){
+    async getPlayerState(){
         if(!mep_bilibili.mep_extension_bilibili){
             console.log(mep_bilibili.no_extention_error);
         }
@@ -282,7 +282,7 @@ class mep_bilibili{
                     return 2
                 }
                 else if(this.state.getPlayerState=="PAUSED"){
-                    let current_duration = ((this.getCurrentTime()) / ((this.getDuration()) - this.endSeconds))*100//%で出す
+                    let current_duration = ((this.getCurrentTime()) / ((await this.getDuration()) - this.endSeconds))*100//%で出す
                     if(current_duration>98){
                         return 4
                     }
@@ -344,12 +344,17 @@ class mep_bilibili{
     }
     messageListener(){
         this.start_event_count = 0;
+        this.end_event_count = 0;
         window.addEventListener("message",(data)=>{
             if(data.data.type=="data_change"){
                 this.state = Object.assign(this.state,data.data);
                 if(this.start_event_count==0&&data.data.dulation>0){
                     this.start_event_count = 1;
                     this.player.dispatchEvent(new Event("onReady"));
+                }
+                if(this.end_event_count==0&&data.data.dulation>data.data.currentTime-1&&data.data.getPlayerState=="PAUSED"){
+                    this.player.dispatchEvent(new Event("onEndVideo"));
+                    this.end_event_count = 1;
                 }
             }
             else if(data.data.type=="error"){
