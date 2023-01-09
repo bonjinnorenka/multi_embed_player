@@ -415,8 +415,8 @@ class multi_embed_player extends HTMLElement{
             return 0;
         }
     }
-    getRelativeCurrentTime(){
-        return this.getCurrentTime() - this.startSeconds;
+    async getRelativeCurrentTime(){
+        return await this.getCurrentTime() - this.startSeconds;
     }
     getPercentOfDulation(){//notice sometimes over 100%
         return (this.getRelativeCurrentTime()/this.getRealDulation())*100
