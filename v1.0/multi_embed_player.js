@@ -308,7 +308,10 @@ class multi_embed_player extends HTMLElement{
                     let divdoc = document.createElement("div");
                     divdoc.classList.add("mep_bilibili");
                     this.append(divdoc);
-                    let playerVars = {"autoplay":1}
+                    let playerVars = {}
+                    if(autoplay){
+                        playerVars["autoplay"] = 1;
+                    }
                     if(this.startSeconds!=0){
                         playerVars["startSeconds"] = this.startSeconds;
                     }
