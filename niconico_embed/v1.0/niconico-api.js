@@ -23,7 +23,7 @@ class mep_niconico{
         niconico_doc.style.border = "none";//fix bug display border on outer frame
         replacing_element.replaceWith(niconico_doc);
         this.player = niconico_doc;
-        this.checkLocalstorage();
+        //this.checkLocalstorage(); 3/1のアプデで不要に
         this.autoplay_flag = false;
         if(content["playerVars"]["autoplay"]==1){//終わり次第再生
             this.autoplay_flag = true;
