@@ -67,12 +67,7 @@ class mep_bilibili{
                 query_string += bilibili_query_keys[x] + "=" + String(bilibili_query[bilibili_query_keys[x]]) + "&";
             }
             query_string = query_string.slice(0,-1);
-            if(this.fastload){
-                bilibili_doc.src = "https://player.bilibili.com/player.html?bvid=" + this.videoid + "&page=1";
-            }
-            else{
-                bilibili_doc.src = "https://player.bilibili.com/player.html?" + query_string;
-            }
+            bilibili_doc.src = "https://www.bilibili.com/blackboard/webplayer/embed-old.html?" + query_string;
             bilibili_doc.width = content["width"];
             bilibili_doc.height = content["height"];
             bilibili_doc.allow = "autoplay";//fix bug not autoplay on chrome
