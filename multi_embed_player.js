@@ -1,5 +1,5 @@
 class multi_embed_player extends HTMLElement{
-    static script_origin = "https://www.jsdeliver.net/gh/bonjinnorenka/";
+    static script_origin = "https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@latest/";
     //static script_origin = "https://js.ryokuryu.com/";
     //static script_origin = "http://localhost:5500/";
     static niconicoapi = "https://niconico-imager.ryokuryu.workers.dev/";
@@ -508,7 +508,7 @@ class multi_embed_player extends HTMLElement{
         return new Promise(async function(resolve,reject){
             if(multi_embed_player.mep_status_load_niconico_api===false){
                 //await this.mep_promise_script_loader(multi_embed_player.script_origin + "multi_embed_player/niconico_embed/v1.0/niconico-api.js");
-                await this.mep_promise_script_loader(multi_embed_player.script_origin + "multi_embed_player/niconico_embed/niconico-api.js");
+                await this.mep_promise_script_loader(multi_embed_player.script_origin + "niconico_embed/niconico-api.js");
                 multi_embed_player.mep_status_load_niconico_api = true;
                 resolve();
             }
@@ -520,7 +520,7 @@ class multi_embed_player extends HTMLElement{
     async bilibili_api_loader(){
         return new Promise(async function(resolve,reject){
             if(multi_embed_player.mep_status_load_bilibili_api===false){
-                await this.mep_promise_script_loader(multi_embed_player.script_origin + "multi_embed_player/bilibili_embed/bilibili-api.js");
+                await this.mep_promise_script_loader(multi_embed_player.script_origin + "bilibili_embed/bilibili-api.js");
                 multi_embed_player.mep_status_load_bilibili_api = true;
                 resolve();
             }
