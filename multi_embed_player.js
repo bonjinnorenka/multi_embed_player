@@ -1,5 +1,5 @@
 class multi_embed_player extends HTMLElement{
-    static script_origin = "https://www.jsdeliver.com/gh/bonjinnorenka/";
+    static script_origin = "https://www.jsdeliver.net/gh/bonjinnorenka/";
     //static script_origin = "https://js.ryokuryu.com/";
     //static script_origin = "http://localhost:5500/";
     static niconicoapi = "https://niconico-imager.ryokuryu.workers.dev/";
