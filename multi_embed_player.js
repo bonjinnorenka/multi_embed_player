@@ -1,5 +1,6 @@
 class multi_embed_player extends HTMLElement{
-    static script_origin = "https://js.ryokuryu.com/";
+    static script_origin = "https://www.jsdeliver.com/gh/";
+    //static script_origin = "https://js.ryokuryu.com/";
     //static script_origin = "http://localhost:5500/";
     static niconicoapi = "https://niconico-imager.ryokuryu.workers.dev/";
     static bilibiliapi = "https://bilibili-api-gate.ryokuryu.workers.dev/";
@@ -47,7 +48,7 @@ class multi_embed_player extends HTMLElement{
             this.player.service = "before embed";
             this.playlist = [];
             this.addEventListener("onEndVideo",function(){if(this.playlist.length>0){this.loadVideoById(this.playlist.shift())}});//終わりが来たとき次のやつを再生
-            this.addEventListener("addPlaylist",function(){if(this.getPlayerState()==4){if(this.playlist.length>0){this.loadVideoById(this.playlist.shift())}}}.bind(this))
+            this.addEventListener("addPlaylist",function(){if(this.getPlayerState()==4){if(this.playlist.length>0){this.loadVideoById(this.playlist.shift())}}}.bind(this));
         }
     }
     async add_iframe(e=null,sub=false){
@@ -165,9 +166,10 @@ class multi_embed_player extends HTMLElement{
         }
         else if(service=="bilibili"){
             //fetchでcloudflare workersに置いたapiを叩き取得 各自用意してほしい
-            let a = await fetch(multi_embed_player.bilibiliapi + "?bvid=" + videoid);
+            let a = await fetch(multi_embed_player.bilibiliapi + "?bvid=" + videoid+"&image_base64=1");
             let json_a = await a.json()
-            image_url = json_a["data"]["pic"]
+            //image_url = json_a["data"]["pic"]
+            image_url = json_a["image_base64"]
             return image_url
         }
         else{
@@ -483,15 +485,19 @@ class multi_embed_player extends HTMLElement{
     async youtube_api_loader(){
         return new Promise(async function(resolve,reject){
             if(multi_embed_player.mep_status_load_youtube_api===false){
+                /*
                 let a = await fetch(multi_embed_player.script_origin + "multi_embed_player/version.json");
                 let version_info = await a.json();
                 a = null;
                 //api読み込み
                 let script_url = "https://www.youtube-nocookie.com/s/player/" + version_info["youtube-iframe-api-version"] + "/www-widgetapi.vflset/www-widgetapi.js";
                 //読み込みを待機
+                */
+                let script_url = "https://www.youtube.com/iframe_api";
                 await this.mep_promise_script_loader(script_url);
                 multi_embed_player.mep_status_load_youtube_api = true
-                resolve();
+                YT.ready(resolve);
+                //resolve();
             }
             else{
                 resolve();
@@ -501,7 +507,8 @@ class multi_embed_player extends HTMLElement{
     async niconico_api_loader(){
         return new Promise(async function(resolve,reject){
             if(multi_embed_player.mep_status_load_niconico_api===false){
-                await this.mep_promise_script_loader(multi_embed_player.script_origin + "multi_embed_player/niconico_embed/v1.0/niconico-api.js");
+                //await this.mep_promise_script_loader(multi_embed_player.script_origin + "multi_embed_player/niconico_embed/v1.0/niconico-api.js");
+                await this.mep_promise_script_loader(multi_embed_player.script_origin + "multi_embed_player/niconico_embed/niconico-api.js");
                 multi_embed_player.mep_status_load_niconico_api = true;
                 resolve();
             }
@@ -513,7 +520,7 @@ class multi_embed_player extends HTMLElement{
     async bilibili_api_loader(){
         return new Promise(async function(resolve,reject){
             if(multi_embed_player.mep_status_load_bilibili_api===false){
-                await this.mep_promise_script_loader(multi_embed_player.script_origin + "multi_embed_player/bilibili_embed/v1.0/bilibili-api.js");
+                await this.mep_promise_script_loader(multi_embed_player.script_origin + "multi_embed_player/bilibili_embed/bilibili-api.js");
                 multi_embed_player.mep_status_load_bilibili_api = true;
                 resolve();
             }
@@ -530,10 +537,10 @@ class multi_embed_player extends HTMLElement{
             document.body.appendChild(script_document);
             script_document.addEventListener("load",function(){
                 resolve();
-            })
+            },{once:true});
             script_document.addEventListener("error",function(){
                 reject();
-            })
+            },{once:true});
         })
     }
     addPlaylist(){

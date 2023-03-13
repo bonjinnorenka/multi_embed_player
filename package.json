@@ -1,0 +1,15 @@
+{
+    "name":"multi_embed_player",
+    "main":"./index.js",
+    "version": "1.0",
+    "license": "Apache-2.0",
+    "style":"./multi_embed_player.css",
+    "description": "some video site embed and control playing",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/bonjinnorenka/multi_embed_player"
+    },
+    "bugs": {
+        "url": "https://github.com/bonjinnorenka/multi_embed_player/issues"
+    }
+}
