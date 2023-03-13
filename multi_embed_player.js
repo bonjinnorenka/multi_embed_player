@@ -36,7 +36,7 @@ class multi_embed_player extends HTMLElement{
             }
             //status setting
             if(this.getAttribute("type")===null||this.getAttribute("type")==="embed"){
-                this.addEventListener('click', this.add_iframe);
+                this.addEventListener('click', this.add_iframe,{once:true});
             }
             if(this.getAttribute("type")==="thumbnail-click"){
                 this.addEventListener('click',function(){this.PlayOnPlayer(this.getAttribute("for"),this.getAttribute("service"),this.getAttribute("videoid"),this.getAttribute("start"),this.getAttribute("end"),this.getAttribute("subService"),this.getAttribute("subVideoid"))}.bind(this));
