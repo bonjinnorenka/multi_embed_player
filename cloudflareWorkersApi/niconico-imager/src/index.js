@@ -15,6 +15,8 @@ export default {
 	async fetch(request, env, ctx) {
 		let return_data = {};
 		//get query string
+		let tmp_url = request.url;
+		//console.log(tmp_url)
 		const { searchParams } = new URL(request.url);
   		let videoid = searchParams.get('videoid');
 		if(videoid==null){

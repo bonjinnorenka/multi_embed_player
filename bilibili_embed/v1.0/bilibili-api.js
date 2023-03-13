@@ -241,7 +241,7 @@ class mep_bilibili{
 
     async getVideodataApi(){
         return new Promise(async(resolve,reject)=>{
-            resolve(await(await fetch(mep_bilibili.api_origin + "?videoid=" + this.videoid)).json());
+            resolve(await(await fetch(mep_bilibili.api_origin + "?bvid=" + this.videoid)).json());
         });
     }
 
