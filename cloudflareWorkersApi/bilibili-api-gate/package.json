@@ -2,7 +2,7 @@
   "name": "bilibili-api-gate",
   "version": "0.0.0",
   "devDependencies": {
-    "wrangler": "2.6.2"
+    "wrangler": "^2.12.3"
   },
   "private": true,
   "scripts": {
