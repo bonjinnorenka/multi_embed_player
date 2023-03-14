@@ -12,6 +12,7 @@ class mep_bilibili{
             this.state = {
                 getPlayerState: "PAUSE"
             };
+            this.apicache = {};
             let bilibili_doc = document.createElement("iframe");
             replacing_element.replaceWith(bilibili_doc);
             this.player = bilibili_doc;
@@ -34,8 +35,15 @@ class mep_bilibili{
                 else if(content["playerVars"]["displayComment"]==1){
                     this.displayCommentMode = true;
                 }
+                else{
+                    this.displayCommentMode = false;
+                }
             }
             let bilibili_query = {};
+            if(content["videoId"]==undefined){
+                console.log("invalid videoid:" + content["videoId"] + "so stop loading");
+                return
+            }
             bilibili_query["bvid"] = content["videoId"];
             this.videoid = content["videoId"];
             if(this.startSeconds>0){
@@ -45,10 +53,10 @@ class mep_bilibili{
                 bilibili_query["autoplay"] = 1;
             }
             if(this.displayCommentMode){
-                //bilibili_query["danmaku"] = 1;
+                bilibili_query["danmaku"] = 1;
             }
             else{
-                //bilibili_query["danmaku"] = 0;
+                bilibili_query["danmaku"] = 0;
             }
             this.fastload = false;
             if(content["playerVars"]["fastLoad"]!=undefined){
@@ -193,7 +201,7 @@ class mep_bilibili{
             query_string += bilibili_query_keys[x] + "=" + String(bilibili_query[bilibili_query_keys[x]]) + "&";
         }
         query_string = query_string.slice(0,-1);
-        this.player.src = "https://player.bilibili.com/player.html?" + query_string;
+        this.player.src = "https://www.bilibili.com/blackboard/webplayer/embed-old.html?" + query_string;
         if(this.endSeconds!=-1){
             this.end_point_observe = setInterval(this.observe_end_time.bind(this),500);
         }
@@ -241,7 +249,11 @@ class mep_bilibili{
 
     async getVideodataApi(){
         return new Promise(async(resolve,reject)=>{
-            resolve(await(await fetch(mep_bilibili.api_origin + "?bvid=" + this.videoid)).json());
+            //resolve(await(await fetch(mep_bilibili.api_origin + "?bvid=" + this.videoid)).json());
+            if(!(this.videoid in multi_embed_player.bilibili_api_cache)){
+                multi_embed_player.bilibili_api_cache[this.videoid] = await(await fetch(multi_embed_player.bilibiliapi + "?bvid=" + this.videoid)).json();
+            }
+            resolve(multi_embed_player.bilibili_api_cache[this.videoid]);
         });
     }
 

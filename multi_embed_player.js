@@ -7,6 +7,7 @@ class multi_embed_player extends HTMLElement{
     static mep_status_load_youtube_api = false;
     static mep_status_load_niconico_api = false;
     static mep_status_load_bilibili_api = false;
+    static bilibili_api_cache = {};
     constructor(){
         super();
         this.videoid = null;
@@ -160,16 +161,18 @@ class multi_embed_player extends HTMLElement{
             //fetchでcloudflare workersに置いたapiを叩き取得 各自用意してほしい
             //jpgしかない
             let a = await fetch(multi_embed_player.niconicoapi + "?videoid=" + videoid);
-            let json_a = await a.json()
-            image_url = json_a["image"]
+            let json_a = await a.json();
+            image_url = json_a["image"];
             return image_url
         }
         else if(service=="bilibili"){
             //fetchでcloudflare workersに置いたapiを叩き取得 各自用意してほしい
             let a = await fetch(multi_embed_player.bilibiliapi + "?bvid=" + videoid+"&image_base64=1");
-            let json_a = await a.json()
+            let json_a = await a.json();
             //image_url = json_a["data"]["pic"]
-            image_url = json_a["image_base64"]
+            image_url = json_a["image_base64"];
+            delete json_a["image_base64"];//キャッシュの軽量化 大体200kbぐらい
+            multi_embed_player.bilibili_api_cache[videoid] = json_a;
             return image_url
         }
         else{
@@ -305,7 +308,6 @@ class multi_embed_player extends HTMLElement{
                     }
                 }
                 else{
-                    await this.bilibili_api_loader();
                     this.innerHTML = "";
                     let divdoc = document.createElement("div");
                     divdoc.classList.add("mep_bilibili");
