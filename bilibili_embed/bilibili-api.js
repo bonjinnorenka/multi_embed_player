@@ -279,7 +279,12 @@ class mep_bilibili{
     async getPlayerState(){
         if(!mep_bilibili.mep_extension_bilibili){
             console.log(mep_bilibili.no_extention_error);
-            if(((await this.getCurrentTime() - this.startSeconds)/await this.getRealDulation())<0.98){//再生中の可能性大
+            const currentTimeCahce = await this.getCurrentTime();
+            const realDulationCache = await this.getRealDulation();
+            if(currentTimeCahce==undefined||realDulationCache==undefined||realDulationCache==NaN){
+                return 0//1のほうが適切かもしれない
+            }
+            if(((currentTimeCahce - this.startSeconds)/realDulationCache)<0.98){//再生中の可能性大
                 return 2
             }
             else{
