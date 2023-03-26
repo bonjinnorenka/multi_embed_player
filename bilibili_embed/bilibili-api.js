@@ -2,7 +2,7 @@ class mep_bilibili{
     static localStorageCheck = null;//ニコニコと同じくlocalstorageにアクセスできないと死ぬため
     static mep_extension_bilibili = false;//拡張機能ないとまともに動かん
     static api_origin = "https://bilibili-api-gate.ryokuryu.workers.dev/";//please change this if you use
-    static no_extention_error = "you seems not to install mep_extention yet.if it not installed in your device,you can't exac some function(play,pause etc)";
+    static no_extention_error = "you seems not to install mep_extention yet.if it not installed in your device,you can't exac some function(play,pause etc) and some function(getDulation,getPlayerState etc) will return incorrect data which is not reflect real data";
     static before_mute_volume = 100;
     constructor(replacing_element,content){
         (async()=>{
@@ -279,6 +279,12 @@ class mep_bilibili{
     async getPlayerState(){
         if(!mep_bilibili.mep_extension_bilibili){
             console.log(mep_bilibili.no_extention_error);
+            if(((await this.getCurrentTime() - this.startSeconds)/await this.getRealDulation())<0.98){//再生中の可能性大
+                return 2
+            }
+            else{
+                return 4
+            }
         }
         else{
             if(this.state.getPlayerState!=undefined){
