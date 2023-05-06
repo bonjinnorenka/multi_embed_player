@@ -202,6 +202,9 @@ class mep_bilibili{
         }
         query_string = query_string.slice(0,-1);
         this.player.src = "https://www.bilibili.com/blackboard/webplayer/embed-old.html?" + query_string;
+        if(!mep_bilibili.mep_extension_bilibili){//時間カウント用プログラムの追加
+            this.player.addEventListener("load",()=>{this.play_start_time = new Date().getTime();this.play_start_count_interval = setInterval(this.observe_load_time.bind(this),500);this.player.dispatchEvent(new Event("onReady"))},{once:true});
+        }
         if(this.endSeconds!=-1){
             this.end_point_observe = setInterval(this.observe_end_time.bind(this),500);
         }
