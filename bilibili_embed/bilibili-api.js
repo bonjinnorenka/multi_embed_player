@@ -6,95 +6,112 @@ class mep_bilibili{
     static before_mute_volume = 100;
     constructor(replacing_element,content){
         (async()=>{
-            if(content["videoId"]==undefined){
-                console.log("videoId = undefined is not valid")
+            await this.element_constructor(replacing_element,content);
+        })();
+    }
+    async element_constructor(replacing_element,content){
+        this.seek_time = 0;
+        this.seek_time_used = true;
+        this.noextention_count_stop = 0;
+        if(content["videoId"]==undefined){
+            console.log("videoId = undefined is not valid")
+        }
+        this.state = {
+            getPlayerState: "PAUSE"
+        };
+        this.apicache = {};
+        let bilibili_doc = document.createElement("iframe");
+        replacing_element.replaceWith(bilibili_doc);
+        this.player = bilibili_doc;
+        if(mep_bilibili.localStorageCheck!=true){
+            await this.checkLocalstorage();
+        }
+        this.no_extention_pause = false;
+        this.messageListener();
+        this.startSeconds = 0;
+        if(content["playerVars"]["startSeconds"]!=undefined){
+            this.startSeconds = content["playerVars"]["startSeconds"];
+        }
+        this.autoplay_flag = false;
+        if(content["playerVars"]["autoplay"]==1){//終わり次第再生
+            this.autoplay_flag = true;
+        }
+        if(content["playerVars"]["displayComment"]!=undefined){
+            if(content["playerVars"]["displayComment"]==0){
+                this.displayCommentMode = false;
             }
-            this.state = {
-                getPlayerState: "PAUSE"
-            };
-            this.apicache = {};
-            let bilibili_doc = document.createElement("iframe");
-            replacing_element.replaceWith(bilibili_doc);
-            this.player = bilibili_doc;
-            if(mep_bilibili.localStorageCheck!=true){
-                await this.checkLocalstorage();
-            }
-            this.messageListener();
-            this.startSeconds = 0;
-            if(content["playerVars"]["startSeconds"]!=undefined){
-                this.startSeconds = content["playerVars"]["startSeconds"];
-            }
-            this.autoplay_flag = false;
-            if(content["playerVars"]["autoplay"]==1){//終わり次第再生
-                this.autoplay_flag = true;
-            }
-            if(content["playerVars"]["displayComment"]!=undefined){
-                if(content["playerVars"]["displayComment"]==0){
-                    this.displayCommentMode = false;
-                }
-                else if(content["playerVars"]["displayComment"]==1){
-                    this.displayCommentMode = true;
-                }
-                else{
-                    this.displayCommentMode = false;
-                }
-            }
-            let bilibili_query = {};
-            if(content["videoId"]==undefined){
-                console.log("invalid videoid:" + content["videoId"] + "so stop loading");
-                return
-            }
-            bilibili_query["bvid"] = content["videoId"];
-            this.videoid = content["videoId"];
-            if(this.startSeconds>0){
-                bilibili_query["t"] = this.startSeconds;
-            }
-            if(this.autoplay_flag){
-                bilibili_query["autoplay"] = 1;
-            }
-            if(this.displayCommentMode){
-                bilibili_query["danmaku"] = 1;
+            else if(content["playerVars"]["displayComment"]==1){
+                this.displayCommentMode = true;
             }
             else{
-                bilibili_query["danmaku"] = 0;
+                this.displayCommentMode = false;
             }
-            this.fastload = false;
-            if(content["playerVars"]["fastLoad"]!=undefined){
-                if(!mep_bilibili.mep_extension_bilibili){
-                    console.log("fast load ignored because of mep extention not installed in your browser")
+        }
+        let bilibili_query = {};
+        if(content["videoId"]==undefined){
+            console.log("invalid videoid:" + content["videoId"] + "so stop loading");
+            return
+        }
+        bilibili_query["bvid"] = content["videoId"];
+        this.videoid = content["videoId"];
+        if(this.startSeconds>0){
+            bilibili_query["t"] = this.startSeconds;
+        }
+        if(this.autoplay_flag){
+            bilibili_query["autoplay"] = 1;
+        }
+        else if(!mep_bilibili.mep_extension_bilibili){
+            this.no_extention_pause = true;
+        }
+        if(this.displayCommentMode){
+            bilibili_query["danmaku"] = 1;
+        }
+        else{
+            bilibili_query["danmaku"] = 0;
+        }
+        this.fastload = false;
+        if(content["playerVars"]["fastLoad"]!=undefined){
+            if(!mep_bilibili.mep_extension_bilibili){
+                console.log("fast load ignored because of mep extention not installed in your browser")
+            }
+            else{
+                if(content["playerVars"]["fastLoad"]==1){
+                    this.fastload = true;
                 }
-                else{
-                    if(content["playerVars"]["fastLoad"]==1){
-                        this.fastload = true;
-                    }
-                }
             }
-            let query_string = "";
-            let bilibili_query_keys = Object.keys(bilibili_query);
-            for(let x=0;x<bilibili_query_keys.length;x++){
-                query_string += bilibili_query_keys[x] + "=" + String(bilibili_query[bilibili_query_keys[x]]) + "&";
-            }
-            query_string = query_string.slice(0,-1);
-            bilibili_doc.src = "https://www.bilibili.com/blackboard/webplayer/embed-old.html?" + query_string;
-            bilibili_doc.width = content["width"];
-            bilibili_doc.height = content["height"];
-            bilibili_doc.allow = "autoplay";//fix bug not autoplay on chrome
-            bilibili_doc.allowFullscreen = true;//fix bug can't watch on full screen(all browser)
-            bilibili_doc.style.border = "none";//fix bug display border on outer frame
+        }
+        let query_string = "";
+        let bilibili_query_keys = Object.keys(bilibili_query);
+        for(let x=0;x<bilibili_query_keys.length;x++){
+            query_string += bilibili_query_keys[x] + "=" + String(bilibili_query[bilibili_query_keys[x]]) + "&";
+        }
+        this.player_width = content["width"];
+        this.player_height = content["height"];
+        query_string = query_string.slice(0,-1);
+        if(this.autoplay_flag){
             if(!mep_bilibili.mep_extension_bilibili){//時間カウント用プログラムの追加
-                this.player.addEventListener("load",()=>{this.play_start_time = new Date().getTime();this.play_start_count_interval = setInterval(this.observe_load_time.bind(this),500);this.player.dispatchEvent(new Event("onReady"))},{once:true});
+                this.no_extention_estimate_stop = true;
+                this.player.addEventListener("load",()=>{this.play_start_time = new Date().getTime();this.no_extention_estimate_stop = false;this.play_start_count_interval = setInterval(this.observe_load_time.bind(this),500);this.player.dispatchEvent(new Event("onReady"))},{once:true});
             }
             else{
                 this.player.addEventListener("onReady",()=>{if(this.fastload&&this.startSeconds!=0){this.seekTo(this.startSeconds)};if(this.fastload&&this.autoplay_flag){this.playVideo()}})
             }
-            this.endSeconds = -1;
-            if(content["playerVars"]["endSeconds"]!=undefined){
-                this.endSeconds = content["playerVars"]["endSeconds"];
-            }
-            if(this.endSeconds!=-1){
-                this.end_point_observe = setInterval(this.observe_end_time.bind(this),500);
-            }
-        })();
+        }
+        bilibili_doc.src = "https://www.bilibili.com/blackboard/webplayer/embed-old.html?" + query_string;
+        bilibili_doc.width = content["width"];
+        bilibili_doc.height = content["height"];
+        bilibili_doc.allow = "autoplay";//fix bug not autoplay on chrome
+        bilibili_doc.allowFullscreen = true;//fix bug can't watch on full screen(all browser)
+        bilibili_doc.style.border = "none";//fix bug display border on outer frame
+        try{bilibili_doc.parentElement.setEvent()}catch{}
+        //bilibili_doc.sandbox = "allow-scripts";
+        this.endSeconds = -1;
+        if(content["playerVars"]["endSeconds"]!=undefined){
+            this.endSeconds = content["playerVars"]["endSeconds"];
+        }
+        if(this.endSeconds!=-1){
+            this.end_point_observe = setInterval(this.observe_end_time.bind(this),500);
+        }
     }
     async checkLocalstorage(){
         //check whether cross domain iframe can use local storage
@@ -126,6 +143,7 @@ class mep_bilibili{
                     }
                 })
             }.bind(origin));
+            cdls.remove();
             if(return_str=="can't"){
                 mep_bilibili.localStorageCheck = false;
                 this.player.parentElement.dispatchEvent(new Event("onError"))//can't play bilibili video
@@ -140,14 +158,27 @@ class mep_bilibili{
         }
     }
     observe_load_time(){
-        let now_time = new Date().getTime();
-        this.estimate_time = (now_time - this.play_start_time)/1000 + this.startSeconds -1;//予測秒
-        if(this.endSeconds!=-1&&this.estimate_time>this.endSeconds){
-            this.custom_state = 4;
-            this.player.dispatchEvent(new Event("onEndVideo"));//再生を終了したことにする
-            clearInterval(this.play_start_count_interval);//確認を消去
-            this.pause();
+        if(this.noextention_count_stop==0||this.noextention_count_stop==1){
+            let now_time = new Date().getTime();
+            if(!this.no_extention_estimate_stop){
+                if(this.seek_time!=undefined&&this.seek_time!=0){
+                    this.estimate_time = (now_time - this.play_start_time)/1000 + this.seek_time -2;//予測秒
+                }
+                else{
+                    this.estimate_time = (now_time - this.play_start_time)/1000 + this.startSeconds -2;//予測秒                
+                }
+            }
+            if(this.endSeconds!=-1&&this.estimate_time>this.endSeconds){
+                this.custom_state = 4;
+                this.player.dispatchEvent(new Event("onEndVideo"));//再生を終了したことにする
+                clearInterval(this.play_start_count_interval);//確認を消去
+                this.pause();
+            }
+            if(this.noextention_count_stop==1){
+                this.noextention_count_stop = 2;
+            }
         }
+
     }
     observe_end_time(){
         let current_time = this.getCurrentTime();
@@ -162,38 +193,66 @@ class mep_bilibili{
         }
     }
     cueVideoById(content){
-        this.startSeconds = 0;
-        if(content["startSeconds"]!=undefined){
+        if(content["overwrite"]==undefined){
+            content["overwrite"] = true;
+        }
+        if(content["startSeconds"]!=undefined&&content["overwrite"]==true){
             this.startSeconds = content["startSeconds"];
         }
-        this.endSeconds = -1;
-        if(content["endSeconds"]!=undefined){
+        if(content["endSeconds"]!=undefined&&content["overwrite"]==true){
             this.endSeconds = content["endSeconds"];
         }
         this.autoplay_flag = false;
-        this.video_loader(content);
+        this.no_extention_pause = true;
+        if(content["overwrite"]==true){
+            this.videoid = content["videoId"];
+        }
     }
     loadVideoById(content){
-        this.startSeconds = 0;
-        if(content["startSeconds"]!=undefined){
+        if(content["overwrite"]==undefined){
+            content["overwrite"] = true;
+        }
+        if(content["startSeconds"]!=undefined&&content["overwrite"]==true){
             this.startSeconds = content["startSeconds"];
         }
-        this.endSeconds = -1;
-        if(content["endSeconds"]!=undefined){
+        if(content["endSeconds"]!=undefined&&content["overwrite"]==true){
             this.endSeconds = content["endSeconds"];
         }
         this.autoplay_flag = true;
+        this.no_extention_pause = false;
         this.video_loader(content);
     }
-    video_loader(content){
+    async video_loader(content){
         let bilibili_query = {};
         bilibili_query["bvid"] = content["videoId"];
+        const player_state_cahce = await this.getPlayerState();
+        if(this.videoid!=content["videoId"]||player_state_cahce==4){
+            this.seek_time = 0;
+            this.seek_time_used = true;
+        }
         this.videoid = content["videoId"];
-        if(this.startSeconds>0){
-            bilibili_query["t"] = this.startSeconds;
+        if(content["startSeconds"]>0){
+            bilibili_query["t"] = content["startSeconds"];
         }
         if(this.autoplay_flag){
             bilibili_query["autoplay"] = 1;
+        }
+        if(content["displayComment"]!=undefined){
+            if(content["displayComment"]==0){
+                this.displayCommentMode = false;
+            }
+            else if(content["displayComment"]==1){
+                this.displayCommentMode = true;
+            }
+            else{
+                this.displayCommentMode = false;
+            }
+        }
+        if(this.displayCommentMode){
+            bilibili_query["danmaku"] = 1;
+        }
+        else{
+            bilibili_query["danmaku"] = 0;
         }
         let query_string = "";
         let bilibili_query_keys = Object.keys(bilibili_query);
@@ -201,17 +260,34 @@ class mep_bilibili{
             query_string += bilibili_query_keys[x] + "=" + String(bilibili_query[bilibili_query_keys[x]]) + "&";
         }
         query_string = query_string.slice(0,-1);
-        this.player.src = "https://www.bilibili.com/blackboard/webplayer/embed-old.html?" + query_string;
+        const new_player = document.createElement("iframe");
+        this.player.replaceWith(new_player);
+        this.player = new_player;
         if(!mep_bilibili.mep_extension_bilibili){//時間カウント用プログラムの追加
-            this.player.addEventListener("load",()=>{this.play_start_time = new Date().getTime();this.play_start_count_interval = setInterval(this.observe_load_time.bind(this),500);this.player.dispatchEvent(new Event("onReady"))},{once:true});
+            this.no_extention_estimate_stop = true;
+            this.player.addEventListener("load",()=>{this.play_start_time = new Date().getTime();this.no_extention_estimate_stop = false;this.play_start_count_interval = setInterval(this.observe_load_time.bind(this),500);this.player.dispatchEvent(new Event("onReady"))},{once:true});
         }
+        this.player.src = "https://www.bilibili.com/blackboard/webplayer/embed-old.html?" + query_string;
+        this.player.allow = "autoplay";//fix bug not autoplay on chrome
+        this.player.allowFullscreen = true;//fix bug can't watch on full screen(all browser)
+        this.player.style.border = "none";//fix bug display border on outer frame
+        try{this.player.parentElement.setEvent()}catch{}
+        //this.player.sandbox = "allow-scripts";
         if(this.endSeconds!=-1){
             this.end_point_observe = setInterval(this.observe_end_time.bind(this),500);
         }
     }
     getCurrentTime(){
         if(!mep_bilibili.mep_extension_bilibili){
-            return this.estimate_time;
+            if(!this.seek_time_used){
+                return this.seek_time;
+            }
+            else if(this.estimate_time!=undefined){
+                return this.estimate_time;
+            }
+            else{
+                return this.startSeconds;
+            }
         }
         else{
             return this.state.currentTime;
@@ -219,7 +295,24 @@ class mep_bilibili{
     }
     playVideo(){
         if(!mep_bilibili.mep_extension_bilibili){
-            console.log(mep_bilibili.no_extention_error);
+            this.no_extention_pause = false;
+            this.noextention_count_stop = 0;
+            let generate_sorce = {"videoId":this.videoid,"overwrite":false};
+            if(this.endSeconds!=-1){
+                generate_sorce["endSeconds"] = this.endSeconds;
+            }
+            if(this.seek_time!=0&&!this.seek_time_used){
+                this.seek_time_used = true;
+                generate_sorce["startSeconds"] = this.seek_time;
+            }
+            else if(this.estimate_time!=0){
+                generate_sorce["startSeconds"] = this.estimate_time;
+            }
+            else if(this.startSeconds!=0){
+                generate_sorce["startSeconds"] = this.startSeconds;
+            }
+            this.loadVideoById(generate_sorce);
+            console.log("play!")
         }
         else{
             this.player.contentWindow.postMessage({eventName:"play"},"*");
@@ -227,15 +320,34 @@ class mep_bilibili{
     }
     pauseVideo(){
         if(!mep_bilibili.mep_extension_bilibili){
-            console.log(mep_bilibili.no_extention_error);
+            clearInterval(this.play_start_count_interval);
+            this.no_extention_pause = true;
+            this.noextention_count_stop = 1;
+            this.player.src = "";
+            try{this.player.parentElement.deleteEvent()}catch{}
+            console.log("pause!")
         }
         else{
             this.player.contentWindow.postMessage({eventName:"pause"},"*");
         }
     }
-    seekTo(seektime){
+    async seekTo(seektime){
         if(!mep_bilibili.mep_extension_bilibili){
-            console.log(mep_bilibili.no_extention_error);
+            let generate_sorce = {"videoId":this.videoid,"overwrite":false};
+            if(this.endSeconds!=-1){
+                generate_sorce["endSeconds"] = this.endSeconds;
+            }
+            generate_sorce["startSeconds"] = seektime;
+            this.seek_time = seektime;
+            this.seek_time_used = false;
+            let player_state = await this.getPlayerState();
+            if(player_state==2){
+                this.loadVideoById(generate_sorce);
+            }
+            else{
+                this.estimate_time = seektime;
+                this.cueVideoById(generate_sorce);
+            }
         }
         else{
             this.player.contentWindow.postMessage({eventName:"seek",seekTime:Number(seektime)},"*");
@@ -281,13 +393,15 @@ class mep_bilibili{
     }
     async getPlayerState(){
         if(!mep_bilibili.mep_extension_bilibili){
-            console.log(mep_bilibili.no_extention_error);
             const currentTimeCahce = await this.getCurrentTime();
             const realDulationCache = await this.getRealDulation();
             if(currentTimeCahce==undefined||realDulationCache==undefined||realDulationCache==NaN){
                 return 0//1のほうが適切かもしれない
             }
-            if(((currentTimeCahce - this.startSeconds)/realDulationCache)<0.98){//再生中の可能性大
+            else if(this.no_extention_pause){
+                return 3
+            }
+            else if(((currentTimeCahce - this.startSeconds)/realDulationCache)<0.99){//再生中の可能性大
                 return 2
             }
             else{
@@ -304,7 +418,7 @@ class mep_bilibili{
                 }
                 else if(this.state.getPlayerState=="PAUSED"){
                     let current_duration = ((this.getCurrentTime()) / ((await this.getDuration()) - this.endSeconds))*100//%で出す
-                    if(current_duration>98){
+                    if(current_duration>99){
                         return 4
                     }
                     else{
