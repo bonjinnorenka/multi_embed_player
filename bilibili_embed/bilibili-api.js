@@ -4,7 +4,17 @@ class mep_bilibili{
     static api_origin = "https://bilibili-api-gate.ryokuryu.workers.dev/";//please change this if you use
     static no_extention_error = "you seems not to install mep_extention yet.if it not installed in your device,you can't exac some function(play,pause etc) and some function(getDulation,getPlayerState etc) will return incorrect data which is not reflect real data";
     static before_mute_volume = 100;
+    static player_base_url = "";//"https://www.bilibili.com/blackboard/webplayer/embed-old.html?"
     constructor(replacing_element,content){
+        if(mep_bilibili.player_base_url==""){
+            const ua = navigator.userAgent;
+            if(ua.indexOf("Firefox")!=-1||ua.indexOf("Edg")!=-1){
+                mep_bilibili.player_base_url = "https://www.bilibili.com/blackboard/webplayer/embed-old.html?";//fast
+            }
+            else{
+                mep_bilibili.player_base_url = "https://player.bilibili.com/player.html?";//load often lazy in japan but this can mute auto play
+            }
+        }
         (async()=>{
             await this.element_constructor(replacing_element,content);
         })();
@@ -97,7 +107,7 @@ class mep_bilibili{
                 this.player.addEventListener("onReady",()=>{if(this.fastload&&this.startSeconds!=0){this.seekTo(this.startSeconds)};if(this.fastload&&this.autoplay_flag){this.playVideo()}})
             }
         }
-        bilibili_doc.src = "https://www.bilibili.com/blackboard/webplayer/embed-old.html?" + query_string;
+        bilibili_doc.src = mep_bilibili.player_base_url + query_string;
         bilibili_doc.width = content["width"];
         bilibili_doc.height = content["height"];
         bilibili_doc.allow = "autoplay";//fix bug not autoplay on chrome
@@ -267,7 +277,7 @@ class mep_bilibili{
             this.no_extention_estimate_stop = true;
             this.player.addEventListener("load",()=>{this.play_start_time = new Date().getTime();this.no_extention_estimate_stop = false;this.play_start_count_interval = setInterval(this.observe_load_time.bind(this),500);this.player.dispatchEvent(new Event("onReady"))},{once:true});
         }
-        this.player.src = "https://www.bilibili.com/blackboard/webplayer/embed-old.html?" + query_string;
+        this.player.src = mep_bilibili.player_base_url + query_string;
         this.player.allow = "autoplay";//fix bug not autoplay on chrome
         this.player.allowFullscreen = true;//fix bug can't watch on full screen(all browser)
         this.player.style.border = "none";//fix bug display border on outer frame
@@ -342,6 +352,7 @@ class mep_bilibili{
             this.seek_time_used = false;
             let player_state = await this.getPlayerState();
             if(player_state==2){
+                this.seek_time_used = true;
                 this.loadVideoById(generate_sorce);
             }
             else{
