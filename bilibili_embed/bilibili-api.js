@@ -39,8 +39,10 @@ class mep_bilibili{
         this.no_extention_pause = false;
         this.messageListener();
         this.startSeconds = 0;
+        this.innerStartSeconds = 0;
         if(content["playerVars"]["startSeconds"]!=undefined){
             this.startSeconds = content["playerVars"]["startSeconds"];
+            this.innerStartSeconds = content["playerVars"]["startSeconds"];
         }
         this.autoplay_flag = false;
         if(content["playerVars"]["autoplay"]==1){//終わり次第再生
@@ -209,6 +211,7 @@ class mep_bilibili{
         if(content["startSeconds"]!=undefined&&content["overwrite"]==true){
             this.startSeconds = content["startSeconds"];
         }
+        this.innerStartSeconds = content["startSeconds"];
         if(content["endSeconds"]!=undefined&&content["overwrite"]==true){
             this.endSeconds = content["endSeconds"];
         }
@@ -225,6 +228,7 @@ class mep_bilibili{
         if(content["startSeconds"]!=undefined&&content["overwrite"]==true){
             this.startSeconds = content["startSeconds"];
         }
+        this.innerStartSeconds = content["startSeconds"];
         if(content["endSeconds"]!=undefined&&content["overwrite"]==true){
             this.endSeconds = content["endSeconds"];
         }
@@ -408,6 +412,9 @@ class mep_bilibili{
             const realDulationCache = await this.getRealDulation();
             if(currentTimeCahce==undefined||realDulationCache==undefined||realDulationCache==NaN){
                 return 0//1のほうが適切かもしれない
+            }
+            else if(this.innerStartSeconds==currentTimeCahce){
+                return 1
             }
             else if(this.no_extention_pause){
                 return 3
