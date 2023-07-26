@@ -385,8 +385,8 @@ class multi_embed_player extends HTMLElement{
             return this.player.getCurrentTime();
         }
     }
-    seekTo(seconds){
-        this.player.seekTo(seconds);
+    async seekTo(seconds){
+        await this.player.seekTo(seconds);
     }
     mute(){
         this.player.mute();

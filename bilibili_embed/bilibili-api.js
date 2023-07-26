@@ -2,7 +2,7 @@ class mep_bilibili{
     static localStorageCheck = null;//ニコニコと同じくlocalstorageにアクセスできないと死ぬため
     static mep_extension_bilibili = false;//拡張機能ないとまともに動かん
     static api_origin = "https://bilibili-api-gate.ryokuryu.workers.dev/";//please change this if you use
-    static no_extention_error = "you seems not to install mep_extention yet.if it not installed in your device,you can't exac some function(play,pause etc) and some function(getDulation,getPlayerState etc) will return incorrect data which is not reflect real data";
+    static no_extention_error = "you seems not to install mep_extention yet.if it not installed in your device,you can't exac some function(mute unMute setVolume etc) and some function(getDulation,getPlayerState etc) will return incorrect data which is not reflect real data";
     static before_mute_volume = 100;
     static player_base_url = "";//"https://www.bilibili.com/blackboard/webplayer/embed-old.html?"
     constructor(replacing_element,content){
@@ -72,7 +72,10 @@ class mep_bilibili{
         if(this.autoplay_flag){
             bilibili_query["autoplay"] = 1;
         }
-        else if(!mep_bilibili.mep_extension_bilibili){
+        else{
+            bilibili_query["autoplay"] = 0;
+        }
+        if(!this.autoplay_flag&&!mep_bilibili.mep_extension_bilibili){
             this.no_extention_pause = true;
         }
         if(this.displayCommentMode){
@@ -173,11 +176,14 @@ class mep_bilibili{
         if(this.noextention_count_stop==0||this.noextention_count_stop==1){
             let now_time = new Date().getTime();
             if(!this.no_extention_estimate_stop){
-                if(this.seek_time!=undefined&&this.seek_time!=0){
-                    this.estimate_time = (now_time - this.play_start_time)/1000 + this.seek_time -2;//予測秒
+                if(this.innerStartSeconds!=undefined&&this.innerStartSeconds!=0){
+                    this.estimate_time = (now_time - this.play_start_time)/1000 + this.innerStartSeconds -2;
+                }
+                else if(this.seek_time!=undefined&&this.seek_time!=0){
+                    this.estimate_time = (now_time - this.play_start_time)/1000 + this.seek_time -2;
                 }
                 else{
-                    this.estimate_time = (now_time - this.play_start_time)/1000 + this.startSeconds -2;//予測秒                
+                    this.estimate_time = (now_time - this.play_start_time)/1000 + this.startSeconds -2;
                 }
             }
             if(this.endSeconds!=-1&&this.estimate_time>this.endSeconds){
@@ -250,6 +256,9 @@ class mep_bilibili{
         }
         if(this.autoplay_flag){
             bilibili_query["autoplay"] = 1;
+        }
+        else{
+            bilibili_query["autoplay"] = 0;
         }
         if(content["displayComment"]!=undefined){
             if(content["displayComment"]==0){
@@ -338,6 +347,7 @@ class mep_bilibili{
             this.no_extention_pause = true;
             this.noextention_count_stop = 1;
             this.player.src = "";
+            this.seek_time = this.estimate_time;
             try{this.player.parentElement.deleteEvent()}catch{}
             console.log("pause!")
         }
@@ -416,6 +426,9 @@ class mep_bilibili{
             else if(this.innerStartSeconds==currentTimeCahce){
                 return 1
             }
+            else if(((currentTimeCahce - this.startSeconds)/realDulationCache)>0.99){
+                return 4
+            }
             else if(this.no_extention_pause){
                 return 3
             }
@@ -448,7 +461,7 @@ class mep_bilibili{
     }
     setVolume(volume){
         if(!mep_bilibili.mep_extension_bilibili){
-            console.log(mep_bilibili.no_extention_error);
+            console.warn(mep_bilibili.no_extention_error);
         }
         else{
             this.player.contentWindow.postMessage({eventName:"setVolume",volume:Number(volume/100)},"*");//100で割って差をなくす
@@ -456,7 +469,7 @@ class mep_bilibili{
     }
     getVolume(){
         if(!mep_bilibili.mep_extension_bilibili){
-            console.log(mep_bilibili.no_extention_error);
+            console.warn(mep_bilibili.no_extention_error);
         }
         else{
             return this.state.volumeValue
@@ -464,7 +477,7 @@ class mep_bilibili{
     }
     isMuted(){
         if(!mep_bilibili.mep_extension_bilibili){
-            console.log(mep_bilibili.no_extention_error);
+            console.warn(mep_bilibili.no_extention_error);
         }
         else{
             if(this.getVolume()!=0){
@@ -477,7 +490,7 @@ class mep_bilibili{
     }
     mute(){
         if(!mep_bilibili.mep_extension_bilibili){
-            console.log(mep_bilibili.no_extention_error);
+            console.warn(mep_bilibili.no_extention_error);
         }
         else{
             mep_bilibili.before_mute_volume = this.getVolume();
@@ -486,7 +499,7 @@ class mep_bilibili{
     }
     unMute(){
         if(!mep_bilibili.mep_extension_bilibili){
-            console.log(mep_bilibili.no_extention_error);
+            console.warn(mep_bilibili.no_extention_error);
         }
         else{
             this.setVolume(mep_bilibili.before_mute_volume);
