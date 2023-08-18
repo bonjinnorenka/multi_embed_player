@@ -21,7 +21,7 @@ class mep_bilibili{
     }
     async element_constructor(replacing_element,content){
         if((await this.getVideodataApi())["code"]!=0){//video can play or not if code not 0 such as 69002 the video maybe delete.
-            this.player.parentElement.dispatchEvent(new Event("onError"));
+            replacing_element.parentElement.dispatchEvent(new Event("onError"));
             return;
         }
         this.seek_time = 0;
