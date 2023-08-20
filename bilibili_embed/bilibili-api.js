@@ -20,6 +20,7 @@ class mep_bilibili{
         })();
     }
     async element_constructor(replacing_element,content){
+        this.videoid = content["videoId"];
         if((await this.getVideodataApi())["code"]!=0){//video can play or not if code not 0 such as 69002 the video maybe delete.
             replacing_element.parentElement.dispatchEvent(new Event("onError"));
             return;
@@ -69,7 +70,6 @@ class mep_bilibili{
             return
         }
         bilibili_query["bvid"] = content["videoId"];
-        this.videoid = content["videoId"];
         if(this.startSeconds>0){
             bilibili_query["t"] = this.startSeconds;
         }
@@ -248,6 +248,11 @@ class mep_bilibili{
     }
     async video_loader(content){
         let bilibili_query = {};
+        this.videoid = content["videoId"];
+        if((await this.getVideodataApi())["code"]!=0){//video can play or not if code not 0 such as 69002 the video maybe delete.
+            this.player.dispatchEvent(new Event("onError"));
+            return;
+        }
         bilibili_query["bvid"] = content["videoId"];
         const player_state_cahce = await this.getPlayerState();
         if(this.videoid!=content["videoId"]||player_state_cahce==4){
