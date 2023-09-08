@@ -53,6 +53,10 @@ class multi_embed_player extends HTMLElement{
         }
     }
     async add_iframe(e=null,sub=false){
+        this.error_not_declare = false;
+        if(this.getAttribute("subService")!=null&&this.getAttribute("subVideoid")!=null){
+            this.error_not_declare = true;
+        }
         if(sub==true){
             if(this.getAttribute("subService")!=null&&this.getAttribute("subVideoid")!=null){
                 this.innerHTML = "";//reset
@@ -64,7 +68,7 @@ class multi_embed_player extends HTMLElement{
             }
         }
         else{
-            this.addEventListener("onError",function(){this.add_iframe(null,true)}.bind(this),{once:true});
+            this.addEventListener("executeSecound",function(){this.add_iframe(null,true)}.bind(this),{once:true});
         }
         this.startSeconds = 0;
         if(this.getAttribute("start")!=null){
@@ -184,9 +188,13 @@ class multi_embed_player extends HTMLElement{
     async loadVideoById(data,autoplay=true,sub=false){
         if(this.player!=undefined){
             let service_changed = false;
+            this.error_not_declare = false;
             if(sub==false){//1回目
                 this.previousData = data;
-                this.addEventListener("onError",function(){this.loadVideoById(null,true,true)}.bind(this),{once:true});   
+                if(typeof data.subVideoId==="string"&&typeof data.subService==="string"){
+                    this.error_not_declare = true;
+                    this.addEventListener("executeSecound",function(){this.loadVideoById(null,true,true)}.bind(this),{once:true});   
+                }
                 if(data.service!=this.player.service){
                     this.deleteEvent();
                     service_changed = true;
@@ -341,13 +349,13 @@ class multi_embed_player extends HTMLElement{
         try{
             if(this.service=="youtube"){
                 this.player.addEventListener("onReady",function(){this.dispatchEvent(new Event("onReady"))}.bind(this));//need bind
-                this.player.addEventListener("onError",function(){this.dispatchEvent(new Event("onError"))}.bind(this));
+                this.player.addEventListener("onError",function(){if(!this.error_not_declare){this.dispatchEvent(new Event("onError"))}else{this.dispatchEvent(new Event("executeSecound"))}}.bind(this));
                 this.player.addEventListener("onStateChange",function(){this.dispatchEvent(new Event("onStateChange"))}.bind(this));
                 this.player.addEventListener("onStateChange",function(){if(this.getCurrentTime()>this.getDuration()-1||(this.endSeconds!=-1&&this.getCurrentTime()!=0&&this.endSeconds-1<=this.getCurrentTime())){this.dispatchEvent(new Event("onEndVideo"))}}.bind(this))
             }
             else if(this.service=="niconico"||this.service=="bilibili"){
                 this.player.player.addEventListener("onReady",function(){this.dispatchEvent(new Event("onReady"))}.bind(this));//need bind
-                this.player.player.addEventListener("onError",function(){this.dispatchEvent(new Event("onError"))}.bind(this));
+                this.player.player.addEventListener("onError",function(){if(!this.error_not_declare){this.dispatchEvent(new Event("onError"))}else{this.dispatchEvent(new Event("executeSecound"))}}.bind(this));
                 this.player.player.addEventListener("onStateChange",function(){this.dispatchEvent(new Event("onStateChange"))}.bind(this));
                 this.player.player.addEventListener("onEndVideo",function(){this.dispatchEvent(new Event("onEndVideo"))}.bind(this));
             }
@@ -358,13 +366,13 @@ class multi_embed_player extends HTMLElement{
         try{
             if(this.service=="youtube"){
                 this.player.removeEventListener("onReady",function(){this.dispatchEvent(new Event("onReady"))}.bind(this));//need bind
-                this.player.removeEventListener("onError",function(){this.dispatchEvent(new Event("onError"))}.bind(this));
+                this.player.removeEventListener("onError",function(){if(!this.error_not_declare){this.dispatchEvent(new Event("onError"))}else{this.dispatchEvent(new Event("executeSecound"))}}.bind(this));
                 this.player.removeEventListener("onStateChange",function(){this.dispatchEvent(new Event("onStateChange"))}.bind(this));
                 this.player.removeEventListener("onStateChange",function(){if(this.getCurrentTime()>this.getDuration()-1||(this.endSeconds!=-1&&this.endSeconds-1<=this.getCurrentTime())){this.dispatchEvent(new Event("onEndVideo"))}}.bind(this))
             }
             else if(this.service=="niconico"||this.service=="bilibili"){
                 this.player.player.removeEventListener("onReady",function(){this.dispatchEvent(new Event("onReady"))}.bind(this));//need bind
-                this.player.player.removeEventListener("onError",function(){this.dispatchEvent(new Event("onError"))}.bind(this));
+                this.player.player.removeEventListener("onError",function(){if(!this.error_not_declare){this.dispatchEvent(new Event("onError"))}else{this.dispatchEvent(new Event("executeSecound"))}}.bind(this));
                 this.player.player.removeEventListener("onStateChange",function(){this.dispatchEvent(new Event("onStateChange"))}.bind(this));
                 this.player.player.removeEventListener("onEndVideo",function(){this.dispatchEvent(new Event("onEndVideo"))}.bind(this));
             }
@@ -398,7 +406,7 @@ class multi_embed_player extends HTMLElement{
         return this.player.isMuted();
     }
     setVolume(volume){
-        this.player.setVolume(volume);
+        this.player.setVolume(Number(volume));
     }
     getVolume(){
         return this.player.getVolume();
