@@ -25,7 +25,7 @@ class mep_bilibili{
             replacing_element.parentElement.dispatchEvent(new Event("onError"));
             return;
         }
-        this.seek_time = 0;
+        this.seek_time = -1;
         this.seek_time_used = true;
         this.noextention_count_stop = 0;
         if(content["videoId"]==undefined){
@@ -247,6 +247,9 @@ class mep_bilibili{
         this.video_loader(content);
     }
     async video_loader(content){
+        if(this.player.parentElement.childNodes[0].tagName=="IMG"){
+            this.player.parentElement.removeChild(this.player.parentElement.childNodes[0]);
+        }
         let bilibili_query = {};
         this.videoid = content["videoId"];
         if((await this.getVideodataApi())["code"]!=0){//video can play or not if code not 0 such as 69002 the video maybe delete.
@@ -256,7 +259,7 @@ class mep_bilibili{
         bilibili_query["bvid"] = content["videoId"];
         const player_state_cahce = await this.getPlayerState();
         if(this.videoid!=content["videoId"]||player_state_cahce==4){
-            this.seek_time = 0;
+            this.seek_time = -1;
             this.seek_time_used = true;
         }
         this.videoid = content["videoId"];
@@ -303,6 +306,7 @@ class mep_bilibili{
         this.player.allow = "autoplay";//fix bug not autoplay on chrome
         this.player.allowFullscreen = true;//fix bug can't watch on full screen(all browser)
         this.player.style.border = "none";//fix bug display border on outer frame
+        this.player.hidden = false;
         try{this.player.parentElement.setEvent()}catch{}
         //this.player.sandbox = "allow-scripts";
         if(this.endSeconds!=-1){
@@ -333,7 +337,7 @@ class mep_bilibili{
             if(this.endSeconds!=-1){
                 generate_sorce["endSeconds"] = this.endSeconds;
             }
-            if(this.seek_time!=0&&!this.seek_time_used){
+            if(this.seek_time!=-1&&!this.seek_time_used){
                 this.seek_time_used = true;
                 generate_sorce["startSeconds"] = this.seek_time;
             }
@@ -350,12 +354,22 @@ class mep_bilibili{
             this.player.contentWindow.postMessage({eventName:"play"},"*");
         }
     }
-    pauseVideo(){
+    async pauseVideo(){
         if(!mep_bilibili.mep_extension_bilibili){
             clearInterval(this.play_start_count_interval);
             this.no_extention_pause = true;
             this.noextention_count_stop = 1;
+            const img_element = document.createElement("img");
+            img_element.src = (await this.getVideodataApi())["image_base64"];
+            img_element.width = this.player.width;
+            img_element.height = this.player.height;
+            img_element.style.width = "100%";
+            img_element.style.height = "auto";
+            img_element.addEventListener("click",()=>{this.playVideo()});
+            this.player.parentElement.prepend(img_element);
+            this.player.hidden = true;
             this.player.src = "";
+            //this.player.replaceWith(img_element);
             this.seek_time = this.estimate_time;
             try{this.player.parentElement.deleteEvent()}catch{}
             console.log("pause!")
@@ -400,7 +414,7 @@ class mep_bilibili{
         return new Promise(async(resolve,reject)=>{
             //resolve(await(await fetch(mep_bilibili.api_origin + "?bvid=" + this.videoid)).json());
             if(!(this.videoid in multi_embed_player.bilibili_api_cache)){
-                multi_embed_player.bilibili_api_cache[this.videoid] = await(await fetch(multi_embed_player.bilibiliapi + "?bvid=" + this.videoid)).json();
+                multi_embed_player.bilibili_api_cache[this.videoid] = await(await fetch(multi_embed_player.bilibiliapi + "?bvid=" + this.videoid + "&image_base64=1")).json();
             }
             resolve(multi_embed_player.bilibili_api_cache[this.videoid]);
         });
