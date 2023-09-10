@@ -19,6 +19,18 @@ class mep_bilibili{
             await this.element_constructor(replacing_element,content);
         })();
     }
+    async image_player(){
+        const img_element = document.createElement("img");
+        img_element.src = (await this.getVideodataApi())["image_base64"];
+        img_element.width = this.player.width;
+        img_element.height = this.player.height;
+        img_element.style.width = "100%";
+        img_element.style.height = "auto";
+        img_element.addEventListener("click",()=>{this.playVideo()});
+        this.player.parentElement.prepend(img_element);
+        this.player.hidden = true;
+        this.player.src = "";
+    }
     async element_constructor(replacing_element,content){
         this.videoid = content["videoId"];
         if((await this.getVideodataApi())["code"]!=0){//video can play or not if code not 0 such as 69002 the video maybe delete.
@@ -116,7 +128,12 @@ class mep_bilibili{
                 this.player.addEventListener("onReady",()=>{if(this.fastload&&this.startSeconds!=0){this.seekTo(this.startSeconds)};if(this.fastload&&this.autoplay_flag){this.playVideo()}})
             }
         }
-        bilibili_doc.src = mep_bilibili.player_base_url + query_string;
+        if(this.autoplay_flag||mep_bilibili.localStorageCheck===true){
+            bilibili_doc.src = mep_bilibili.player_base_url + query_string;            
+        }
+        else{
+            this.image_player();
+        }
         bilibili_doc.width = content["width"];
         bilibili_doc.height = content["height"];
         bilibili_doc.allow = "autoplay";//fix bug not autoplay on chrome
@@ -230,6 +247,7 @@ class mep_bilibili{
         if(content["overwrite"]==true){
             this.videoid = content["videoId"];
         }
+        this.image_player();
     }
     loadVideoById(content){
         if(content["overwrite"]==undefined){
@@ -359,16 +377,7 @@ class mep_bilibili{
             clearInterval(this.play_start_count_interval);
             this.no_extention_pause = true;
             this.noextention_count_stop = 1;
-            const img_element = document.createElement("img");
-            img_element.src = (await this.getVideodataApi())["image_base64"];
-            img_element.width = this.player.width;
-            img_element.height = this.player.height;
-            img_element.style.width = "100%";
-            img_element.style.height = "auto";
-            img_element.addEventListener("click",()=>{this.playVideo()});
-            this.player.parentElement.prepend(img_element);
-            this.player.hidden = true;
-            this.player.src = "";
+            this.image_player();
             //this.player.replaceWith(img_element);
             this.seek_time = this.estimate_time;
             try{this.player.parentElement.deleteEvent()}catch{}

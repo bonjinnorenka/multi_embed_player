@@ -175,7 +175,6 @@ class multi_embed_player extends HTMLElement{
             let json_a = await a.json();
             //image_url = json_a["data"]["pic"]
             image_url = json_a["image_base64"];
-            delete json_a["image_base64"];//キャッシュの軽量化 大体200kbぐらい
             multi_embed_player.bilibili_api_cache[videoid] = json_a;
             return image_url
         }
@@ -193,7 +192,7 @@ class multi_embed_player extends HTMLElement{
                 this.previousData = data;
                 if(typeof data.subVideoId==="string"&&typeof data.subService==="string"){
                     this.error_not_declare = true;
-                    this.addEventListener("executeSecound",function(){this.loadVideoById(null,true,true)}.bind(this),{once:true});   
+                    this.addEventListener("executeSecound",function(){this.loadVideoById(null,autoplay,true)}.bind(this),{once:true});   
                 }
                 if(data.service!=this.player.service){
                     this.deleteEvent();
@@ -443,7 +442,9 @@ class multi_embed_player extends HTMLElement{
         this.seekTo(seconds + this.startSeconds);
     }
     getPlayerState(){
-        /*0->not played only thumnail
+        /*
+        -1->not set video mainly before embed
+        0->not played only thumnail
         1->onload
         2->playing
         3->pause
@@ -474,7 +475,7 @@ class multi_embed_player extends HTMLElement{
             }
         }
         else{
-            return 4
+            return -1
         }
     }
     PlayOnPlayer(playerid,service,videoid,start,end,subService,subVideoid){
