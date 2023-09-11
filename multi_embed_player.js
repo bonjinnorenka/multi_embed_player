@@ -4,7 +4,7 @@ class multi_embed_player extends HTMLElement{
     //static script_origin = "http://localhost:5500/";
     static niconicoapi = "https://niconico-imager.ryokuryu.workers.dev/";
     static bilibiliapi = "https://bilibili-api-gate.ryokuryu.workers.dev/";
-    static mep_status_load_youtube_api = false;
+    static mep_status_load_youtube_api = null;
     static mep_status_load_niconico_api = false;
     static mep_status_load_bilibili_api = false;
     static bilibili_api_cache = {};
@@ -495,20 +495,14 @@ class multi_embed_player extends HTMLElement{
     }
     async youtube_api_loader(){
         return new Promise(async function(resolve,reject){
-            if(multi_embed_player.mep_status_load_youtube_api===false){
-                /*
-                let a = await fetch(multi_embed_player.script_origin + "multi_embed_player/version.json");
-                let version_info = await a.json();
-                a = null;
-                //api読み込み
-                let script_url = "https://www.youtube-nocookie.com/s/player/" + version_info["youtube-iframe-api-version"] + "/www-widgetapi.vflset/www-widgetapi.js";
-                //読み込みを待機
-                */
+            if(multi_embed_player.mep_status_load_youtube_api===null){
                 let script_url = "https://www.youtube.com/iframe_api";
+                multi_embed_player.mep_status_load_youtube_api = false;
                 await this.mep_promise_script_loader(script_url);
-                multi_embed_player.mep_status_load_youtube_api = true
                 YT.ready(resolve);
-                //resolve();
+            }
+            else if(multi_embed_player.mep_status_load_youtube_api==false){
+                YT.ready(resolve);
             }
             else{
                 resolve();
