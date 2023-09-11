@@ -128,8 +128,8 @@ class mep_bilibili{
                 this.player.addEventListener("onReady",()=>{if(this.fastload&&this.startSeconds!=0){this.seekTo(this.startSeconds)};if(this.fastload&&this.autoplay_flag){this.playVideo()}})
             }
         }
-        if(this.autoplay_flag||mep_bilibili.localStorageCheck===true){
-            bilibili_doc.src = mep_bilibili.player_base_url + query_string;            
+        if(this.autoplay_flag||mep_bilibili.mep_extension_bilibili===true){
+            bilibili_doc.src = mep_bilibili.player_base_url + query_string;
         }
         else{
             this.image_player();
