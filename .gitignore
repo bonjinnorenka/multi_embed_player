@@ -1,6 +1,4 @@
-*/*/node_modules
-*/jsAnalyze/
-cgi/*/rust/target
-.vscode/c_cpp_properties.json
+node_modules
+.vscode
 *.cgi
 *.exe

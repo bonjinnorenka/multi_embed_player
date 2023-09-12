@@ -1,12 +1,9 @@
 class multi_embed_player extends HTMLElement{
     static script_origin = "https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@latest/";
-    //static script_origin = "https://js.ryokuryu.com/";
-    //static script_origin = "http://localhost:5500/";
     static niconicoapi = "https://niconico-imager.ryokuryu.workers.dev/";
     static bilibiliapi = "https://bilibili-api-gate.ryokuryu.workers.dev/";
-    static mep_status_load_youtube_api = null;
-    static mep_status_load_niconico_api = false;
-    static mep_status_load_bilibili_api = false;
+    static mep_status_load_api = {youtube:0,niconico:0,bilibili:0};
+    static mep_load_api_promise = {niconico:[],bilibili:[]};
     static bilibili_api_cache = {};
     constructor(){
         super();
@@ -495,13 +492,13 @@ class multi_embed_player extends HTMLElement{
     }
     async youtube_api_loader(){
         return new Promise(async function(resolve,reject){
-            if(multi_embed_player.mep_status_load_youtube_api===null){
+            if(multi_embed_player.mep_status_load_api.youtube===0){
                 let script_url = "https://www.youtube.com/iframe_api";
-                multi_embed_player.mep_status_load_youtube_api = false;
+                multi_embed_player.mep_status_load_api.youtube = false;
                 await this.mep_promise_script_loader(script_url);
                 YT.ready(resolve);
             }
-            else if(multi_embed_player.mep_status_load_youtube_api==false){
+            else if(multi_embed_player.mep_status_load_api.youtube==1){
                 YT.ready(resolve);
             }
             else{
@@ -511,11 +508,15 @@ class multi_embed_player extends HTMLElement{
     }
     async niconico_api_loader(){
         return new Promise(async function(resolve,reject){
-            if(multi_embed_player.mep_status_load_niconico_api===false){
-                //await this.mep_promise_script_loader(multi_embed_player.script_origin + "multi_embed_player/niconico_embed/v1.0/niconico-api.js");
-                await this.mep_promise_script_loader(multi_embed_player.script_origin + "niconico_embed/niconico-api.js");
-                multi_embed_player.mep_status_load_niconico_api = true;
+            if(multi_embed_player.mep_status_load_api.niconico===0){
+                multi_embed_player.mep_status_load_api.niconico = 1;
+                await this.mep_promise_script_loader(multi_embed_player.script_origin + "iframe_api/niconico.js");
+                multi_embed_player.mep_status_load_api.niconico = 2;
+                multi_embed_player.mep_load_api_promise.niconico.forEach(func=>func());
                 resolve();
+            }
+            else if(multi_embed_player.mep_status_load_api.niconico===1){
+                multi_embed_player.mep_load_api_promise.niconico.push(resolve);
             }
             else{
                 resolve();
@@ -524,10 +525,14 @@ class multi_embed_player extends HTMLElement{
     }
     async bilibili_api_loader(){
         return new Promise(async function(resolve,reject){
-            if(multi_embed_player.mep_status_load_bilibili_api===false){
-                await this.mep_promise_script_loader(multi_embed_player.script_origin + "bilibili_embed/bilibili-api.js");
-                multi_embed_player.mep_status_load_bilibili_api = true;
+            if(multi_embed_player.mep_status_load_api.bilibili===0){
+                await this.mep_promise_script_loader(multi_embed_player.script_origin + "iframe_api/bilibili.js");
+                multi_embed_player.mep_status_load_api.bilibili = 2;
+                multi_embed_player.mep_load_api_promise.bilibili.forEach(func=>func());
                 resolve();
+            }
+            else if(multi_embed_player.mep_status_load_api.bilibili===1){
+                multi_embed_player.mep_load_api_promise.bilibili.push(resolve);
             }
             else{
                 resolve();
