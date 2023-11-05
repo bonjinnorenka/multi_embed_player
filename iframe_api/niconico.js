@@ -2,12 +2,15 @@ class mep_niconico{
     static playerId = 0;
     static origin = 'https://embed.nicovideo.jp';
     static localStorageCheck = null;
-    constructor(replacing_element,content){
+    constructor(replacing_element,content,player_set_event_function){
+        if(typeof replacing_element === "string"){
+            replacing_element = document.getElementById(replacing_element);
+        }
         this.state = {
             isRepeat: false,
             playerStatus: 0
         };
-        this.messageListener();
+        this.#messageListener();
         this.startSeconds = 0;
         if(content["playerVars"]["startSeconds"]!=undefined){
             this.startSeconds = content["playerVars"]["startSeconds"];
@@ -23,7 +26,9 @@ class mep_niconico{
         niconico_doc.style.border = "none";//fix bug display border on outer frame
         replacing_element.replaceWith(niconico_doc);
         this.player = niconico_doc;
-        //this.checkLocalstorage(); 3/1のアプデで不要に
+        if(typeof player_set_event_function === "function"){
+            player_set_event_function(this.player);
+        }
         this.autoplay_flag = false;
         if(content["playerVars"]["autoplay"]==1){//終わり次第再生
             this.autoplay_flag = true;
@@ -39,42 +44,6 @@ class mep_niconico{
             else if(content["playerVars"]["displayComment"]==1){
                 this.displayCommentMode = true;
             }
-        }
-    }
-    async checkLocalstorage(){
-        //check whether cross domain iframe can use local storage
-        //if can't ,it will not play niconico embed
-        if(mep_niconico.localStorageCheck==null){
-            let cdls = document.createElement("iframe");
-            cdls.width = "0";
-            cdls.height = "0";
-            cdls.src = "https://js.ryokuryu.com/multi_embed_player/localStorageCheck.html";//if you don't prefer you can change this file.But you must change origin.If you this embed example.com,you must not this otherdomain.example.com
-            cdls.style = "border:none;"
-            let origin = "https://js.ryokuryu.com";
-            document.body.appendChild(cdls);
-            let return_str = await new Promise(function(resolve,reject){
-                window.addEventListener("message",function(ms){
-                    if(ms.origin==origin){
-                        if(ms.data.main=="can use localStorage"){
-                            resolve("can")
-                        }
-                        else if(ms.data.main=="error on use localStorage"){
-                            resolve("can't")
-                        }
-                    }
-                })
-            }.bind(origin));
-            if(return_str=="can't"){
-                mep_niconico.localStorageCheck = false;
-                this.player.parentElement.dispatchEvent(new Event("onError"))//can't play niconico video
-            }
-            else{
-                mep_niconico.localStorageCheck = true;
-            }
-        }
-        else if(mep_niconico.localStorageCheck==false){
-            this.player.parentElement.dispatchEvent(new Event("onError"))//can't play niconico video
-            console.log("error")
         }
     }
     cueVideoById(content){
@@ -110,12 +79,12 @@ class mep_niconico{
         }
     }
     playVideo(){
-        this.postMessage({
+        this.#postMessage({
             eventName: 'play'
         })
     }
     pauseVideo(){
-        this.postMessage({
+        this.#postMessage({
             eventName: 'pause'
         })
     }
@@ -135,7 +104,7 @@ class mep_niconico{
         return Number(this.state.volume)*100;
     }
     seekTo(seconds){
-        this.postMessage({
+        this.#postMessage({
             eventName: 'seek',
             data: {
               time: seconds*1000//secounds->msec
@@ -143,7 +112,7 @@ class mep_niconico{
           })
     }
     displayComment(mode){
-        this.postMessage({
+        this.#postMessage({
             eventName: "commentVisibilityChange",
             data:{
                 commentVisibility: mode
@@ -151,7 +120,7 @@ class mep_niconico{
         })
     }
     mute(){
-        this.postMessage({
+        this.#postMessage({
             eventName: "mute",
             data:{
                 mute:true
@@ -159,7 +128,7 @@ class mep_niconico{
         })
     }
     unMute(){
-        this.postMessage({
+        this.#postMessage({
             eventName: "mute",
             data:{
                 mute:false
@@ -167,7 +136,7 @@ class mep_niconico{
         })
     }
     setVolume(volume){
-        this.postMessage({
+        this.#postMessage({
             eventName: "volumeChange",
             data:{
                 volume: volume/100
@@ -182,14 +151,14 @@ class mep_niconico{
             return this.state.playerStatus;
         }
     }
-    postMessage(request) {
+    #postMessage(request) {
         const message = Object.assign({
             sourceConnectorType: 1,
             playerId: this.playerId
         }, request);
         this.player.contentWindow.postMessage(message, mep_niconico.origin);
     }
-    messageListener() {
+    #messageListener() {
         window.addEventListener('message', (e) => {
           if (e.origin === mep_niconico.origin && e.data.playerId === this.playerId) {
             const { data } = e.data;

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>example multi embed player</title>
+    <!--<link rel="stylesheet" href="multi_embed_player.css">-->
+    <style>
+        multi-embed-player{
+            width: 480px;
+            height: 270px;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        multi_embed_player_set_variable = (class_name)=>{
+            //class_name.cors_proxy = "https://iframe_api.ryokuryu.workers.dev?route=url_proxy&url="
+            //class_name.follow_GDPR = true;
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@latest/multi_embed_player.js"></script>
+    <h2>embed section</h2>
+    <h3>single</h3>
+    <h4>youtube</h4>
+    <p>normal</p>
+    <multi-embed-player videoid="_NC_pqMt5rY" service="youtube" type="embed"></multi-embed-player>
+    <p>start and stop(33s~55s)</p>
+    <multi-embed-player videoid="XpgSrULHibg" service="youtube" type="embed" start="33" end="55"></multi-embed-player>
+    <h4>niconico</h4>
+    <p>normal</p>
+    <multi-embed-player videoid="sm9" service="niconico" type="embed"></multi-embed-player>
+    <p>start and stop(45.5s~56.2s)</p>
+    <multi-embed-player videoid="sm41265645" service="niconico" type="embed" start="45.5" end="56.2"></multi-embed-player>
+    <h4>bilibili</h4>
+    <p>normal</p>
+    <multi-embed-player videoid="BV1n3411976a" service="bilibili" type="embed"></multi-embed-player>
+    <p>start and stop(51s~78s)</p>
+    <multi-embed-player videoid="BV1Fm4y1j7T1" service="bilibili" type="embed" start="51" end="78"></multi-embed-player>
+    <p>no play control wrap</p>
+    <multi-embed-player videoid="BV1Xc411Z74e" service="bilibili" type="embed" play_control_wrap="false"></multi-embed-player>
+    <h4>soundcloud</h4>
+    <p>normal</p>
+    <multi-embed-player videoid="8izwhpwkfuor/step" service="soundcloud" type="embed"></multi-embed-player>
+    <p>start and stop(20s~30s)</p>
+    <multi-embed-player videoid="557856309" service="soundcloud" type="embed" start="20" end="30"></multi-embed-player>
+    <h3>multi</h3>
+    <p>youtube->youtube</p>
+    <multi-embed-player videoid="gt-HCcUtG_o" service="youtube" subVideoid="L7PCS7afS3Y" subService="youtube"></multi-embed-player>
+    <p>youtube->other</p>
+    <multi-embed-player videoid="Ec3DZ5xaWuA" service="youtube" subVideoid="so33618546" subService="niconico"></multi-embed-player>
+    <p>niconico->niconico</p>
+    <multi-embed-player videoid="sm40856466" service="niconico" subVideoid="sm41660116" subService="niconico"></multi-embed-player>
+    <p>niconico->other</p>
+    <multi-embed-player videoid="sm41278225" service="niconico" subVideoid="cIbqy3-glos" subService="youtube"></multi-embed-player>
+    <p>bilibili->bilibili</p>
+    <multi-embed-player videoid="BV11f4y1n7Wt" service="bilibili" subVideoid="BV1dQ4y1Y7n8" subService="bilibili"></multi-embed-player>
+    <p>bilibili->other</p>
+    <multi-embed-player videoid="sm41278225" service="bilibili" subVideoid="cIbqy3-glos" subService="youtube"></multi-embed-player>
+    <p>soundcloud->soundcloud</p>
+    <multi-embed-player videoid="tkrism/shironek" service="soundcloud" subVideoid="tkrism/reflection-feat-nicamoq" subService="soundcloud"></multi-embed-player>
+    <p>soundcloud->other</p>
+    <multi-embed-player videoid="neko_hacker/digital-life-hacke" service="soundcloud" subVideoid="cIbqy3-glos" subService="youtube"></multi-embed-player>
+    <h2>thumbnail click</h2>
+    <multi-embed-player id="mep" type="player"></multi-embed-player>
+    <h3>single</h3>
+    <h4>youtube</h4>
+    <multi-embed-player videoid="H4C23eF_r2Q" service="youtube" type="thumbnail-click" for="mep"></multi-embed-player>
+    <h4>niconico</h4>
+    <multi-embed-player videoid="sm1089391" service="niconico" type="thumbnail-click" for="mep"></multi-embed-player>
+    <h4>bilibili</h4>
+    <multi-embed-player videoid="BV1xu4y1m7bi" service="bilibili" type="thumbnail-click" for="mep"></multi-embed-player>
+    <h4>soundcloud</h4>
+    <multi-embed-player videoid="8izwhpwkfuor/hop" service="soundcloud" type="thumbnail-click" for="mep"></multi-embed-player>
+    <h3>multi</h3>
+    <p>youtube->youtube</p>
+    <multi-embed-player videoid="L1OEYvb_8mU" service="youtube" subVideoid="zuj1fhVTK4M" subService="youtube" type="thumbnail-click" for="mep"></multi-embed-player>
+    <p>youtube->other</p>
+    <multi-embed-player videoid="r84n7i2M7sQ" service="youtube" subVideoid="BV1jw41167nd" subService="bilibili" type="thumbnail-click" for="mep"></multi-embed-player>
+    <p>niconico->niconico</p>
+    <multi-embed-player videoid="sm40856466" service="niconico" subVideoid="sm40660351" subService="niconico" type="thumbnail-click" for="mep"></multi-embed-player>
+    <p>niconico->other</p>
+    <multi-embed-player videoid="sm1" service="niconico" subVideoid="-W2PDv9pWV8" subService="youtube" type="thumbnail-click" for="mep"></multi-embed-player>
+    <p>bilibili->bilibili</p>
+    <multi-embed-player videoid="BV11f4y1n7Wt" service="bilibili" subVideoid="BV1zu4y1C7sw" subService="bilibili" type="thumbnail-click" for="mep"></multi-embed-player>
+    <p>bilibili->other</p>
+    <multi-embed-player videoid="BV1zU4y1C7sw" service="bilibili" subVideoid="Ft1oytmXg3Y" subService="youtube" type="thumbnail-click" for="mep"></multi-embed-player>
+    <p>soundcloud->soundcloud</p>
+    <multi-embed-player videoid="tkrism/shironek" service="soundcloud" subVideoid="tkrism/reflection-feat-nicamoq" subService="soundcloud" type="thumbnail-click" for="mep"></multi-embed-player>
+    <p>soundcloud->other</p>
+    <multi-embed-player videoid="neko_hacker/digital-life-hacke" service="soundcloud" subVideoid="cIbqy3-glos" subService="youtube" type="thumbnail-click" for="mep"></multi-embed-player>
+    <h2>control with multi_embed_player</h2>
+    <multi-embed-player id="mep_player" type="player"></multi-embed-player>
+    <div style="display: flex;">
+    <button onclick="document.getElementById('mep_player').playVideo()">play</button>
+    <button onclick="document.getElementById('mep_player').pauseVideo()">pause</button>
+    <!--mute and unmute button-->
+    <button onclick="document.getElementById('mep_player').mute()">mute</button>
+    <button onclick="document.getElementById('mep_player').unMute()">unmute</button>
+    <!--sound volume range-->
+    <input type="range" min="0" max="100" value="100" oninput="document.getElementById('mep_player').setVolume(this.value)">
+    <!--seek to input box value max is not define seekTo button click-->
+    <input type="number" id="seek_to_input" value="0">
+    <button onclick="document.getElementById('mep_player').seekTo(document.getElementById('seek_to_input').value)">seekTo</button>
+    <!--under this getter function !sometimes! return promise-->
+    <!--print to console about currenttime-->
+    <button onclick="(async()=>{console.log(await document.getElementById('mep_player').getCurrentTime())})()">get current time</button>
+    <!--print to console about duration-->
+    <button onclick="(async()=>{console.log(await document.getElementById('mep_player').getDuration())})()">get duration</button>
+    <!--print to console about volume-->
+    <button onclick="(async()=>{console.log(await document.getElementById('mep_player').getVolume())})()">get volume</button>
+    <!--print to console about player state-->
+    <button onclick="(async()=>{console.log(await document.getElementById('mep_player').getPlayerState())})()">get player state</button>
+    <!--print mute status-->
+    <button onclick="(async()=>{console.log(await document.getElementById('mep_player').isMuted())})()">is muted</button>
+    </div>
+    <div style="display: flex;">
+        <!--load youtube video-->
+        <input value="0ngyl5gbEQQ" type="text" placeholder="youtube video id" id="youtube_video_id">
+        <button onclick="document.getElementById('mep_player').loadVideoById({'videoId':document.getElementById('youtube_video_id').value, service:'youtube'})">load youtube video</button>
+    </div>
+    <div style="display: flex;">
+        <!--load niconico video-->
+        <input type="text" placeholder="niconico video id" id="niconico_video_id">
+        <button onclick="document.getElementById('mep_player').loadVideoById({'videoId':document.getElementById('niconico_video_id').value, service:'niconico'})">load niconico video</button>
+    </div>
+    <div style="display: flex;">
+        <!--load bilibili video-->
+        <input value="BV16K4y177HZ" type="text" placeholder="bilibili video id" id="bilibili_video_id">
+        <button onclick="document.getElementById('mep_player').loadVideoById({'videoId':document.getElementById('bilibili_video_id').value, service:'bilibili'})">load bilibili video</button>
+    </div>
+    <div style="display: flex;">
+        <!--load soundcloud video-->
+        <input value="dada-qada/koisashi" type="text" placeholder="soundcloud video id" id="soundcloud_video_id">
+        <button onclick="document.getElementById('mep_player').loadVideoById({'videoId':document.getElementById('soundcloud_video_id').value, service:'soundcloud'})">load soundcloud video</button>
+    </div>
+    <script>
+        //set event to mep element
+        document.getElementById("mep").addEventListener("onReady",(e)=>{
+            console.log("mep ready(outer)");
+        });
+        document.getElementById("mep").addEventListener("onStateChange",(e)=>{
+            console.log("mep state change(outer)");
+        });
+        document.getElementById("mep").addEventListener("onError",(e)=>{
+            console.log("mep error(outer)");
+        });
+        document.getElementById("mep").addEventListener("onEndVideo",(e)=>{
+            console.log("mep end video(outer)");
+        });
+        const mep = document.getElementById("mep");
+        document.getElementById("mep").addEventListener("onReady",()=>{
+            mep.player.addEventListener("onReady",(e)=>{
+                console.log("mep ready(inner)");
+            });
+            mep.player.addEventListener("onStateChange",(e)=>{
+                console.log("mep state change(inner) -> " + mep.player.getPlayerState());
+            });
+            mep.player.addEventListener("onError",(e)=>{
+                console.log("mep error(inner)");
+            });
+            mep.player.addEventListener("onEndVideo",(e)=>{
+                console.log("mep end video(inner)");
+            });
+            mep.player.addEventListener("executeSecound",(e)=>{
+                console.log("mep execute secound(inner)");
+            });
+        });
+    </script>
+</body>
+</html>
