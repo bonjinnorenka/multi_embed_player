@@ -9,6 +9,8 @@ draft: false
 toc: true
 ---
 
+## Iframe API
+
 If you want to use
 
 - GDPR mode
@@ -22,9 +24,9 @@ Need install service list
 - bilibili
 - nicovideo
 
-## Use iframe api
+### Use iframe api
 
-### Install iframe_api to cloudflare workers
+#### Install iframe_api to cloudflare workers
 
 ```bash
 git clone https://github.com/bonjinnorenka/multi_embed_player.git
@@ -33,7 +35,7 @@ npm install
 npm run deploy
 ```
 
-### Set option in html
+#### Set option in html
 
 ```html
 <!--before multi_embed_player.js script tag-->
@@ -44,14 +46,14 @@ npm run deploy
 </script>
 ```
 
-## Use cors proxy
+### Use cors proxy
 
 Cors proxie requirement
 
 - send get request
 - return response with cors header if your cors proxy is other domain
 
-### set cors proxy url
+#### set cors proxy url
 
 ```html
 <!--before multi_embed_player.js script tag-->
@@ -61,3 +63,32 @@ Cors proxie requirement
     }
 </script>
 ```
+
+## Documents
+
+Documents provided with this page.
+
+But if you want to install locally, please follow the steps below.
+
+### Deploy to local
+
+**You need to install hugo 0.120.3 or later And extended version.**
+
+```bash
+git clone https://https://github.com/bonjinnorenka/multi_embed_player.git
+cd multi_embed_player/documents
+hugo
+```
+
+### Deploy to cloudflare pages or netlify
+
+you need to some settings.
+
+- set root directory to `documents`
+- hugo version set to 0.120.3 or later using environment variable `HUGO_VERSION`
+- you need to set `HUGO_BASEURL` to your domain if you want to use robots.txt and set sitemap.xml correctly.
+
+Netlify only (maybe)
+
+- output directory set to `documents/public`
+- Need to set GO version to 1.21.3 or later using environment variable `GO_VERSION`

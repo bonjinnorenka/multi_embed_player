@@ -107,6 +107,14 @@ class mep_bilibili{
             document.head.appendChild(style_element);
         }
     }
+    #add_local_storage_error_description(){
+        const error_description_document = document.createElement("div");
+        error_description_document.style.width = "100%";
+        error_description_document.style.height = "100%";
+        error_description_document.innerText = "Due to not to access localstorage,can't play bilibili video\nyou should turn on third party cookie for this site and then reload this page";
+        this.player.replaceWith(error_description_document);
+        this.player = error_description_document;
+    }
     async #element_constructor(replacing_element,content,player_set_event_function){
         this.original_replacing_element = replacing_element;
         this.before_mute_volume = 100;
@@ -149,12 +157,7 @@ class mep_bilibili{
             await this.#checkLocalstorage();
         }
         if(mep_bilibili.localStorageCheck===false){
-            const error_description_document = document.createElement("div");
-            error_description_document.style.width = "100%";
-            error_description_document.style.height = "100%";
-            error_description_document.innerText = "Due to not to access localstorage,can't play bilibili video\nyou should turn on third party cookie for this site and then reload this page";
-            this.player.replaceWith(error_description_document);
-            this.player = error_description_document;
+            this.#add_local_storage_error_description();
             return;
         }
         this.no_extention_pause = false;
@@ -258,15 +261,22 @@ class mep_bilibili{
         //check whether cross domain iframe can use local storage
         //if can't ,it will not load bilibili embed
         if(mep_bilibili.localStorageCheck==null){
-            let cdls = document.createElement("iframe");
+            let selected_localStorageCheck_url = "";
+            if(!location.origin.includes("pages.dev")){
+                selected_localStorageCheck_url = "https://multi-embed-player.pages.dev/localStorageCheck";
+            }
+            else{
+                selected_localStorageCheck_url = "https://multi-embed-player.netlify.app/localstoragecheck";
+            }
+            const cdls = document.createElement("iframe");
             cdls.width = "0";
             cdls.height = "0";
-            cdls.src = "https://js.ryokuryu.com/multi_embed_player/localStorageCheck.html";//if you don't prefer you can change this file.But you must change origin.If you this embed example.com,you must not this otherdomain.example.com
+            cdls.src = selected_localStorageCheck_url;//if you don't prefer you can change this file.But you must change origin.If you this embed example.com,you must not this otherdomain.example.com
             //and if extention exists,it will redirect to send information about exist browser extention
             cdls.style = "border:none;"
-            let origin = "https://js.ryokuryu.com";
+            const origin = new URL(selected_localStorageCheck_url).origin;
             document.body.appendChild(cdls);
-            let return_str = await new Promise(function(resolve,reject){
+            const return_localstorage_status = await new Promise(function(resolve,reject){
                 window.addEventListener("message",function(ms){
                     if(ms.origin==origin){
                         try{
@@ -275,17 +285,12 @@ class mep_bilibili{
                             }
                         }
                         catch{}
-                        if(ms.data.main=="can use localStorage"){
-                            resolve("can")
-                        }
-                        else if(ms.data.main=="error on use localStorage"){
-                            resolve("can't")
-                        }
+                        resolve(ms.data.localStorageUsable);
                     }
                 })
             }.bind(origin));
             cdls.remove();
-            if(return_str=="can't"){
+            if(!return_localstorage_status){
                 mep_bilibili.localStorageCheck = false;
                 this.player.parentElement.dispatchEvent(new Event("onError"))//can't play bilibili video
             }
@@ -373,6 +378,10 @@ class mep_bilibili{
     async #video_loader(content){
         if(this.player===undefined){
             this.player = this.original_replacing_element;
+        }
+        if(mep_bilibili.localStorageCheck===false){
+            this.#add_local_storage_error_description();
+            return;
         }
         this.player.parentElement.childNodes.forEach((node)=>{if(node.tagName==="IMG"){node.remove()}});
         let bilibili_query = {};
