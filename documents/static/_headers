@@ -1,0 +1,6 @@
+#Add cors header for all content
+/*
+Access-Control-Allow-Origin: *
+#exclude crawling site if netlify
+https://multi-embed-player.netlify.app/*
+X-Robots-Tag: noindex

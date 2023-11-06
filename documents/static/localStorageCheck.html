@@ -6,15 +6,20 @@
 <body>
 <script>
     (async function(){
-        let data = (await(await fetch("https://js.ryokuryu.com/multi_embed_player/no_extention.json")).json())["extention_status"];
+        let data;
         try{
-            localStorage.setItem('test key', 'test value');
-            console.log("success")
-            window.parent.postMessage({main:'can use localStorage',extention:data}, '*');
+            data = (await(await fetch(`${location.origin}/no_extention.json`)).json())["extention_status"];
         }
         catch{
-            console.log("localstorage error")
-            window.parent.postMessage({main:'error on use localStorage',extention:data}, '*');
+            data = {extention_status:false};
+        }
+        try{
+            localStorage.setItem('test key', 'test value');
+            window.parent.postMessage({main:'can use localStorage',extention:data,localStorageUsable:true}, '*');
+        }
+        catch{
+            console.log("localstorage error");
+            window.parent.postMessage({main:'error on use localStorage',extention:data,localStorageUsable:false}, '*');
         }
     })();
 </script>
