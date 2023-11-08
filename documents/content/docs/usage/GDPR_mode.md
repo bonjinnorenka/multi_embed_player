@@ -51,7 +51,7 @@ You need to add attribute `follow_GDPR` to `true` in `multi_embed_player` tag.
         height: 270px;
     }
 </style>
-<script src="https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@latest/multi_embed_player.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@v2/multi_embed_player.js"></script>
 <multi-embed-player videoid="_NC_pqMt5rY" service="youtube" follow_GDPR="true"></multi-embed-player>
 
 ## Notice

@@ -20,7 +20,7 @@ add js file url and CSS to your html
         height: 270px;
     }
 </style>
-<script src="https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@latest/multi_embed_player.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@v2/multi_embed_player.js"></script>
 ```
 
 <style>
@@ -29,7 +29,7 @@ add js file url and CSS to your html
         height: 270px;
     }
 </style>
-<script src="https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@latest/multi_embed_player.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@v2/multi_embed_player.js"></script>
 
 ## Add embed html content
 

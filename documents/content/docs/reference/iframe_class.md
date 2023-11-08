@@ -13,13 +13,19 @@ toc: true
 
 ### Load_video_option_object
 
+{{< table "table-responsive" >}}
+
 |variable name|type|require|default value|description|
 |---|---|---|---|---|
 |videoId|string|true||video id for player|
 |startSeconds|number|false|0|start seconds for player|
 |endSeconds|number|false||end seconds for player|
 
+{{< /table >}}
+
 ### player_content_object
+
+{{< table "table-responsive" >}}
 
 |variable name|type|require|default value|description|
 |---|---|---|---|---|
@@ -30,11 +36,15 @@ toc: true
 |width|number|true||width for player|
 |height|number|true||height for player|
 
+{{< /table >}}
+
 ## mep_niconico class
 
 defined at [niconico.js](https://github.com/bonjinnorenka/multi_embed_player/blob/main/iframe_api/niconico.js)
 
 ### variable list
+
+{{< table "table-responsive" >}}
 
 |variable name|type|default value|description|
 |---|---|---|---|
@@ -42,7 +52,11 @@ defined at [niconico.js](https://github.com/bonjinnorenka/multi_embed_player/blo
 |origin|string|https://embed.nicovideo.jp|iframe origin|
 |localStorageCheck|null or boolean|null|localStorage check result **compatibility**|
 
+{{< /table >}}
+
 ### function list
+
+{{< table "table-responsive" >}}
 
 |function name|arguments|response|description|
 |---|---|---|---|
@@ -64,11 +78,15 @@ defined at [niconico.js](https://github.com/bonjinnorenka/multi_embed_player/blo
 |setVolume|number(0-100)||set volume for player|
 |getPlayerState||number|get player state<br>0->not playing only thumbnail<br>1->onloaded(include cue)<br>2->playing<br>3->paused<br>4->video ended
 
+{{< /table >}}
+
 ## mep_bilibili class
 
 defined at [bilibili.js](https://github.com/bonjinnorenka/multi_embed_player/blob/main/iframe_api/bilibili.js)
 
 ### variable list
+
+{{< table "table-responsive" >}}
 
 |variable name|type|default value|description|
 |---|---|---|---|
@@ -80,7 +98,11 @@ defined at [bilibili.js](https://github.com/bonjinnorenka/multi_embed_player/blo
 |bilibili_api_cache|Object{videoId:video_info}|{}|cache for bilibili api|
 | cors_proxy | string | "" | cors proxy endpoint|
 
+{{< /table >}}
+
 ### function list
+
+{{< table "table-responsive" >}}
 
 |function name|arguments|response|description|
 |---|---|---|---|
@@ -102,11 +124,15 @@ defined at [bilibili.js](https://github.com/bonjinnorenka/multi_embed_player/blo
 |unMute|||unmute for player **not working if no extention**|
 |displayComment|boolean||display comment for player **not working if no extention**|
 
+{{< /table >}}
+
 ## mep_soundcloud class
 
 defined at [soundcloud.js](https://github.com/bonjinnorenka/multi_embed_player/blob/main/iframe_api/soundcloud.js)
 
 ### variable list
+
+{{< table "table-responsive" >}}
 
 |variable name|type|default value|description|
 |---|---|---|---|
@@ -114,7 +140,11 @@ defined at [soundcloud.js](https://github.com/bonjinnorenka/multi_embed_player/b
 |soundcloud_api_promise|Array of function|[]|after load soundcloud api call this functions|
 |numericRegex|RegExp|/^[0-9]+$/|numeric regex|
 
+{{< /table >}}
+
 ### function list
+
+{{< table "table-responsive" >}}
 
 |function name|arguments|response|description|
 |---|---|---|---|
@@ -133,3 +163,6 @@ defined at [soundcloud.js](https://github.com/bonjinnorenka/multi_embed_player/b
 |getTitle||string|get title for playing video|
 |loadVideoById|Load_video_option_object||load video by id for player|
 |cueVideoById|Load_video_option_object||cue video by id for player|
+|getRealDuration||number(seconds)|return duration between start and end seconds|
+
+{{< /table >}}

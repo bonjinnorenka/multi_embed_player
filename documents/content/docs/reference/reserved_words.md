@@ -17,11 +17,17 @@ will be reserved words.
 
 ## HTML tag
 
+{{< table "table-responsive" >}}
+
 | tag name | description |
 | --- | --- |
 | multi-embed-player | main tag |
 
+{{< /table >}}
+
 ## Javascript
+
+{{< table "table-responsive" >}}
 
 | variable name |type| description |
 | --- | --- | --- |
@@ -34,13 +40,21 @@ will be reserved words.
 | mep_bilibili | class | bilibili iframe class |
 | mep_soundcloud | class | soundcloud iframe class |
 
+{{< /table >}}
+
 ## Local storage
+
+{{< table "table-responsive" >}}
 
 | key name | description |
 | --- | --- |
 | multi_embed_player_GDPR_accepted | save GDPR status |
 
+{{< /table >}}
+
 ## Class name(CSS)
+
+{{< table "table-responsive" >}}
 
 | class name | description |
 | --- | --- |
@@ -52,3 +66,5 @@ will be reserved words.
 |mep_bilibili_transparent|bilibili iframe transparent CSS(use for bilibili pause over wrap)|
 |mep_load_animation|load animation CSS use for this defined or not|
 |mep_loading_animation|loading animation CSS use bilibili loding animation|
+
+{{< /table >}}

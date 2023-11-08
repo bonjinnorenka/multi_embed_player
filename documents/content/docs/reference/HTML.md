@@ -13,6 +13,8 @@ toc: true
 
 This is only listed original or unique value.
 
+{{< table "table-responsive" >}}
+
 | attribute name | type   | required | default value | description     |
 | -------------- | ------ | -------- | ------------- | --------------- |
 | videoid        | string | true     | null          | video id        |
@@ -24,3 +26,6 @@ This is only listed original or unique value.
 | img_url        | string | false    | null          | image url it use instead of video id thumbnail       |
 | picture_tag   | string of HTML | false    | null          | picture tag inner content it use instead of video id thumbnail       |
 | for            | string | false    | null          | player id to play valid only thumbnail-click       |
+| play_control_wrap | boolen | false    | true         | wrap play control or not only valid on bilibili     |
+
+{{< /table >}}

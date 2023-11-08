@@ -41,11 +41,15 @@ GET ?route=youtube&videoid=${video id(11 characters)}
 
 ### Query parameter
 
+{{< table "table-responsive" >}}
+
 | Parameter Name | Required | Type   | Description                                                                  |
 | -------------- | -------- | ------ | ---------------------------------------------------------------------------- |
 | route          | Yes      | String | The route to the specific API endpoint. Must be **youtube**                  |
 | videoid        | Yes      | String | The ID of the video to retrieve details for.                                 |
 | image_base64   | No       | Number | If set to 1, the response will include a base64 encoded image. Default is 0. |
+
+{{< /table >}}
 
 ### Success response
 
@@ -119,11 +123,15 @@ This API response depend on niconico return ones, so sometimes change from this 
 
 ### Query parameter
 
+{{< table "table-responsive" >}}
+
 | Parameter Name | Required | Type   | Description                                                                  |
 | -------------- | -------- | ------ | ---------------------------------------------------------------------------- |
 | route          | Yes      | String | The route to the specific API endpoint. Must be **niconico**                 |
 | videoid        | Yes      | String | The ID of the video to retrieve details for.                                 |
 | image_base64   | No       | Number | If set to 1, the response will include a base64 encoded image. Default is 0. |
+
+{{< /table >}}
 
 ### Success response
 
@@ -151,6 +159,8 @@ GET ?route=niconico&videoid=sm9&image_base64=1
 }
 ```
 
+{{< table "table-responsive" >}}
+
 | Parameter Name | Parameter Description                                                     |
 | -------------- | ------------------------------------------------------------------------- |
 | thumbnail_url  | The URL of the NicoNico video thumbnail                                   |
@@ -166,6 +176,8 @@ GET ?route=niconico&videoid=sm9&image_base64=1
 | publish_time   | The publish time of the NicoNico video(ISO 8601 String)                   |
 | embedable      | Whether the NicoNico video is embeddable or not                           |
 | genre          | The genre of the NicoNico video                                           |
+
+{{< /table >}}
 
 {{% /tab %}} {{% tab tabName="JSDOC" %}}
 
@@ -209,11 +221,15 @@ GET ?route=bilibili&videoid=${BVID}
 
 ### Query parameter
 
+{{< table "table-responsive" >}}
+
 | Parameter Name | Required | Type   | Description                                                                  |
 | -------------- | -------- | ------ | ---------------------------------------------------------------------------- |
 | route          | Yes      | String | The route to the specific API endpoint. Must be **bilibili**                 |
 | videoid        | Yes      | String | The ID of the video to retrieve details for.  Must be **BVID** not use AVID  |
 | image_base64   | No       | Number | If set to 1, the response will include a base64 encoded image. Default is 0. |
+
+{{< /table >}}
 
 ### Sucess Response
 
@@ -340,6 +356,8 @@ GET ?route=bilibili&videoid=${BVID}
 }
 ```
 
+{{< table "table-responsive" >}}
+
 | Parameter Name | Type   | Description                                                                 |
 | -------------- | ------ | --------------------------------------------------------------------------- |
 | code           | Number | The status code of the response. 0 indicates success.                       |
@@ -348,7 +366,11 @@ GET ?route=bilibili&videoid=${BVID}
 | data           | Object | Contains the actual data of the response.                                   |
 | image_base64|String|Base 64 Image of video thumbnail|
 
+{{< /table >}}
+
 data Object
+
+{{< table "table-responsive" >}}
 
 | Parameter Name | Type   | Description                                                                 |
 | -------------- | ------ | --------------------------------------------------------------------------- |
@@ -376,7 +398,11 @@ data Object
 | pages          | Array  | An array of objects containing information about each page of the video.    |
 | staff          | Array  | An array of objects containing information about the staff involved.        |
 
+{{< /table >}}
+
 desc_v2 array type
+
+{{< table "table-responsive" >}}
 
 | Parameter Name | Type   | Description                                                                 |
 | -------------- | ------ | --------------------------------------------------------------------------- |
@@ -384,7 +410,11 @@ desc_v2 array type
 | type           | Number | The type of the description.                                                |
 | biz_id         | Number | The business ID associated with the description.                            |
 
+{{< /table >}}
+
 rights object
+
+{{< table "table-responsive" >}}
 
 | Parameter Name | Type   | Description                                                                 |
 | -------------- | ------ | --------------------------------------------------------------------------- |
@@ -392,7 +422,11 @@ rights object
 | elec           | Number | Whether the video has electronic points.                                    |
 | download       | Number | Whether the video can be downloaded.                                        |
 
+{{< /table >}}
+
 owner object
+
+{{< table "table-responsive" >}}
 
 | Parameter Name | Type   | Description                                                                 |
 | -------------- | ------ | --------------------------------------------------------------------------- |
@@ -400,7 +434,12 @@ owner object
 | name           | String | The name of the owner.                                                      |
 | face           | String | The URL of the owner's profile picture URL.                                     |
 
+{{< /table >}}
+
 stat object
+
+{{< table "table-responsive" >}}
+
 | Parameter Name | Type   | Description                                                                 |
 | -------------- | ------ | --------------------------------------------------------------------------- |
 | view           | Number | The number of views the video has.                                          |
@@ -414,21 +453,35 @@ stat object
 | like           | Number | The number of likes the video has.                                          |
 | dislike        | Number | The number of dislikes the video has.                                       |
 
+{{< /table >}}
+
 subtitle object
+
+{{< table "table-responsive" >}}
 
 | Parameter Name | Type   | Description                                                                 |
 | -------------- | ------ | --------------------------------------------------------------------------- |
 | allow_submit   | Boolean| Whether submission of subtitles is allowed.                                |
 | list           | Array  | An array of objects containing information about each subtitle.             |
 
+{{< /table >}}
+
 list on subtitle object
+
+{{< table "table-responsive" >}}
+
 | Parameter Name | Type   | Description                                                                 |
 | -------------- | ------ | --------------------------------------------------------------------------- |
 | id             | Number | The ID of the subtitle.                                                     |
 | lan            | String | The language of the subtitle.                                               |
 | subtitle_url   | String | The URL of the subtitle.                                                    |
 
+{{< /table >}}
+
 pages object
+
+{{< table "table-responsive" >}}
+
 | Parameter Name | Type   | Description                                                                 |
 | -------------- | ------ | --------------------------------------------------------------------------- |
 | cid            | Number | The ID of the page.                                                         |
@@ -439,7 +492,12 @@ pages object
 | vid            | String | The video ID of the page.                                                   |
 | weblink        | String | The web link of the page.                                                   |
 
+{{< /table >}}
+
 staff object
+
+{{< table "table-responsive" >}}
+
 | Parameter Name | Type   | Description                                                                 |
 | -------------- | ------ | --------------------------------------------------------------------------- |
 | mid            | Number | The ID of the staff member.                                                 |
@@ -448,11 +506,18 @@ staff object
 | face           | String | The URL of the staff member's profile picture.                              |
 | official_verify| Object | An object containing information about the staff member's official status. |
 
+{{< /table >}}
+
 official_verify object
+
+{{< table "table-responsive" >}}
+
 | Parameter Name | Type   | Description                                                                 |
 | -------------- | ------ | --------------------------------------------------------------------------- |
 | type           | Number | The type of the official verification.                                      |
 | desc           | String | The description of the official verification.                               |
+
+{{< /table >}}
 
 {{% /tab %}} {{% tab tabName="JSDOC" %}}
 
@@ -580,11 +645,15 @@ GET ?route=soundcloud&videoid=${video id}
 
 ### Query parameter
 
+{{< table "table-responsive" >}}
+
 | Parameter Name | Required | Type   | Description                                                                  |
 | -------------- | -------- | ------ | ---------------------------------------------------------------------------- |
 | route          | Yes      | String | The route to the specific API endpoint. Must be **soundcloud**                 |
 | videoid        | Yes      | String | The ID of the video to retrieve details for.  |
 | image_base64   | No       | Number | If set to 1, the response will include a base64 encoded image. Default is 0. |
+  
+  {{< /table >}}
 
 <br>
 
@@ -616,6 +685,8 @@ GET ?route=soundcloud&videoid=tkrism/reflection-feat-nicamoq&image_base64=1
 }
 ```
 
+{{< table "table-responsive" >}}
+
 | Parameter Name | Parameter Description                                                     |
 | -------------- | ------------------------------------------------------------------------- |
 | version        | The version of the oEmbed protocol (must 1.0).                           |
@@ -631,6 +702,8 @@ GET ?route=soundcloud&videoid=tkrism/reflection-feat-nicamoq&image_base64=1
 | author_name    | The name of the author of the SoundCloud track.                           |
 | author_url     | The URL of the author's SoundCloud profile.                               |
 | image_base64   | The base64 image (only show image_base64 parameter to 1).                 |
+  
+{{< /table >}}
 
 {{% /tab %}} {{% tab tabName="JSDOC" %}}
 

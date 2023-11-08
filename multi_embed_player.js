@@ -104,7 +104,7 @@ const multi_embed_player_GDPR_accepted_all_back_down = ()=>{
  * @extends HTMLElement
  */
 class multi_embed_player extends HTMLElement{
-    static script_origin = "https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@latest/";
+    static script_origin = "https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@v2/";
     static iframe_api_endpoint = "https://iframe_api.ryokuryu.workers.dev";
     static mep_status_load_api = {youtube:0,niconico:0,bilibili:0,soundcloud:0};
     static mep_load_api_promise = {youtube:[],niconico:[],bilibili:[],soundcloud:[]};
