@@ -14,10 +14,15 @@ import url_proxy from "./url_proxy.js";
 import soundcloud from "./soundcloud_api.js";
 import youtube from "./youtube_api.js";
 
-const white_list = [];//please rewrite to your origin to prevent abuse from others.if empty, allow access from all origin
-
 export default {
 	async fetch(request, env, ctx) {
+		let white_list = [];
+		if(typeof env.WhiteList === "undefined"){
+			white_list = [];
+		}
+		else{
+			white_list = JSON.parse(env.WhiteList);
+		}
 		const url = new URL(request.url);
 		// You can get pretty far with simple logic like if/switch-statements
 		if(white_list.length!==0&&(!(request.headers.get("origin"))||!white_list.includes(request.headers.get("origin")))){
