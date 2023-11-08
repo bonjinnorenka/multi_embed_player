@@ -279,6 +279,18 @@ class mep_soundcloud{
         return this.player_metadata.title;
     }
     /**
+     * return duration between start and end seconds
+     * @returns {number} dulation of between start and end
+     */
+    getRealDulation(){//original function
+        if(this.endSeconds==-1){
+            return this.getDuration() - this.first_seek_time;
+        }
+        else{
+            return this.endSeconds - this.first_seek_time;
+        }
+    }
+    /**
      * Load a new video into the player.
      * @param {mep_soundcloud_load_object} content 
      * @param {number} startSeconds 
