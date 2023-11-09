@@ -18,6 +18,7 @@ add js file url and CSS to your html
     multi-embed-player{
         width: 480px;
         height: 270px;
+        max-width: 100%;
     }
 </style>
 <script src="https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@v2/multi_embed_player.js"></script>
@@ -27,6 +28,7 @@ add js file url and CSS to your html
     multi-embed-player{
         width: 480px;
         height: 270px;
+        max-width: 100%;
     }
 </style>
 <script src="https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@v2/multi_embed_player.js"></script>

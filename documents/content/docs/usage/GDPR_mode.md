@@ -49,6 +49,7 @@ You need to add attribute `follow_GDPR` to `true` in `multi_embed_player` tag.
     multi-embed-player{
         width: 480px;
         height: 270px;
+        max-width: 100%;
     }
 </style>
 <script src="https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@v2/multi_embed_player.js"></script>

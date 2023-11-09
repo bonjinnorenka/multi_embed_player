@@ -16,6 +16,7 @@ toc: true
     multi-embed-player{
         width: 480px;
         height: 270px;
+        max-width: 100%;
     }
 </style>
 

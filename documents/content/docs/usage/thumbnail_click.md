@@ -17,6 +17,11 @@ toc: true
     multi-embed-player{
         width: 480px;
         height: 270px;
+        max-width: 100%;
+    }
+    multi-embed-player[type="thumbnail-click"] {
+        min-width: 240px;
+        min-height: 135px;
     }
 </style>
 
@@ -27,8 +32,14 @@ Thumbnail click is suitable for video list page.
 ### Example
 
 ```html
+<style>
+    multi-embed-player[type="thumbnail-click"] {
+        min-width: 240px;
+        min-height: 135px;
+    }
+</style>
 <multi-embed-player id="mep_player" type="player"></multi-embed-player>
-<div style="display:flex">
+<div style="display:flex;overflow-x:scroll">
 <multi-embed-player videoid="H4C23eF_r2Q" service="youtube" type="thumbnail-click" for="mep_player"></multi-embed-player>
 <multi-embed-player videoid="Xl6gqwcLyPg" service="youtube" type="thumbnail-click" for="mep_player"></multi-embed-player>
 <multi-embed-player videoid="BV1xu4y1m7bi" service="bilibili" type="thumbnail-click" for="mep_player"></multi-embed-player>
@@ -38,7 +49,7 @@ Thumbnail click is suitable for video list page.
 
 <!--live demo-->
 <multi-embed-player id="mep_player" type="player"></multi-embed-player>
-<div style="display:flex">
+<div style="display:flex;overflow-x:scroll">
 <multi-embed-player videoid="H4C23eF_r2Q" service="youtube" type="thumbnail-click" for="mep_player"></multi-embed-player>
 <multi-embed-player videoid="Xl6gqwcLyPg" service="youtube" type="thumbnail-click" for="mep_player"></multi-embed-player>
 <multi-embed-player videoid="BV1xu4y1m7bi" service="bilibili" type="thumbnail-click" for="mep_player"></multi-embed-player>
