@@ -151,6 +151,10 @@ class mep_bilibili{
         error_description_document.innerText = "Unknown erorr occured";
         this.player.replaceWith(error_description_document);
         this.player = error_description_document;
+        try{
+            this.player.parentElement.style.backgroundImage = "";
+        }
+        catch{}
     }
     /**
      * @private
@@ -182,6 +186,10 @@ class mep_bilibili{
         error_description_document.innerText = "Due to not to access localstorage,can't play bilibili video\nyou should turn on third party cookie for this site and then reload this page";
         this.player.replaceWith(error_description_document);
         this.player = error_description_document;
+        try{
+            this.player.parentElement.style.backgroundImage = "";
+        }
+        catch{}
     }
     /**
      * Constructor function for the Bilibili player.
@@ -213,7 +221,9 @@ class mep_bilibili{
         if(typeof player_set_event_function == "function"){
             player_set_event_function(this.player);
         }
-        if((await this.#getVideodataApi())["code"]!=0){//video can play or not if code not 0 such as 69002 the video maybe delete.
+        const api_response = await this.#getVideodataApi();
+        if(api_response?.code!==0){//video can play or not if code not 0 such as 69002 the video maybe delete.
+            console.error("error occured when get bilibili api. Are you sure you overwrite iframe_api endpoint? or cors proxy is not working? or videoid is invalid?");
             this.player.dispatchEvent(new Event("onError"));
             return;
         }
@@ -686,24 +696,30 @@ class mep_bilibili{
             }
             if(multi_embed_player_class_usable){
                 if(!(this.videoid in multi_embed_player.api_cache.bilibili)){
-                    await multi_embed_player_fetch_iframe_api("bilibili",this.videoid,!multi_embed_player.cors_proxy==="",true,false);
+                    await multi_embed_player_fetch_iframe_api("bilibili",this.videoid,!multi_embed_player.cors_proxy==="",true,false,true,this.player);
                 }
                 resolve(multi_embed_player.api_cache.bilibili[this.videoid]);
             }
             else{
                 if(!(this.videoid in mep_bilibili.bilibili_api_cache)){
-                    if(mep_bilibili.cors_proxy===""){
-                        mep_bilibili.bilibili_api_cache[this.videoid] = await(await fetch(`${mep_bilibili.api_endpoint}?route=bilibili&videoid=${this.videoid}&image_base64=1`)).json();
-                    }
-                    else{
-                        let json_response_bilibili = await(await fetch(url + `https://api.bilibili.com/x/web-interface/view?bvid=${videoid}`)).json();
-                        if(json_response_bilibili?.data?.pic===undefined){
-                            json_response_bilibili["image_base64"] = null;
+                    try{
+                        if(mep_bilibili.cors_proxy===""){
+                            mep_bilibili.bilibili_api_cache[this.videoid] = await(await fetch(`${mep_bilibili.api_endpoint}?route=bilibili&videoid=${this.videoid}&image_base64=1`)).json();
                         }
                         else{
-                            json_response_bilibili["image_base64"] = url + json_response_bilibili.data.pic;
+                            let json_response_bilibili = await(await fetch(url + `https://api.bilibili.com/x/web-interface/view?bvid=${videoid}`)).json();
+                            if(json_response_bilibili?.data?.pic===undefined){
+                                json_response_bilibili["image_base64"] = null;
+                            }
+                            else{
+                                json_response_bilibili["image_base64"] = url + json_response_bilibili.data.pic;
+                            }
+                            mep_bilibili.bilibili_api_cache[this.videoid] = json_response_bilibili;
                         }
-                        mep_bilibili.bilibili_api_cache[this.videoid] = json_response_bilibili;
+                    }
+                    catch{
+                        console.error("error occured when get bilibili api. Are you sure you overwrite iframe_api endpoint? or cors proxy is not working?");
+                        this.player.dispatchEvent(new Event("onError"));
                     }
                 }
                 resolve(mep_bilibili.bilibili_api_cache[this.videoid]);

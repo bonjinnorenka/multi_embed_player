@@ -5,9 +5,11 @@
  * @param {boolean} use_cors - Whether to use CORS.
  * @param {boolean} image_proxy - The image proxy.
  * @param {boolean} GDPR_access_accept - Whether GDPR access is accepted.
+ * @param {boolean} failed_send_error - Whether to send an error if the request fails.
+ * @param {HTMLElement} failed_send_error_target - The target to send the error to.
  * @returns {Promise}
  */
-const multi_embed_player_fetch_iframe_api = async(service,videoid,use_cors,image_proxy,GDPR_access_accept)=>{
+const multi_embed_player_fetch_iframe_api = async(service,videoid,use_cors,image_proxy,GDPR_access_accept,failed_send_error=false,failed_send_error_target=null)=>{
     const xml_first_search = (data,search_string,start=0)=>{
 		return data.substring(data.indexOf("<"+search_string+">",start)+search_string.length+2,data.indexOf("</"+search_string+">",start))
 	}
@@ -86,8 +88,19 @@ const multi_embed_player_fetch_iframe_api = async(service,videoid,use_cors,image
         }
     }
     else{
-        const fetch_response = await fetch(`${multi_embed_player.iframe_api_endpoint}?route=${service}&videoid=${videoid}` + (image_proxy?"&image_base64=1":""));
-        multi_embed_player.api_cache[service][videoid] = await fetch_response.json();
+        let fetch_response;
+        try{
+            fetch_response = await fetch(`${multi_embed_player.iframe_api_endpoint}?route=${service}&videoid=${videoid}` + (image_proxy?"&image_base64=1":""));
+            multi_embed_player.api_cache[service][videoid] = await fetch_response.json();
+        }
+        catch{
+            if(failed_send_error&&failed_send_error_target!=null){
+                failed_send_error_target.dispatchEvent(new Event("onError"));
+            }
+            else{
+                multi_embed_player.api_cache[service][videoid] = {};
+            }   
+        }
     }
 }
 
