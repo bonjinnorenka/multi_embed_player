@@ -322,7 +322,7 @@ class multi_embed_player extends HTMLElement{
      * @async
      * @param {Object} data - The data object containing the video ID, service, start time, and end time.
      * @param {boolean} [autoplay=true] - Whether or not to autoplay the video.
-     * @param {boolean} [sub=false] - Whether or not to load a subtitle. @deprecated
+     * @param {boolean} [sub=false] - Whether or not to load a subtitle. deprecated
      * @returns {Promise<void>}
      */
     async loadVideoById(data,autoplay=true,sub=false){
@@ -409,6 +409,9 @@ class multi_embed_player extends HTMLElement{
                     if(autoplay){
                         playerVars.autoplay = 1;
                     }
+                    else{
+                        playerVars.autoplay = 0;
+                    }
                     if(data["startSeconds"]!=undefined){
                         playerVars.start = data["startSeconds"];
                     }
@@ -423,7 +426,7 @@ class multi_embed_player extends HTMLElement{
                         host: 'https://www.youtube-nocookie.com',
                     });
                     if(autoplay==false){
-                        this.player.addEventListener("onReady",()=>{this.player.stopVideo()},{once: true});
+                        this.player.addEventListener("onReady",()=>{this.player.pauseVideo()},{once: true});
                     }
                     this.#setEvent();
                     this.player.service = "youtube";
@@ -688,10 +691,7 @@ class multi_embed_player extends HTMLElement{
         3->pause
         4->video ended
         */
-        if(Object.keys(multi_embed_player.mep_load_api_promise).includes(this.service)){
-            return this.player.getPlayerState();
-        }
-        else if(this.service=="youtube"){
+        if(this.service=="youtube"){
             let nowstatus = this.player.getPlayerState();
             if(this.getCurrentTime()>this.getDuration()-1||(this.endSeconds!=-1&&this.endSeconds-1<=this.getCurrentTime())){
                 return 4
@@ -711,6 +711,9 @@ class multi_embed_player extends HTMLElement{
             else if(nowstatus==3||nowstatus==5){
                 return 1
             }
+        }
+        else if(Object.keys(multi_embed_player.mep_load_api_promise).includes(this.service)){
+            return this.player.getPlayerState();
         }
         else{
             return -1
