@@ -482,6 +482,17 @@ class multi_embed_player extends HTMLElement{
             console.log("player not found.");
         }
     }
+
+    #error_event_handler(){
+        console.error("error occured");
+        if(!this.error_not_declare){
+            this.dispatchEvent(new Event("onError"))
+        }
+        else{
+            this.dispatchEvent(new Event("executeSecound"))
+        }
+    }
+
     /**
      * Sets event listeners for the player.
      * @param {HTMLElement} element - The element to set the event listeners on.
@@ -491,13 +502,13 @@ class multi_embed_player extends HTMLElement{
             if(typeof element === "undefined"){
                 if(this.service=="youtube"){
                     this.player.addEventListener("onReady",()=>{this.dispatchEvent(new Event("onReady"))});//need bind
-                    this.player.addEventListener("onError",()=>{if(!this.error_not_declare){this.dispatchEvent(new Event("onError"))}else{this.dispatchEvent(new Event("executeSecound"))}});
+                    this.player.addEventListener("onError",this.#error_event_handler.bind(this));
                     this.player.addEventListener("onStateChange",()=>{this.dispatchEvent(new Event("onStateChange"))});
                     this.player.addEventListener("onStateChange",async()=>{if(await this.getCurrentTime()>this.getDuration()-1||(this.endSeconds!=-1&&await this.getCurrentTime()!=0&&this.endSeconds-1<=await this.getCurrentTime())){this.dispatchEvent(new Event("onEndVideo"))}})
                 }
                 else if(Object.keys(multi_embed_player.mep_load_api_promise).includes(this.service)){
                     this.player.player.addEventListener("onReady",()=>{this.dispatchEvent(new Event("onReady"))});//need bind
-                    this.player.player.addEventListener("onError",()=>{if(!this.error_not_declare){this.dispatchEvent(new Event("onError"))}else{this.dispatchEvent(new Event("executeSecound"))}});
+                    this.player.player.addEventListener("onError",this.#error_event_handler.bind(this));
                     this.player.player.addEventListener("onStateChange",()=>{this.dispatchEvent(new Event("onStateChange"))});
                     this.player.player.addEventListener("onEndVideo",()=>{this.dispatchEvent(new Event("onEndVideo"))});
                 }
@@ -683,14 +694,6 @@ class multi_embed_player extends HTMLElement{
      * 4 -> video ended
      */
     getPlayerState(){
-        /*
-        -1->not set video mainly before embed
-        0->not played only thumnail
-        1->onload
-        2->playing
-        3->pause
-        4->video ended
-        */
         if(this.service=="youtube"){
             let nowstatus = this.player.getPlayerState();
             if(this.getCurrentTime()>this.getDuration()-1||(this.endSeconds!=-1&&this.endSeconds-1<=this.getCurrentTime())){
