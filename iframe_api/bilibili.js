@@ -213,20 +213,20 @@ class mep_bilibili{
      */
     async #element_constructor(replacing_element,content,player_set_event_function){
         this.loading = true;
-        this.original_replacing_element = replacing_element;
         this.before_mute_volume = 100;
         this.content_width = content.width;
         this.content_height = content.height;
-        if(content?.play_control_wrap == 1){
-            this.play_control_wrap = true;
+        if(content?.play_control_wrap == 0){
+            this.play_control_wrap = false;
         }
         else{
-            this.play_control_wrap = false;
+            this.play_control_wrap = true;
         }
         this.videoid = content["videoId"];
         if(typeof replacing_element === "string"){
             replacing_element = document.getElementById(replacing_element);
         }
+        this.original_replacing_element = replacing_element;
         let bilibili_doc = document.createElement("iframe");
         replacing_element.replaceWith(bilibili_doc);
         this.player = bilibili_doc;
