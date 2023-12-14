@@ -37,6 +37,7 @@
  * @param {Function} player_set_event_function - The function to set the player event.
  */
 class mep_bilibili{
+    static error_description = {0:"unknown error occurred",1:"data api endpoint invalid or throw error",2:"can't access local storage",3:"data api throw error",4:"player throw error direct"};
     static localStorageCheck = null;//ニコニコと同じくlocalstorageにアクセスできないと死ぬため
     static mep_extension_bilibili = false;//拡張機能ないとまともに動かん
     static api_endpoint = "https://iframe_api.ryokuryu.workers.dev";//please change this if you use
@@ -162,7 +163,11 @@ class mep_bilibili{
         const error_description_document = document.createElement("div");
         error_description_document.style.width = "100%";
         error_description_document.style.height = "100%";
-        error_description_document.innerText = "Unknown erorr occured";
+        let error_message = "unknown error occurred";
+        if(this.front_error_code!=undefined&&mep_bilibili.error_description[this.front_error_code]!=undefined){
+            error_message = mep_bilibili.error_description[this.front_error_code] + "\n front end error code:" + String(this.front_error_code);
+        }
+        error_description_document.innerText = error_message;
         this.player.replaceWith(error_description_document);
         this.player = error_description_document;
         try{
@@ -240,6 +245,7 @@ class mep_bilibili{
         const api_response = await this.#getVideodataApi();
         if(api_response?.code!==0){//video can play or not if code not 0 such as 69002 the video maybe delete.
             console.error("error occured when get bilibili api. Are you sure you overwrite iframe_api endpoint? or cors proxy is not working? or videoid is invalid?");
+            this.front_error_code = 1;
             this.player.dispatchEvent(new Event("onError"));
             return;
         }
@@ -397,6 +403,7 @@ class mep_bilibili{
             cdls.remove();
             if(!return_localstorage_status){
                 mep_bilibili.localStorageCheck = false;
+                this.front_error_code = 2;
                 this.player.dispatchEvent(new Event("onError"));//can't play bilibili video
             }
             else{
@@ -404,6 +411,7 @@ class mep_bilibili{
             }
         }
         else if(mep_bilibili.localStorageCheck==false){
+            this.front_error_code = 2;
             this.player.dispatchEvent(new Event("onError"));//can't play bilibili video
             console.log("error")
         }
@@ -536,6 +544,7 @@ class mep_bilibili{
         }
         this.videoid = content?.videoId;
         if((await this.#getVideodataApi())?.code!=0){//video can play or not if code not 0 such as 69002 the video maybe delete.
+            this.front_error_code = 3;
             this.player.dispatchEvent(new Event("onError"));
             return;
         }
@@ -767,6 +776,7 @@ class mep_bilibili{
                     }
                     catch{
                         console.error("error occured when get bilibili api. Are you sure you overwrite iframe_api endpoint? or cors proxy is not working?");
+                        this.front_error_code = 1;
                         this.player.dispatchEvent(new Event("onError"));
                     }
                 }
@@ -964,6 +974,7 @@ class mep_bilibili{
                 }
             }
             else if(data.data.type=="error"){
+                this.front_error_code = 4;
                 this.player.dispatchEvent(new Event("onError"));
             }
         })
