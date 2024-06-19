@@ -26,7 +26,7 @@ export default {
 		const url = new URL(request.url);
 		// You can get pretty far with simple logic like if/switch-statements
 		if(white_list.length!==0&&(!(request.headers.get("origin"))||!white_list.includes(request.headers.get("origin")))){
-			return new Response("access from this origin is not allowed");
+			return new Response("access from this origin is not allowed",{status:403});
 		}
 
 		switch (url.searchParams.get("route")) {

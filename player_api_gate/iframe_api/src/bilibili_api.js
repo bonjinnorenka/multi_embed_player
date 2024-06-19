@@ -27,8 +27,18 @@ export default {
 		}
 		//get bilibili api
 		let url = "https://api.bilibili.com/x/web-interface/view?bvid=" + videoid;
-		const response = await fetch(url);
-		let resdata = await response.json();
+		let response,resdata;
+		console.log(env.PROXY_VIA_URL)
+		if(env.PROXY_VIA_URL){
+			response = await fetch(env.PROXY_VIA_URL,{"method":"POST","body":JSON.stringify({"urls":[url]}),"headers":{"content-type":"application/json","user-agent":env.PROXY_AUTH}});
+			let res_tmp_data = await response.json();
+			resdata = res_tmp_data[url];
+			resdata = JSON.parse(resdata);
+		}
+		else{
+			response = await fetch(url);
+			resdata = await response.json();
+		}
 		if(resdata["code"]==0&&searchParams.get("image_base64")==1){
 			const image_data = await(await fetch(resdata["data"]["pic"])).arrayBuffer();
 			let binary = '';

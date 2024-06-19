@@ -35,6 +35,14 @@ npm install
 npm run deploy
 ```
 
+#### Set option in cloudflare workers
+
+you may be need to add some options to iframe api.
+
+If you use nicovideo, you need to set NON_PROFIT environment variable to TRUE in cloudflare workers because [nicovideo official search api](https://site.nicovideo.jp/search-api-docs/snapshot) is only available for non-profit use
+
+If you use bilibili, you may need to use http proxy because some request seems to be blocked by bilibili.
+
 #### Set option in html
 
 ```html
@@ -52,6 +60,7 @@ Cors proxie requirement
 
 - send get request
 - return response with cors header if your cors proxy is other domain
+- If you use bilibili, you may need to set cors proxy **NOT HOSTED ON CLOUDFLARE** because some request seems to be blocked by bilibili.
 
 #### set cors proxy url
 
