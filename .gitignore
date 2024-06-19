@@ -5,3 +5,4 @@ node_modules
 public/
 resources/
 player_api_gate/iframe_api/.dev.vars
+tmp
