@@ -39,6 +39,7 @@ will be reserved words.
 | mep_niconico | class | niconico iframe class |
 | mep_bilibili | class | bilibili iframe class |
 | mep_soundcloud | class | soundcloud iframe class |
+| mep_youtube | class | youtube iframe class |
 
 {{< /table >}}
 

@@ -141,11 +141,10 @@ class multi_embed_player extends HTMLElement{
         if(this.getAttribute("type")===null||this.getAttribute("type")==="embed"||this.getAttribute("type")==="thumbnail-click"){
             this.videoid = this.getAttribute("videoid");
             this.service = this.getAttribute("service");
-            //画像取得
             if(this.getAttribute("img_url")!=null){
                 this.image_url = this.getAttribute("img_url");
             }
-            else if(this.getAttribute("picture_tag")!=null){//pictureタグの中身を入れる
+            else if(this.getAttribute("picture_tag")!=null){
                 this.picture_tag = document.createElement("picture");
                 this.appendChild(this.picture_tag);
                 this.picture_tag.innerHTML = this.getAttribute("picture_tag");
@@ -389,50 +388,7 @@ class multi_embed_player extends HTMLElement{
             }
             this.setAttribute("videoid",data.videoId);//いらないけど勘違い防止用に
             this.setAttribute("service",data.service);
-            if(this.service=="youtube"){
-                await this.youtube_api_loader();
-                if(service_changed==false){
-                    if(autoplay){
-                        this.player.loadVideoById(data);
-                    }
-                    else{
-                        this.player.cueVideoById(data);
-                    }
-                }
-                else{
-                    //中を消して新たに作成
-                    this.innerHTML = "";
-                    let divdoc = document.createElement("div");
-                    divdoc.classList.add("mep_youtube");
-                    this.appendChild(divdoc);
-                    let playerVars = {}
-                    if(autoplay){
-                        playerVars.autoplay = 1;
-                    }
-                    else{
-                        playerVars.autoplay = 0;
-                    }
-                    if(data["startSeconds"]!=undefined){
-                        playerVars.start = data["startSeconds"];
-                    }
-                    if(data["endSeconds"]!=undefined){
-                        playerVars.end = data["endSeconds"];
-                    }
-                    this.player = new YT.Player(divdoc, {
-                        height: '315',
-                        width: '560',
-                        videoId: this.videoid,
-                        playerVars: playerVars,
-                        host: 'https://www.youtube-nocookie.com',
-                    });
-                    if(autoplay==false){
-                        this.player.addEventListener("onReady",()=>{this.player.pauseVideo()},{once: true});
-                    }
-                    this.#setEvent();
-                    this.player.service = "youtube";
-                }
-            }
-            else if(Object.keys(multi_embed_player.mep_load_api_promise).includes(this.service)){
+            if(Object.keys(multi_embed_player.mep_load_api_promise).includes(this.service)){
                 await this.iframe_api_loader(this.service);
                 if(service_changed==false){
                     //動画idを変えてiframeを再読み込み
@@ -500,13 +456,7 @@ class multi_embed_player extends HTMLElement{
     #setEvent(element){
         try{
             if(typeof element === "undefined"){
-                if(this.service=="youtube"){
-                    this.player.addEventListener("onReady",()=>{this.dispatchEvent(new Event("onReady"))});//need bind
-                    this.player.addEventListener("onError",this.#error_event_handler.bind(this));
-                    this.player.addEventListener("onStateChange",()=>{this.dispatchEvent(new Event("onStateChange"))});
-                    this.player.addEventListener("onStateChange",async()=>{if(await this.getCurrentTime()>this.getDuration()-1||(this.endSeconds!=-1&&await this.getCurrentTime()!=0&&this.endSeconds-1<=await this.getCurrentTime())){this.dispatchEvent(new Event("onEndVideo"))}})
-                }
-                else if(Object.keys(multi_embed_player.mep_load_api_promise).includes(this.service)){
+                if(Object.keys(multi_embed_player.mep_load_api_promise).includes(this.service)){
                     this.player.player.addEventListener("onReady",()=>{this.dispatchEvent(new Event("onReady"))});//need bind
                     this.player.player.addEventListener("onError",this.#error_event_handler.bind(this));
                     this.player.player.addEventListener("onStateChange",()=>{this.dispatchEvent(new Event("onStateChange"))});
@@ -539,13 +489,7 @@ class multi_embed_player extends HTMLElement{
      */
     #deleteEvent(){//plese before change service
         try{
-            if(this.service=="youtube"){
-                this.player.removeEventListener("onReady",()=>{this.dispatchEvent(new Event("onReady"))});//need bind
-                this.player.removeEventListener("onError",()=>{if(!this.error_not_declare){this.dispatchEvent(new Event("onError"))}else{this.dispatchEvent(new Event("executeSecound"))}});
-                this.player.removeEventListener("onStateChange",()=>{this.dispatchEvent(new Event("onStateChange"))});
-                this.player.removeEventListener("onStateChange",()=>{if(this.getCurrentTime()>this.getDuration()-1||(this.endSeconds!=-1&&this.endSeconds-1<=this.getCurrentTime())){this.dispatchEvent(new Event("onEndVideo"))}})
-            }
-            else if(Object.keys(multi_embed_player.mep_load_api_promise).includes(this.service)){
+            if(Object.keys(multi_embed_player.mep_load_api_promise).includes(this.service)){
                 this.player.player.removeEventListener("onReady",()=>{this.dispatchEvent(new Event("onReady"))});//need bind
                 this.player.player.removeEventListener("onError",()=>{if(!this.error_not_declare){this.dispatchEvent(new Event("onError"))}else{this.dispatchEvent(new Event("executeSecound"))}});
                 this.player.player.removeEventListener("onStateChange",()=>{this.dispatchEvent(new Event("onStateChange"))});
@@ -640,15 +584,7 @@ class multi_embed_player extends HTMLElement{
      * @returns {number} The real duration of the video.
      */
     getRealDulation(){
-        if(this.service=="youtube"){
-            if(this.endSeconds==-1){
-                return this.getDuration() - this.startSeconds;
-            }
-            else{
-                return this.endSeconds - this.startSeconds;
-            }
-        }
-        else if(Object.keys(multi_embed_player.mep_load_api_promise).includes(this.service)){
+        if(Object.keys(multi_embed_player.mep_load_api_promise).includes(this.service)){
             return this.player.getRealDulation();
         }
         else{
@@ -694,28 +630,7 @@ class multi_embed_player extends HTMLElement{
      * 4 -> video ended
      */
     getPlayerState(){
-        if(this.service=="youtube"){
-            let nowstatus = this.player.getPlayerState();
-            if(this.getCurrentTime()>this.getDuration()-1||(this.endSeconds!=-1&&this.endSeconds-1<=this.getCurrentTime())){
-                return 4
-            }
-            else if(nowstatus==-1){
-                return 0
-            }
-            else if(nowstatus==0){
-                return 4
-            }
-            else if(nowstatus==1){
-                return 2
-            }
-            else if(nowstatus==2){
-                return 3
-            }
-            else if(nowstatus==3||nowstatus==5){
-                return 1
-            }
-        }
-        else if(Object.keys(multi_embed_player.mep_load_api_promise).includes(this.service)){
+        if(Object.keys(multi_embed_player.mep_load_api_promise).includes(this.service)){
             return this.player.getPlayerState();
         }
         else{
@@ -782,6 +697,9 @@ class multi_embed_player extends HTMLElement{
                 await this.mep_promise_script_loader(`${multi_embed_player.script_origin}iframe_api/${service}.js`);
                 multi_embed_player.mep_status_load_api[service] = 2;
                 switch(service){
+                    case "youtube":
+                        multi_embed_player.iframe_api_class["youtube"] = mep_youtube;
+                        break;
                     case "niconico":
                         multi_embed_player.iframe_api_class["niconico"] = mep_niconico;
                         break;
