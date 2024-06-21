@@ -166,3 +166,51 @@ defined at [soundcloud.js](https://github.com/bonjinnorenka/multi_embed_player/b
 |getRealDuration||number(seconds)|return duration between start and end seconds|
 
 {{< /table >}}
+
+## mep_youtube class
+
+defined at [youtube.js](https://github.com/bonjinnorenka/multi_embed_player/blob/main/iframe_api/youtube.js)
+
+### variable list
+
+{{< table "table-responsive" >}}
+
+|variable name|type|default value|description|
+|---|---|---|---|
+|youtube_api_loaded|number|0|YouTube API loaded status (0: not loaded, 1: loading, 2: loaded)|
+|youtube_api_promise|Array of function|[]|Functions to call after loading YouTube API|
+
+{{< /table >}}
+
+### function list
+
+{{< table "table-responsive" >}}
+
+|function name|arguments|response|description|
+|---|---|---|---|
+|constructor|replacing_element: Node Or String (dom id), content: mep_youtube_content, player_set_event_function: function||Constructor of class|
+|playVideo|||Play video for player|
+|pauseVideo|||Pause video for player|
+|getCurrentTime||number (seconds)|Get current time of video|
+|getDuration||number (seconds)|Get duration of video|
+|getRealDulation||number (seconds)|Get actual duration between start and end times|
+|seekTo|time: number (seconds)||Seek to specified time in video|
+|setVolume|volume: number (0-100)||Set volume for player|
+|mute|||Mute player|
+|unMute|||Unmute player|
+|isMuted||boolean|Check mute status of player|
+|getVolume||number (0-100)|Get volume of player|
+|getPlayerState||number|Get player state<br>0->unstarted<br>1->buffering<br>2->playing<br>3->paused<br>4->ended|
+|getTitle||string|Get title of current video|
+|loadVideoById|content: mep_youtube_load_object or string, [startSeconds: number]||Load video by ID with autoplay|
+|cueVideoById|content: mep_youtube_load_object or string, [startSeconds: number]||Cue video by ID without autoplay|
+
+{{< /table >}}
+
+## AI Assistance Disclosure
+This documentation page includes content generated with the assistance of AI tools. Specifically:
+
+Claude 3.5 Sonnet
+GitHub Copilot
+
+All AI-generated content has been reviewed and edited by a human to ensure accuracy and relevance.
