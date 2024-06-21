@@ -62,6 +62,20 @@ Not include function start with '#'.
 
 {{< /table >}}
 
+## event list of multi_embed_player class
+
+{{< table "table-responsive" >}}
+
+| Event Name | Type | Description | value |
+|------------|------|-------------|-------|
+| `onReady` | Event | Fired when the player is ready | None |
+| `onError` | CustomEvent | Fired when an error occurs | [Error code](/docs/reference/error_code) | 
+| `onStateChange` | CustomEvent | Fired when the player's state changes | player state |
+| `onEndVideo` | Event | Fired when the video playback ends | None |
+| `executeSecound` | Event | Fired to trigger secondary action (error handling) | None |
+
+{{< /table >}}
+
 ### loadVideoByIdOptions
 
 {{< table "table-responsive" >}}
@@ -89,3 +103,11 @@ Not include function start with '#'.
 |service|string|true||service name|
 
 {{< /table >}}
+
+## AI Assistance Disclosure
+This documentation page includes content generated with the assistance of AI tools. Specifically:
+
+Claude 3.5 Sonnet
+GitHub Copilot
+
+All AI-generated content has been reviewed and edited by a human to ensure accuracy and relevance.

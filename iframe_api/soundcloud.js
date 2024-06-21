@@ -43,6 +43,7 @@ class mep_soundcloud{
                 const script_document = document.createElement("script");
                 script_document.src = "https://w.soundcloud.com/player/api.js";
                 script_document.addEventListener("load",()=>{mep_soundcloud.soundcloud_api_loaded = true;mep_soundcloud.soundcloud_api_promise.forEach((func)=>func())});
+                script_document.addEventListener("error",()=>{this.player.dispatchEvent(new CustomEvent("onError",{detail:{code:1001}}))});
                 document.body.appendChild(script_document);
                 await new Promise((resolve,reject)=>mep_soundcloud.soundcloud_api_promise.push(resolve));
             }
@@ -157,7 +158,7 @@ class mep_soundcloud{
         //this.player_widget.isPaused((pause_status)=>{pause_status?this.player_statusdata.playing_status = 3:this.player_statusdata.playing_status = 2});
         if(this.previous_player_status!==this.player_statusdata.playing_status){
             this.previous_player_status = this.player_statusdata.playing_status;
-            this.player.dispatchEvent(new Event("onStateChange"));
+            this.player.dispatchEvent(new CustomEvent("onStateChange",{detail:this.getPlayerState()}));
         }
         if(this.endSeconds!=-1&&this.endSeconds<=this.getCurrentTime()){
             if(!this.pause_sended){
@@ -367,7 +368,7 @@ class mep_soundcloud{
             this.endSeconds = -1;
         }
         else{
-            console.error("argument type error");
+            this.player.dispatchEvent(new CustomEvent("onError",{detail:{code:401}}));
         }
         if(mep_soundcloud.numericRegex.test(musicId)){
             this.player_widget.load(`https://api.soundcloud.com/tracks/${String(musicId)}`,url_params,this.#ready_function);

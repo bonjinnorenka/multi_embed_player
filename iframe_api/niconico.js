@@ -304,7 +304,7 @@ class mep_niconico{
                     break;
                 }
                 case 'error':{
-                    this.player.dispatchEvent(new Event("onError"));
+                    this.player.dispatchEvent(new CustomEvent("onError", {detail:{code:500}}));
                     break;
                 }
                 case 'playerMetadataChange':{
@@ -318,7 +318,7 @@ class mep_niconico{
                     break;
                 }
                 case 'playerStatusChange':{
-                    this.player.dispatchEvent(new Event("onStateChange"));
+                    this.player.dispatchEvent(new CustomEvent("onStateChange", {detail: this.getPlayerState()}));
                     if(this.getCurrentTime()>=this.getDuration()-0.5||(this.endSeconds!=-1&&this.getCurrentTime()>=(this.endSeconds-0.5))){//最後まで行った
                         this.player.dispatchEvent(new Event("onEndVideo"));
                     }
