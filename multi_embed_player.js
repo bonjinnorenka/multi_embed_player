@@ -439,13 +439,13 @@ class multi_embed_player extends HTMLElement{
         }
     }
 
-    #error_event_handler(){
+    #error_event_handler(e){
         console.error("error occured");
         if(!this.error_not_declare){
-            this.dispatchEvent(new Event("onError"))
+            this.dispatchEvent(new CustomEvent("onError",{detail:{code:e.detail.code}}));
         }
         else{
-            this.dispatchEvent(new Event("executeSecound"))
+            this.dispatchEvent(new Event("executeSecound"));
         }
     }
 
@@ -458,8 +458,8 @@ class multi_embed_player extends HTMLElement{
             if(typeof element === "undefined"){
                 if(Object.keys(multi_embed_player.mep_load_api_promise).includes(this.service)){
                     this.player.player.addEventListener("onReady",()=>{this.dispatchEvent(new Event("onReady"))});//need bind
-                    this.player.player.addEventListener("onError",this.#error_event_handler.bind(this));
-                    this.player.player.addEventListener("onStateChange",()=>{this.dispatchEvent(new Event("onStateChange"))});
+                    this.player.player.addEventListener("onError",(e)=>{this.#error_event_handler(e)});
+                    this.player.player.addEventListener("onStateChange",(e)=>{this.dispatchEvent(new CustomEvent("onStateChange",{detail:e.detail}))});
                     this.player.player.addEventListener("onEndVideo",()=>{this.dispatchEvent(new Event("onEndVideo"))});
                 }
                 else{
@@ -469,8 +469,8 @@ class multi_embed_player extends HTMLElement{
             else{
                 if(Object.keys(multi_embed_player.mep_load_api_promise).includes(this.service)){
                     element.addEventListener("onReady",()=>{this.dispatchEvent(new Event("onReady"))});
-                    element.addEventListener("onError",()=>{if(!this.error_not_declare){this.dispatchEvent(new Event("onError"))}else{this.dispatchEvent(new Event("executeSecound"))}});
-                    element.addEventListener("onStateChange",()=>{this.dispatchEvent(new Event("onStateChange"))});
+                    element.addEventListener("onError",(e)=>{this.#error_event_handler(e)});
+                    element.addEventListener("onStateChange",(e)=>{this.dispatchEvent(new CustomEvent("onStateChange",{detail:e.detail}))});
                     element.addEventListener("onEndVideo",()=>{this.dispatchEvent(new Event("onEndVideo"))});
                 }
                 else{
@@ -491,8 +491,8 @@ class multi_embed_player extends HTMLElement{
         try{
             if(Object.keys(multi_embed_player.mep_load_api_promise).includes(this.service)){
                 this.player.player.removeEventListener("onReady",()=>{this.dispatchEvent(new Event("onReady"))});//need bind
-                this.player.player.removeEventListener("onError",()=>{if(!this.error_not_declare){this.dispatchEvent(new Event("onError"))}else{this.dispatchEvent(new Event("executeSecound"))}});
-                this.player.player.removeEventListener("onStateChange",()=>{this.dispatchEvent(new Event("onStateChange"))});
+                this.player.player.removeEventListener("onError",(e)=>{this.#error_event_handler(e)});
+                this.player.player.removeEventListener("onStateChange",(e)=>{this.dispatchEvent(new CustomEvent("onStateChange",{detail:e.detail}))});
                 this.player.player.removeEventListener("onEndVideo",()=>{this.dispatchEvent(new Event("onEndVideo"))});
             }
             else{

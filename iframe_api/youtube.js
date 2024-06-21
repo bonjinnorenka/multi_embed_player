@@ -41,7 +41,7 @@ class mep_youtube{
                 mep_youtube.youtube_api_loaded = 1;
                 const script_doc = document.createElement("script");
                 script_doc.src = "https://www.youtube.com/iframe_api";
-                script_doc.addEventListener("error",this.#dispatchEvent(new CustomEvent("onError",{detail:{code:1001}})));
+                //script_doc.addEventListener("error",this.#dispatchEvent(new CustomEvent("onError",{detail:{code:1001}})));
                 script_doc.addEventListener("load",()=>{YT.ready(()=>{mep_youtube.youtube_api_promise.forEach(func=>func());mep_youtube.youtube_api_loaded = 2;resolve()})});
                 document.body.appendChild(script_doc);
             }
@@ -113,7 +113,7 @@ class mep_youtube{
         }
         this.player.addEventListener("onReady",()=>{this.player.dispatchEvent(new Event("onReady"))});
         this.player.addEventListener("onError",(e)=>{this.#error_event_handler(e)});
-        this.player.addEventListener("onStateChange",()=>{this.player.dispatchEvent(new Event("onStateChange"))});
+        this.player.addEventListener("onStateChange",()=>{this.player.dispatchEvent(new CustomEvent("onStateChange",{detail:this.getPlayerState()}))});
         this.player.addEventListener("onStateChange",async()=>{if(await this.getCurrentTime()>this.getDuration()-1||(this.endSeconds!=-1&&await this.getCurrentTime()!=0&&this.endSeconds-1<=await this.getCurrentTime())){this.player.dispatchEvent(new Event("onEndVideo"))}})
     }
 

@@ -38,6 +38,20 @@ toc: true
 
 {{< /table >}}
 
+## common event
+
+{{< table "table-responsive" >}}
+
+| Event Name | Type | Description | value |
+|------------|------|-------------|-------|
+| `onReady` | Event | Fired when the player is ready | None |
+| `onError` | CustomEvent | Fired when an error occurs | [Error code](/docs/reference/error_code) | 
+| `onStateChange` | CustomEvent | Fired when the player's state changes | player state |
+| `onEndVideo` | Event | Fired when the video playback ends | None |
+| `executeSecound` | Event | Fired to trigger secondary action (error handling) | None |
+
+{{< /table >}}
+
 ## mep_niconico class
 
 defined at [niconico.js](https://github.com/bonjinnorenka/multi_embed_player/blob/main/iframe_api/niconico.js)

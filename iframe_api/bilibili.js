@@ -246,7 +246,7 @@ class mep_bilibili{
         if(api_response?.code!==0){//video can play or not if code not 0 such as 69002 the video maybe delete.
             console.error("error occured when get bilibili api. Are you sure you overwrite iframe_api endpoint? or cors proxy is not working? or videoid is invalid?");
             this.front_error_code = 1;
-            this.player.dispatchEvent(new Event("onError"));
+            this.player.dispatchEvent(new CustomEvent("onError",{detail:{code:1100}}));
             return;
         }
         this.seek_time = -1;
@@ -404,7 +404,7 @@ class mep_bilibili{
             if(!return_localstorage_status){
                 mep_bilibili.localStorageCheck = false;
                 this.front_error_code = 2;
-                this.player.dispatchEvent(new Event("onError"));//can't play bilibili video
+                this.player.dispatchEvent(new CustomEvent("onError",{detail:{code:1200}}));//can't play bilibili video
             }
             else{
                 mep_bilibili.localStorageCheck = true;
@@ -412,7 +412,7 @@ class mep_bilibili{
         }
         else if(mep_bilibili.localStorageCheck==false){
             this.front_error_code = 2;
-            this.player.dispatchEvent(new Event("onError"));//can't play bilibili video
+            this.player.dispatchEvent(new CustomEvent("onError",{detail:{code:1200}}));//can't play bilibili video
             console.log("error")
         }
     }
@@ -545,7 +545,7 @@ class mep_bilibili{
         this.videoid = content?.videoId;
         if((await this.#getVideodataApi())?.code!=0){//video can play or not if code not 0 such as 69002 the video maybe delete.
             this.front_error_code = 3;
-            this.player.dispatchEvent(new Event("onError"));
+            this.player.dispatchEvent(new CustomEvent("onError"),{detail:{code:404}});
             return;
         }
         bilibili_query["bvid"] = content?.videoId;
@@ -777,7 +777,7 @@ class mep_bilibili{
                     catch{
                         console.error("error occured when get bilibili api. Are you sure you overwrite iframe_api endpoint? or cors proxy is not working?");
                         this.front_error_code = 1;
-                        this.player.dispatchEvent(new Event("onError"));
+                        this.player.dispatchEvent(new CustomEvent("onError",{detail:{code:1100}}));
                     }
                 }
                 resolve(mep_bilibili.bilibili_api_cache[this.videoid]);
@@ -975,7 +975,7 @@ class mep_bilibili{
             }
             else if(data.data.type=="error"){
                 this.front_error_code = 4;
-                this.player.dispatchEvent(new Event("onError"));
+                this.player.dispatchEvent(new CustomEvent("onError",{detail:{code:500}}));
             }
         })
     }
