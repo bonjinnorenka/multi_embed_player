@@ -2,7 +2,7 @@
   "name": "niconico-imager",
   "version": "0.0.0",
   "devDependencies": {
-    "wrangler": "^3.19.0"
+    "wrangler": "^3.61.0"
   },
   "private": true,
   "scripts": {
