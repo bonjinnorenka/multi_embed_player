@@ -765,28 +765,40 @@ class mep_bilibili{
             }
             else{
                 if(!(this.videoid in mep_bilibili.bilibili_api_cache)){
-                    try{
-                        if(mep_bilibili.cors_proxy===""){
-                            mep_bilibili.bilibili_api_cache[this.videoid] = await(await fetch(`${mep_bilibili.api_endpoint}?route=bilibili&videoid=${this.videoid}&image_base64=1`)).json();
-                        }
-                        else{
-                            let json_response_bilibili = await(await fetch(url + `https://api.bilibili.com/x/web-interface/view?bvid=${videoid}`)).json();
-                            if(json_response_bilibili?.data?.pic===undefined){
-                                json_response_bilibili["image_base64"] = null;
+                    if(mep_bilibili.bilibili_api_promise[this.videoid]==undefined){
+                        mep_bilibili.bilibili_api_promise[this.videoid] = {res:[],rej:[]};
+                        try{
+                            if(mep_bilibili.cors_proxy===""){
+                                mep_bilibili.bilibili_api_cache[this.videoid] = await(await fetch(`${mep_bilibili.api_endpoint}?route=bilibili&videoid=${this.videoid}&image_base64=1`)).json();
                             }
                             else{
-                                json_response_bilibili["image_base64"] = url + json_response_bilibili.data.pic;
+                                let json_response_bilibili = await(await fetch(url + `https://api.bilibili.com/x/web-interface/view?bvid=${videoid}`)).json();
+                                if(json_response_bilibili?.data?.pic===undefined){
+                                    json_response_bilibili["image_base64"] = null;
+                                }
+                                else{
+                                    json_response_bilibili["image_base64"] = url + json_response_bilibili.data.pic;
+                                }
+                                mep_bilibili.bilibili_api_cache[this.videoid] = json_response_bilibili;
                             }
-                            mep_bilibili.bilibili_api_cache[this.videoid] = json_response_bilibili;
                         }
+                        catch{
+                            console.error("error occured when get bilibili api. Are you sure you overwrite iframe_api endpoint? or cors proxy is not working?");
+                            this.front_error_code = 1;
+                            this.player.dispatchEvent(new CustomEvent("onError",{detail:{code:1100}}));
+                        }
+                        mep_bilibili.bilibili_api_promise[this.videoid].res.forEach((resolve)=>{resolve(mep_bilibili.bilibili_api_cache[this.videoid])});
+                        resolve(mep_bilibili.bilibili_api_cache[this.videoid]);
                     }
-                    catch{
-                        console.error("error occured when get bilibili api. Are you sure you overwrite iframe_api endpoint? or cors proxy is not working?");
-                        this.front_error_code = 1;
-                        this.player.dispatchEvent(new CustomEvent("onError",{detail:{code:1100}}));
+                    else{
+                        mep_bilibili.bilibili_api_promise[this.videoid].res.push(resolve);
+                        mep_bilibili.bilibili_api_promise[this.videoid].rej.push(reject);
+                        return;
                     }
                 }
-                resolve(mep_bilibili.bilibili_api_cache[this.videoid]);
+                else{
+                    resolve(mep_bilibili.bilibili_api_cache[this.videoid]);
+                }
             }
         });
     }

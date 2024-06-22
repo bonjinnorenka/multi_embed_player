@@ -25,77 +25,105 @@ const multi_embed_player_fetch_iframe_api = async(service,videoid,use_cors,image
         else{
             url = `${multi_embed_player.iframe_api_endpoint}?route=url_proxy&url=`;
         }
+        let first_access = false;
+        if(multi_embed_player.api_promise[service][videoid]===undefined){
+            multi_embed_player.api_promise[service][videoid] = {res:[],rej:[]};
+            first_access = true;
+        }
+        else{
+            await new Promise((resolve,reject)=>{multi_embed_player.api_promise[service][videoid].res.push(resolve);multi_embed_player.api_promise[service][videoid].rej.push(reject)});
+        }
         try{
-            switch(service){
-                case 'soundcloud':
-                    const numericRegex = /^[0-9]+$/;
-                    let url_oembed;
-                    if(numericRegex.test(videoid)){
-                        url_oembed = `https://soundcloud.com/oembed?url=https://api.soundcloud.com/tracks/${videoid}&format=json`;
-                    }
-                    else{
-                        url_oembed = `https://soundcloud.com/oembed?url=https://soundcloud.com/${videoid}&format=json`;
-                    }
-                    const oembed_response_fetch = await fetch(url + encodeURI(url_oembed));
-                    let oembed_response = await oembed_response_fetch.json();
-                    oembed_response["image_base64"] = url + oembed_response["thumbnail_url"];
-                    multi_embed_player.api_cache[service][videoid] = oembed_response;
-                    break;
-                case 'niconico':
-                    const xml_response = await(await fetch(url + `https://ext.nicovideo.jp/api/getthumbinfo/${videoid}`)).text();
-                    let image_url = xml_first_search(xml_response,"thumbnail_url");
-                    let predict_long = 43+2*(videoid.length-2);
-                    let return_data = {};
-                    if(image_url.length>predict_long){
-                        image_url += ".L";
-                    }
-                    if(image_url=="<?xml version="){
-                        return_data["status"] = "invalid videoid";
-                        return_data["thumbnail_url"] = "";
-                    }
-                    else{
-                        return_data["status"] = "success";
-                        return_data["thumbnail_url"] = image_url;
-                        const search_element_names = {video_id:"video_id",title:"title",description:"description",length:"length",view_counter:"view_count",comment_num:"comment_count",mylist_counter:"mylist_count",first_retrieve:"publish_time",embeddable:"embedable",genre:"genre"};
-                        Object.keys(search_element_names).forEach(key_name=>return_data[search_element_names[key_name]] = xml_first_search(xml_response,key_name));
-                    }
-                    multi_embed_player.api_cache[service][videoid] = return_data;
-                    break;
-                case 'bilibili':
-                    let json_response_bilibili = await(await fetch(url + `https://api.bilibili.com/x/web-interface/view?bvid=${videoid}`)).json();
-                    if(json_response_bilibili?.data?.pic===undefined){
-                        json_response_bilibili["image_base64"] = null;
-                    }
-                    else{
-                        json_response_bilibili["image_base64"] = url + json_response_bilibili.data.pic;
-                    }
-                    multi_embed_player.api_cache[service][videoid] = json_response_bilibili;
-                    break;
-                case "youtube":
-                    try{
-                        let json_response_youtube = await(await fetch(url + `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoid}&format=json`)).json();
-                        json_response_youtube["image_base64"] = url + json_response_youtube["thumbnail_url"];
-                        multi_embed_player.api_cache[service][videoid] = json_response_youtube;
-                    }
-                    catch{
-                        multi_embed_player.api_cache[service][videoid] = {};
-                    }
-                    break;
+            if(first_access){
+                switch(service){
+                    case 'soundcloud':
+                        const numericRegex = /^[0-9]+$/;
+                        let url_oembed;
+                        if(numericRegex.test(videoid)){
+                            url_oembed = `https://soundcloud.com/oembed?url=https://api.soundcloud.com/tracks/${videoid}&format=json`;
+                        }
+                        else{
+                            url_oembed = `https://soundcloud.com/oembed?url=https://soundcloud.com/${videoid}&format=json`;
+                        }
+                        const oembed_response_fetch = await fetch(url + encodeURI(url_oembed));
+                        let oembed_response = await oembed_response_fetch.json();
+                        oembed_response["image_base64"] = url + oembed_response["thumbnail_url"];
+                        multi_embed_player.api_cache[service][videoid] = oembed_response;
+                        break;
+                    case 'niconico':
+                        const xml_response = await(await fetch(url + `https://ext.nicovideo.jp/api/getthumbinfo/${videoid}`)).text();
+                        let image_url = xml_first_search(xml_response,"thumbnail_url");
+                        let predict_long = 43+2*(videoid.length-2);
+                        let return_data = {};
+                        if(image_url.length>predict_long){
+                            image_url += ".L";
+                        }
+                        if(image_url=="<?xml version="){
+                            return_data["status"] = "invalid videoid";
+                            return_data["thumbnail_url"] = "";
+                        }
+                        else{
+                            return_data["status"] = "success";
+                            return_data["thumbnail_url"] = image_url;
+                            const search_element_names = {video_id:"video_id",title:"title",description:"description",length:"length",view_counter:"view_count",comment_num:"comment_count",mylist_counter:"mylist_count",first_retrieve:"publish_time",embeddable:"embedable",genre:"genre"};
+                            Object.keys(search_element_names).forEach(key_name=>return_data[search_element_names[key_name]] = xml_first_search(xml_response,key_name));
+                        }
+                        multi_embed_player.api_cache[service][videoid] = return_data;
+                        break;
+                    case 'bilibili':
+                        let json_response_bilibili = await(await fetch(url + `https://api.bilibili.com/x/web-interface/view?bvid=${videoid}`)).json();
+                        if(json_response_bilibili?.data?.pic===undefined){
+                            json_response_bilibili["image_base64"] = null;
+                        }
+                        else{
+                            json_response_bilibili["image_base64"] = url + json_response_bilibili.data.pic;
+                        }
+                        multi_embed_player.api_cache[service][videoid] = json_response_bilibili;
+                        break;
+                    case "youtube":
+                        try{
+                            let json_response_youtube = await(await fetch(url + `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoid}&format=json`)).json();
+                            json_response_youtube["image_base64"] = url + json_response_youtube["thumbnail_url"];
+                            multi_embed_player.api_cache[service][videoid] = json_response_youtube;
+                        }
+                        catch{
+                            multi_embed_player.api_cache[service][videoid] = {};
+                        }
+                        break;
+                }
+                multi_embed_player.api_promise[service][videoid].res.forEach(resolve=>resolve());
             }
         }
         catch{
+            if(Object.keys(multi_embed_player.api_promise[service][videoid]).includes("rej")){
+                multi_embed_player.api_promise[service][videoid].rej.forEach(reject=>reject());
+            }
+            if(failed_send_error&&failed_send_error_target!=null){
+                failed_send_error_target.dispatchEvent(new CustomEvent("onError",{detail:{code:1100}}));
+            }
             multi_embed_player.api_cache[service][videoid] = {};
         }
     }
     else{
         let fetch_response;
         try{
-            fetch_response = await fetch(`${multi_embed_player.iframe_api_endpoint}?route=${service}&videoid=${videoid}` + (image_proxy?"&image_base64=1":""));
-            multi_embed_player.api_cache[service][videoid] = await fetch_response.json();
+            const url = `${multi_embed_player.iframe_api_endpoint}?route=${service}&videoid=${videoid}` + (image_proxy?"&image_base64=1":"");
+            if(multi_embed_player.api_promise[service][videoid]===undefined){
+                multi_embed_player.api_promise[service][videoid] = {res:[],rej:[]};
+                fetch_response = await fetch(url);
+                multi_embed_player.api_cache[service][videoid] = await fetch_response.json();
+                multi_embed_player.api_promise[service][videoid].res.forEach(resolve=>resolve());
+            }
+            else{
+                await new Promise((resolve,reject)=>{multi_embed_player.api_promise[service][videoid].res.push(resolve);multi_embed_player.api_promise[service][videoid].rej.push(reject)});
+            }
         }
-        catch{
+        catch(e){
+            if(Object.keys(multi_embed_player.api_promise[service][videoid]).includes("rej")){
+                multi_embed_player.api_promise[service][videoid].rej.forEach(reject=>reject());
+            }
             if(failed_send_error&&failed_send_error_target!=null){
-                failed_send_error_target.dispatchEvent(new Event("onError"));
+                failed_send_error_target.dispatchEvent(new CustomEvent("onError",{detail:{code:1100}}));
             }
             else{
                 multi_embed_player.api_cache[service][videoid] = {};
@@ -122,6 +150,7 @@ class multi_embed_player extends HTMLElement{
     static mep_status_load_api = {youtube:0,niconico:0,bilibili:0,soundcloud:0};
     static mep_load_api_promise = {youtube:[],niconico:[],bilibili:[],soundcloud:[]};
     static api_cache = {niconico:{},bilibili:{},soundcloud:{},youtube:{}};
+    static api_promise = {niconico:{},bilibili:{},soundcloud:{},youtube:{}};
     static GDPR_accept_promise = {youtube:[],niconico:[],bilibili:[],soundcloud:[]};
     static iframe_api_class = {};
     static GDPR_accepted = {youtube:false,niconico:false,bilibili:false,soundcloud:false};
