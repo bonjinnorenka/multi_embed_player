@@ -104,7 +104,7 @@ class mep_youtube{
         this.YT_player = new YT.Player(iframe_replace_node,{
             height: "315",
             width: "560",
-            videoId: content.id,
+            videoId: content.videoId,
             playerVars: playerVars_pass_over,
             host: "https://www.youtube-nocookie.com",
         });
