@@ -46,6 +46,7 @@ class mep_bilibili{
     static bilibili_api_cache = {};
     static cors_proxy = "";
     static currentTime_delay = 2;
+    static bilibili_api_promise = {};
     constructor(replacing_element,content,player_set_event_function){
         if(mep_bilibili.player_base_url==""){
             const ua = navigator.userAgent;
@@ -66,24 +67,29 @@ class mep_bilibili{
      * When this img clicked the player will be played.
      */
     async #image_player(first_load = false){
-        let exist_img_children = false;
-        this.player.parentElement.childNodes.forEach((node)=>{if(node.nodeName==="IMG"){exist_img_children = true}if(node.nodeName==="DIV"&&node.classList.contains("mep_bilibili_transparent")){node.remove()}});
-        if(!exist_img_children&&this.play_control_wrap){
-            const img_element = document.createElement("img");
-            img_element.src = (await this.#getVideodataApi())["image_base64"];
-            img_element.width = this.player.width;
-            img_element.height = this.player.height;
-            img_element.style.width = "100%";
-            img_element.style.height = "100%";
-            img_element.style.objectFit = "cover";
-            img_element.style.cursor = "pointer";
-            img_element.addEventListener("click",()=>{this.playVideo()});
-            this.player.parentElement.prepend(img_element);
+        try{
+            let exist_img_children = false;
+            this.player.parentElement.childNodes.forEach((node)=>{if(node.nodeName==="IMG"){exist_img_children = true}if(node.nodeName==="DIV"&&node.classList.contains("mep_bilibili_transparent")){node.remove()}});
+            if(!exist_img_children&&this.play_control_wrap){
+                const img_element = document.createElement("img");
+                img_element.src = (await this.#getVideodataApi())["image_base64"];
+                img_element.width = this.player.width;
+                img_element.height = this.player.height;
+                img_element.style.width = "100%";
+                img_element.style.height = "100%";
+                img_element.style.objectFit = "cover";
+                img_element.style.cursor = "pointer";
+                img_element.addEventListener("click",()=>{this.playVideo()});
+                this.player.parentElement.prepend(img_element);
+            }
+            this.player.hidden = true;
+            this.player.src = "";
+            if(first_load){
+                this.player.dispatchEvent(new Event("onReady"));
+            }
         }
-        this.player.hidden = true;
-        this.player.src = "";
-        if(first_load){
-            this.player.dispatchEvent(new Event("onReady"));
+        catch(e){
+            console.error(e);
         }
     }
     /**
