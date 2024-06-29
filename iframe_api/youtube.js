@@ -107,14 +107,15 @@ class mep_youtube{
             videoId: content.videoId,
             playerVars: playerVars_pass_over,
             host: "https://www.youtube-nocookie.com",
+            events:{
+                "onReady":()=>{this.#dispatchEvent(new Event("onReady"))},
+                "onError":(e)=>{this.#error_event_handler(e)},
+                "onStateChange":()=>{this.#dispatchEvent(new CustomEvent("onStateChange",{detail:this.getPlayerState()}));if(this.getPlayerState()==4){this.#dispatchEvent(new Event("onEndVideo"))}}
+            }
         });
         if(!this.autoplay){
             this.player.addEventListener("onReady",()=>{this.pauseVideo()},{once: true});
         }
-        this.player.addEventListener("onReady",()=>{this.player.dispatchEvent(new Event("onReady"))});
-        this.player.addEventListener("onError",(e)=>{this.#error_event_handler(e)});
-        this.player.addEventListener("onStateChange",()=>{this.player.dispatchEvent(new CustomEvent("onStateChange",{detail:this.getPlayerState()}))});
-        this.player.addEventListener("onStateChange",async()=>{if(await this.getCurrentTime()>this.getDuration()-1||(this.endSeconds!=-1&&await this.getCurrentTime()!=0&&this.endSeconds-1<=await this.getCurrentTime())){this.player.dispatchEvent(new Event("onEndVideo"))}})
     }
 
     /**
