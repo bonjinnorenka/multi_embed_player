@@ -191,15 +191,16 @@ class mep_youtube{
      * @param {number} time - The time to seek to in seconds.
      */
     seekTo(time){
-        if(typeof time==="number"){
-            if(time<0){
-                time = 0;
-            }
-            this.YT_player.seekTo(time);
+        //try to time as number
+        time = Number(time);
+        if(isNaN(time)){
+            console.error("time is not a number(Nan error)");
+            return;
         }
-        else{
-            console.error("time is not a number");
+        if(time<0){
+            time = 0;
         }
+        this.YT_player.seekTo(time);
     }
 
     /**
