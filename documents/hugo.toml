@@ -1,8 +1,7 @@
-baseURL = 'http://localhost:1313/'
+baseURL = 'https://example.com/'
 languageCode = 'en-us'
 title = 'multi embed player documents'
 
-theme = 'lotusdocs'
 enableRobotsTXT = true
 
 [module]
