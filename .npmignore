@@ -1,0 +1,51 @@
+# Source files
+*.ts
+!*.d.ts
+tsconfig.json
+.eslintrc.json
+.prettierrc.json
+
+# Development files
+test_*.html
+testyoutube.html
+example.html
+bilibili_wrapper.html
+yt_invidious_test.html
+
+# Build tools
+.github/
+.vscode/
+node_modules/
+.git/
+.gitignore
+.gitmodules
+
+# Documentation build
+documents/
+.hugo_build.lock
+
+# Browser extension
+browserExtention/
+extention.json
+
+# Development assets
+icon/
+invidious_embed/
+player_api_gate/
+
+# Logs and temp files
+*.log
+.DS_Store
+Thumbs.db
+
+# Package manager
+package-lock.json
+yarn.lock
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# Naming convention doc
+NAMING_CONVENTION.md 
