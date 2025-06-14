@@ -20,7 +20,7 @@ Defined at [multi_embed_player.js](https://github.com/bonjinnorenka/multi_embed_
 |cors_proxy_url|string||cors proxy url|
 |iframe_api_endpoint|string|https://iframe_api.ryokuryu.workers.dev|[iframe api endpoint](/docs/reference/iframe_api)|
 |follow_GDPR|boolean|false|follow GDPR mode|
-|script_origin|string|https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@v2/|script origin|
+|script_origin|string|https://cdn.jsdelivr.net/npm/multi_embed_player@3/dist/|script origin|
 |mep_status_load_api|Object|{serviceName:number}|load api status <br>0->not load<br>1->loading<br>2->loaded|
 |mep_load_api_promise|Object|{serviceName:[function]}|waiting load api function<br>functions will be called when api loaded|
 |api_cache|Object|{serviceName:{[iframe api response](/docs/reference/iframe_api)}}|api cache of iframe api response|
