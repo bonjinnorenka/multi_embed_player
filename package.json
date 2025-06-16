@@ -1,56 +1,15 @@
 {
-    "name": "multi_embed_player",
-    "main": "./dist/multi_embed_player.js",
-    "types": "./dist/multi_embed_player.d.ts",
-    "version": "3.0.0",
+    "name":"multi_embed_player",
+    "main":"./index.js",
+    "version": "1.0",
     "license": "Apache-2.0",
-    "style": "./multi_embed_player.css",
-    "description": "embed some video site and control playing",
-    "keywords": [
-        "video",
-        "embed",
-        "player",
-        "youtube",
-        "bilibili",
-        "soundcloud",
-        "niconico",
-        "typescript"
-    ],
-    "author": "bonjinnorenka",
-    "homepage": "https://github.com/bonjinnorenka/multi_embed_player#readme",
+    "style":"./multi_embed_player.css",
+    "description": "some video site embed and control playing",
     "repository": {
         "type": "git",
         "url": "https://github.com/bonjinnorenka/multi_embed_player"
     },
     "bugs": {
         "url": "https://github.com/bonjinnorenka/multi_embed_player/issues"
-    },
-    "files": [
-        "dist/**/*",
-        "multi_embed_player.css",
-        "README.md",
-        "LICENSE"
-    ],
-    "engines": {
-        "node": ">=14.0.0"
-    },
-    "publishConfig": {
-        "access": "public"
-    },
-    "scripts": {
-        "build": "tsc",
-        "build:watch": "tsc --watch",
-        "dev": "tsc --watch",
-        "lint": "eslint . --ext .ts,.tsx",
-        "lint:fix": "eslint . --ext .ts,.tsx --fix",
-        "prepublishOnly": "npm run build",
-        "prepack": "npm run build"
-    },
-    "devDependencies": {
-        "typescript": "^5.0.0",
-        "@types/node": "^20.0.0",
-        "eslint": "^8.0.0",
-        "@typescript-eslint/eslint-plugin": "^6.0.0",
-        "@typescript-eslint/parser": "^6.0.0"
     }
 }
