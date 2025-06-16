@@ -199,7 +199,7 @@ class multi_embed_player extends HTMLElement{
                 if(!await this.#check_image_status(this.image_url)){
                     this.image_url = await this.#mep_imageurl(this.getAttribute("subVideoid"),this.getAttribute("subService"));
                     if(!await this.#check_image_status(this.image_url)){
-                        this.style.backgroundImage = `${multi_embed_player.script_origin}icon/video_not_found.svgz`;
+                        this.style.backgroundImage = `${(window as any).multi_embed_player.script_origin}icon/video_not_found.svgz`;
                     }
                 }
             }
@@ -207,7 +207,7 @@ class multi_embed_player extends HTMLElement{
                 this.style.backgroundImage = `url(${this.image_url})`;
             }
             else{
-                this.style.backgroundImage = `url(${multi_embed_player.script_origin}icon/video_not_found.svgz)`;
+                this.style.backgroundImage = `url(${(window as any).multi_embed_player.script_origin}icon/video_not_found.svgz)`;
             }
             //status setting
             if(this.getAttribute("type")===null||this.getAttribute("type")==="embed"){
@@ -271,46 +271,46 @@ class multi_embed_player extends HTMLElement{
         let GDPR_accepted = false;
         if (!this.follow_GDPR) {
             GDPR_accepted = true;
-        } else if (this.follow_GDPR && !multi_embed_player.GDPR_accepted[service]) {
+        } else if (this.follow_GDPR && !(window as any).multi_embed_player.GDPR_accepted[service]) {
             GDPR_accepted = false;
-        } else if (this.follow_GDPR && multi_embed_player.GDPR_accepted[service]) {
+        } else if (this.follow_GDPR && (window as any).multi_embed_player.GDPR_accepted[service]) {
             GDPR_accepted = true;
         }
         let image_url = "";
         let use_cors = false;
         if(GDPR_accepted){
-            if(multi_embed_player.cors_proxy!==""){
-                image_url = multi_embed_player.cors_proxy;
+            if((window as any).multi_embed_player.cors_proxy!==""){
+                image_url = (window as any).multi_embed_player.cors_proxy;
                 use_cors= true;
             }
             else{
-                image_url = `${multi_embed_player.iframe_api_endpoint}?route=url_proxy&url=`;
+                image_url = `${(window as any).multi_embed_player.iframe_api_endpoint}?route=url_proxy&url=`;
             }
         }
-        if(multi_embed_player.cors_proxy!==""){
+        if((window as any).multi_embed_player.cors_proxy!==""){
             use_cors= true;
         }
         if(!GDPR_accepted||service==="bilibili"){//if follow gdpr or bilibili(bilibili don't allow to fetch thumbnail from crossorigin)
-            if(!(videoid in multi_embed_player.api_cache[service])){
+            if(!(videoid in (window as any).multi_embed_player.api_cache[service])){
                 await multi_embed_player_fetch_iframe_api(service,videoid,use_cors,true,false);
             }
-            return multi_embed_player.api_cache[service][videoid]["image_base64"];
+            return (window as any).multi_embed_player.api_cache[service][videoid]["image_base64"];
         }
         /*else if(service==="niconico"){
-            if(!(videoid in multi_embed_player.api_cache[service])){
+            if(!(videoid in (window as any).multi_embed_player.api_cache[service])){
                 await this.fetch_iframe_api(service,videoid,use_cors,false,GDPR_accepted);
             }
-            return image_url + multi_embed_player.api_cache[service][videoid]["image"];
+            return image_url + (window as any).multi_embed_player.api_cache[service][videoid]["image"];
         }*/
         else if(service==="soundcloud"||service==="youtube"||service==="niconico"){
-            if(!(videoid in multi_embed_player.api_cache[service])){
+            if(!(videoid in (window as any).multi_embed_player.api_cache[service])){
                 await multi_embed_player_fetch_iframe_api(service,videoid,use_cors,!GDPR_accepted,GDPR_accepted);
             }
             if(!GDPR_accepted){
-                return multi_embed_player.api_cache[service][videoid]["image_base64"];
+                return (window as any).multi_embed_player.api_cache[service][videoid]["image_base64"];
             }
             else{
-                return multi_embed_player.api_cache[service][videoid]["thumbnail_url"];
+                return (window as any).multi_embed_player.api_cache[service][videoid]["thumbnail_url"];
             }
         }
         else{
@@ -327,17 +327,17 @@ class multi_embed_player extends HTMLElement{
     async #GDPR_accept(service){
         return new Promise(async(resolve,reject)=>{
             if(this.follow_GDPR){
-                if(multi_embed_player.GDPR_accepted[service]){
+                if((window as any).multi_embed_player.GDPR_accepted[service]){
                     resolve();
                 }
                 else{
-                    multi_embed_player.GDPR_accept_promise[service].push(resolve);
+                    (window as any).multi_embed_player.GDPR_accept_promise[service].push(resolve);
                     const GDPR_check_div = document.createElement("div");
                     const firest_p_element = document.createElement("p");
                     firest_p_element.innerText = "This content is hosted by a third party.\nBy showing the external content you accept the terms and conditions";
                     GDPR_check_div.appendChild(firest_p_element);
                     const tearms_link = document.createElement("a");
-                    tearms_link.href = multi_embed_player.tearms_policy_service[service];
+                    tearms_link.href = (window as any).multi_embed_player.tearms_policy_service[service];
                     tearms_link.target = "_blank";
                     tearms_link.innerText = `${service} terms and conditions`;
                     GDPR_check_div.appendChild(tearms_link);
@@ -433,7 +433,7 @@ class multi_embed_player extends HTMLElement{
             }
             this.setAttribute("videoid",data.videoId);//いらないけど勘違い防止用に
             this.setAttribute("service",data.service);
-            if(Object.keys(multi_embed_player.mep_load_api_promise).includes(this.service)){
+            if(Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
                 await this.iframe_api_loader(this.service);
                 if(service_changed==false){
                     //動画idを変えてiframeを再読み込み
@@ -471,7 +471,7 @@ class multi_embed_player extends HTMLElement{
                     else{
                         player_argument["play_control_wrap"] = true;
                     }
-                    this.player = new multi_embed_player.iframe_api_class[this.service](divdoc,player_argument,this.#setEvent.bind(this));
+                    this.player = new (window as any).multi_embed_player.iframe_api_class[this.service](divdoc,player_argument,this.#setEvent.bind(this));
                     this.player.service = this.service;
                 }
             }
@@ -501,7 +501,7 @@ class multi_embed_player extends HTMLElement{
     #setEvent(element){
         try{
             if(typeof element === "undefined"){
-                if(Object.keys(multi_embed_player.mep_load_api_promise).includes(this.service)){
+                if(Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
                     this.player.player.addEventListener("onReady",()=>{this.dispatchEvent(new Event("onReady"))});//need bind
                     this.player.player.addEventListener("onError",(e)=>{this.#error_event_handler(e)});
                     this.player.player.addEventListener("onStateChange",(e)=>{this.dispatchEvent(new CustomEvent("onStateChange",{detail:e.detail}))});
@@ -512,7 +512,7 @@ class multi_embed_player extends HTMLElement{
                 }
             }
             else{
-                if(Object.keys(multi_embed_player.mep_load_api_promise).includes(this.service)){
+                if(Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
                     element.addEventListener("onReady",()=>{this.dispatchEvent(new Event("onReady"))});
                     element.addEventListener("onError",(e)=>{this.#error_event_handler(e)});
                     element.addEventListener("onStateChange",(e)=>{this.dispatchEvent(new CustomEvent("onStateChange",{detail:e.detail}))});
@@ -534,7 +534,7 @@ class multi_embed_player extends HTMLElement{
      */
     #deleteEvent(){//plese before change service
         try{
-            if(Object.keys(multi_embed_player.mep_load_api_promise).includes(this.service)){
+            if(Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
                 this.player.player.removeEventListener("onReady",()=>{this.dispatchEvent(new Event("onReady"))});//need bind
                 this.player.player.removeEventListener("onError",(e)=>{this.#error_event_handler(e)});
                 this.player.player.removeEventListener("onStateChange",(e)=>{this.dispatchEvent(new CustomEvent("onStateChange",{detail:e.detail}))});
@@ -629,7 +629,7 @@ class multi_embed_player extends HTMLElement{
      * @returns {number} The real duration of the video.
      */
     getRealDulation(){
-        if(Object.keys(multi_embed_player.mep_load_api_promise).includes(this.service)){
+        if(Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
             return this.player.getRealDulation();
         }
         else{
@@ -675,7 +675,7 @@ class multi_embed_player extends HTMLElement{
      * 4 -> video ended
      */
     getPlayerState(){
-        if(Object.keys(multi_embed_player.mep_load_api_promise).includes(this.service)){
+        if(Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
             return this.player.getPlayerState();
         }
         else{
@@ -715,14 +715,14 @@ class multi_embed_player extends HTMLElement{
      */
     async youtube_api_loader(){
         return new Promise(async(resolve,reject)=>{
-            if(multi_embed_player.mep_status_load_api.youtube===0){
+            if((window as any).multi_embed_player.mep_status_load_api.youtube===0){
                 let script_url = "https://www.youtube.com/iframe_api";
-                multi_embed_player.mep_status_load_api.youtube = 1;
+                (window as any).multi_embed_player.mep_status_load_api.youtube = 1;
                 await this.mep_promise_script_loader(script_url);
-                YT.ready(()=>{multi_embed_player.mep_load_api_promise.youtube.forEach(func=>func());multi_embed_player.mep_status_load_api.youtube = 2;resolve()});
+                YT.ready(()=>{(window as any).multi_embed_player.mep_load_api_promise.youtube.forEach(func=>func());(window as any).multi_embed_player.mep_status_load_api.youtube = 2;resolve()});
             }
-            else if(multi_embed_player.mep_status_load_api.youtube==1){
-                multi_embed_player.mep_load_api_promise.youtube.push(resolve);
+            else if((window as any).multi_embed_player.mep_status_load_api.youtube==1){
+                (window as any).multi_embed_player.mep_load_api_promise.youtube.push(resolve);
             }
             else{
                 resolve();
@@ -737,29 +737,29 @@ class multi_embed_player extends HTMLElement{
      */
     async iframe_api_loader(service){
         return new Promise(async(resolve,reject)=>{
-            if(multi_embed_player.mep_status_load_api[service]===0){
-                multi_embed_player.mep_status_load_api[service] = 1;
-                await this.mep_promise_script_loader(`${multi_embed_player.script_origin}iframe_api/${service}.js`);
-                multi_embed_player.mep_status_load_api[service] = 2;
+            if((window as any).multi_embed_player.mep_status_load_api[service]===0){
+                (window as any).multi_embed_player.mep_status_load_api[service] = 1;
+                await this.mep_promise_script_loader(`${(window as any).multi_embed_player.script_origin}iframe_api/${service}.js`);
+                (window as any).multi_embed_player.mep_status_load_api[service] = 2;
                 switch(service){
                     case "youtube":
-                        multi_embed_player.iframe_api_class["youtube"] = mep_youtube;
+                        (window as any).multi_embed_player.iframe_api_class["youtube"] = mep_youtube;
                         break;
                     case "niconico":
-                        multi_embed_player.iframe_api_class["niconico"] = mep_niconico;
+                        (window as any).multi_embed_player.iframe_api_class["niconico"] = mep_niconico;
                         break;
                     case "bilibili":
-                        multi_embed_player.iframe_api_class["bilibili"] = mep_bilibili;
+                        (window as any).multi_embed_player.iframe_api_class["bilibili"] = mep_bilibili;
                         break;
                     case "soundcloud":
-                        multi_embed_player.iframe_api_class["soundcloud"] = mep_soundcloud;
+                        (window as any).multi_embed_player.iframe_api_class["soundcloud"] = mep_soundcloud;
                         break;
                 }
-                multi_embed_player.mep_load_api_promise[service].forEach(func=>func());
+                (window as any).multi_embed_player.mep_load_api_promise[service].forEach(func=>func());
                 resolve();
             }
-            else if(multi_embed_player.mep_status_load_api[service]===1){
-                multi_embed_player.mep_load_api_promise[service].push(resolve);
+            else if((window as any).multi_embed_player.mep_status_load_api[service]===1){
+                (window as any).multi_embed_player.mep_load_api_promise[service].push(resolve);
             }
             else{
                 resolve();
@@ -867,7 +867,7 @@ if(typeof multi_embed_player_set_variable === "function"){
 //load GDPR status
 try{
     if(localStorage.getItem("multi_embed_player_GDPR_accepted")!==null){
-        multi_embed_player.GDPR_accepted = JSON.parse(localStorage.getItem("multi_embed_player_GDPR_accepted"));
+        (window as any).multi_embed_player.GDPR_accepted = JSON.parse(localStorage.getItem("multi_embed_player_GDPR_accepted"));
     }
 }
 catch{
@@ -912,4 +912,8 @@ multi-embed-player>picture{
 }`;
 multi_embed_player_css.classList.add("multi-embed-player-CSS");
 document.head.appendChild(multi_embed_player_css);
+
+// Preserve class name for compilation
+(window as any).multi_embed_player = multi_embed_player;
+
 customElements.define('multi-embed-player', multi_embed_player);//define custom element
