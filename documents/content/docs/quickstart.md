@@ -21,7 +21,7 @@ add js file url and CSS to your html
         max-width: 100%;
     }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/multi_embed_player@3/dist/multi_embed_player.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@v2/multi_embed_player.js"></script>
 ```
 
 <style>
@@ -31,7 +31,7 @@ add js file url and CSS to your html
         max-width: 100%;
     }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/multi_embed_player@3/dist/multi_embed_player.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@v2/multi_embed_player.js"></script>
 
 ## Add embed html content
 

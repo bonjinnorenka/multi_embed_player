@@ -10,7 +10,7 @@ toc: true
 ---
 
 <!--load api-->
-<script src="https://cdn.jsdelivr.net/npm/multi_embed_player@3/dist/multi_embed_player.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@v2/multi_embed_player.js"></script>
 
 <style>
     multi-embed-player{
@@ -129,7 +129,7 @@ This use for embed display element to load api.
 This example [embed bilibili video](https://www.bilibili.com/video/BV16K4y177HZ/) and control it.
 
 ```HTML
-<script src="https://cdn.jsdelivr.net/npm/multi_embed_player@3/dist/iframe_api/bilibili.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@v2/iframe_api/bilibili.js"></script>
 <div style="width: 480px;height: 270px;display: block;position: relative;"><div id="mep_internal_description"></div></div>
 <button id="pause_button">pause</button>
 <script type="text/javascript">
@@ -146,7 +146,7 @@ This example [embed bilibili video](https://www.bilibili.com/video/BV16K4y177HZ/
 </script>
 ```
 
-<script src="https://cdn.jsdelivr.net/npm/multi_embed_player@3/dist/iframe_api/bilibili.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@v2/iframe_api/bilibili.js"></script>
 <div style="width: 480px;height: 270px;display: block;position: relative;"><div id="mep_internal_description"></div></div>
 <button id="pause_button">pause</button>
 <script type="text/javascript">

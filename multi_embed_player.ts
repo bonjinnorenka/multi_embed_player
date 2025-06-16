@@ -216,7 +216,7 @@ const multi_embed_player_GDPR_accepted_all_back_down = (): void => {
  * @extends HTMLElement
  */
 export class multi_embed_player extends HTMLElement {
-      static script_origin: string = "https://cdn.jsdelivr.net/npm/multi_embed_player@3/dist/";
+  static script_origin: string = "https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@v3/";
   static iframe_api_endpoint: string = "https://iframe_api.ryokuryu.workers.dev";
   static mep_status_load_api: MEPStatusLoadApi = { youtube: 0, niconico: 0, bilibili: 0, soundcloud: 0 };
   static mep_load_api_promise: MEPLoadApiPromise = { youtube: [], niconico: [], bilibili: [], soundcloud: [] };
