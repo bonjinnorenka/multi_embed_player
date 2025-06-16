@@ -29,6 +29,14 @@
  * Class representing a Niconico player.
  */
 class mep_niconico{
+    state: any;
+    startSeconds: any;
+    player: any;
+    playerId: any;
+    autoplay_flag: any;
+    endSeconds: any;
+    displayCommentMode: any;
+    
     /**
      * The ID of the player.
      * @type {number}
@@ -50,7 +58,7 @@ class mep_niconico{
      * @param {Object} content - The content of the player.
      * @param {Function} player_set_event_function - The function to set player events.
      */
-    constructor(replacing_element,content,player_set_event_function){
+    constructor(replacing_element: any, content: any, player_set_event_function: any){
         /**
          * The state of the player.
          * @type {Object}

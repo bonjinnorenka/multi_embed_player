@@ -1,3 +1,6 @@
+declare var multi_embed_player_set_variable: any;
+declare var YT: any;
+
 /**
  * Fetches the iframe API for a given service and video ID.
  * @param {string} service - The name of the service.
@@ -145,7 +148,20 @@ const multi_embed_player_GDPR_accepted_all_back_down = ()=>{
  * @extends HTMLElement
  */
 class multi_embed_player extends HTMLElement{
-    static script_origin = "https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@v2/";
+    videoid: any;
+    follow_GDPR: any;
+    service: any;
+    image_url: any;
+    picture_tag: any;
+    player: any;
+    playlist: any;
+    autoplay: any;
+    error_not_declare: any;
+    previousData: any;
+    startSeconds: any;
+    endSeconds: any;
+    // static script_origin = "https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@v2/";
+    static script_origin = "http://localhost:5500/dist/";
     static iframe_api_endpoint = "https://iframe_api.ryokuryu.workers.dev";
     static mep_status_load_api = {youtube:0,niconico:0,bilibili:0,soundcloud:0};
     static mep_load_api_promise = {youtube:[],niconico:[],bilibili:[],soundcloud:[]};
@@ -793,7 +809,15 @@ class multi_embed_player extends HTMLElement{
     }
 }
 class mep_playitem{
-    constructor(service,videoid){
+    service: any;
+    videoid: any;
+    call_array: any;
+    startSeconds: any;
+    endSeconds: any;
+    subService: any;
+    subVideoid: any;
+    
+    constructor(service: any, videoid: any){
         this.service = service;
         this.videoid = videoid;
         this.call_array = [];
@@ -818,6 +842,8 @@ class mep_playitem{
     }
 }
 class mep_parallel{
+    data: any;
+    
     constructor(){
         this.data = [];//class mep_parallel_inner
     }
@@ -826,7 +852,10 @@ class mep_parallel{
     }
 }
 class mep_parallel_inner{
-    constructor(service,videoid){
+    service: any;
+    videoid: any;
+    
+    constructor(service: any, videoid: any){
         this.service = service;
         this.videoid = videoid;
     }

@@ -37,6 +37,35 @@
  * @param {Function} player_set_event_function - The function to set the player event.
  */
 class mep_bilibili{
+    player: any;
+    play_control_wrap: any;
+    front_error_code: any;
+    loading: any;
+    before_mute_volume: any;
+    content_width: any;
+    content_height: any;
+    videoid: any;
+    original_replacing_element: any;
+    player_set_event: any;
+    seek_time: any;
+    seek_time_used: any;
+    noextention_count_stop: any;
+    state: any;
+    apicache: any;
+    no_extention_pause: any;
+    startSeconds: any;
+    innerStartSeconds: any;
+    autoplay_flag: any;
+    displayCommentMode: any;
+    fastload: any;
+    no_extention_estimate_stop: any;
+    play_start_time: any;
+    play_start_count_interval: any;
+    endSeconds: any;
+    end_point_observe: any;
+    custom_state: any;
+    estimate_time: any;
+    
     static error_description = {0:"unknown error occurred",1:"data api endpoint invalid or throw error",2:"can't access local storage",3:"data api throw error",4:"player throw error direct"};
     static localStorageCheck = null;//ニコニコと同じくlocalstorageにアクセスできないと死ぬため
     static mep_extension_bilibili = false;//拡張機能ないとまともに動かん
@@ -47,7 +76,7 @@ class mep_bilibili{
     static cors_proxy = "";
     static currentTime_delay = 2;
     static bilibili_api_promise = {};
-    constructor(replacing_element,content,player_set_event_function){
+    constructor(replacing_element: any, content: any, player_set_event_function: any){
         if(mep_bilibili.player_base_url==""){
             const ua = navigator.userAgent;
             if(ua.indexOf("Firefox")!=-1||ua.indexOf("Edg")!=-1){

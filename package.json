@@ -1,6 +1,7 @@
 {
     "name":"multi_embed_player",
-    "main":"./index.js",
+    "main":"./dist/multi_embed_player.js",
+    "types":"./dist/multi_embed_player.d.ts",
     "version": "1.0",
     "license": "Apache-2.0",
     "style":"./multi_embed_player.css",
@@ -11,5 +12,14 @@
     },
     "bugs": {
         "url": "https://github.com/bonjinnorenka/multi_embed_player/issues"
+    },
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsc --watch",
+        "lint": "tsc --noEmit",
+        "lint:fix": "tsc --noEmit"
+    },
+    "devDependencies": {
+        "typescript": "^5.0.0"
     }
 }
