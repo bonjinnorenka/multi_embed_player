@@ -265,6 +265,7 @@ class mep_youtube{
         else if(nowstatus==3||nowstatus==5){
             return 1
         }
+        return 0;
     }
 
     /**

@@ -129,12 +129,12 @@ class mep_soundcloud{
         this.playerVars = content.playerVars;
         this.player_statusdata = {playing_status:1,currentPosition:0,volume:100};
         this.autoplay = false;
-        if(typeof content.playerVars === "object"){
+        if(typeof content.playerVars === "object" && content.playerVars !== null){
             tflist.forEach(option=>{
-                if(typeof content.playerVars[option]==="number"){
+                if(content.playerVars && typeof content.playerVars[option]==="number"){
                     content.playerVars[option] = content.playerVars[option].toString()
                 }
-                if(typeof content.playerVars[option] === "undefined"){
+                if(!content.playerVars || typeof content.playerVars[option] === "undefined"){
                     url_params.set(option,"true");
                 }
                 else if(content.playerVars[option] === "1" || content.playerVars[option] === "true"){
@@ -144,10 +144,10 @@ class mep_soundcloud{
                     url_params.set(option,"false");
                 }
                 else{
-                    url_params.set(option,content.playerVars[option]);
+                    url_params.set(option,content.playerVars[option] as string);
                 }
             });
-            if(content.playerVars.autoplay == "true" || content.playerVars.autoplay == 1){
+            if(content.playerVars && (content.playerVars.autoplay == "true" || content.playerVars.autoplay == 1)){
                 this.autoplay = true;
             }
         }
@@ -179,8 +179,8 @@ class mep_soundcloud{
         if(this.autoplay){
             this.#startTracking();
         }
-        this.first_seek_time = (typeof content["playerVars"]["startSeconds"] === "number")?content["playerVars"]["startSeconds"]:-1;
-        this.endSeconds = (typeof content["playerVars"]["endSeconds"] === "number")?content["playerVars"]["endSeconds"]:-1;
+        this.first_seek_time = (content.playerVars && typeof content.playerVars.startSeconds === "number")?content.playerVars.startSeconds:-1;
+        this.endSeconds = (content.playerVars && typeof content.playerVars.endSeconds === "number")?content.playerVars.endSeconds:-1;
         this.pause_sended = false;
     }
     /**
@@ -382,9 +382,9 @@ class mep_soundcloud{
         
         let url_params: any = {set(op: string, val: string){this[op]=val}}
         let tflist = ["hide_related","show_comments","show_user","show_user","show_reposts","visual"];
-        if(typeof this.playerVars==="object"){
+        if(this.playerVars && typeof this.playerVars==="object"){
             tflist.forEach(option=>{
-                if(typeof this.playerVars[option] === "string"&&this.playerVars[option] === "true"){
+                if(this.playerVars && typeof this.playerVars[option] === "string"&&this.playerVars[option] === "true"){
                     url_params.set(option,"true");
                 }
                 else{

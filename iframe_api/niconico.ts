@@ -138,8 +138,15 @@ class mep_niconico{
          * @property {boolean} isRepeat - Whether the player is on repeat.
          * @property {number} playerStatus - The status of the player.
          */
+        let element: HTMLElement;
         if(typeof replacing_element === "string"){
-            replacing_element = document.getElementById(replacing_element);
+            const found_element = document.getElementById(replacing_element);
+            if (!found_element) {
+                throw new Error(`Element with id "${replacing_element}" not found`);
+            }
+            element = found_element;
+        } else {
+            element = replacing_element;
         }
         this.state = {
             isRepeat: false,
@@ -163,7 +170,7 @@ class mep_niconico{
         niconico_doc.allow = "autoplay";//fix bug not autoplay on chrome
         niconico_doc.allowFullscreen = true;//fix bug can't watch on full screen(all browser)
         niconico_doc.style.border = "none";//fix bug display border on outer frame
-        replacing_element.replaceWith(niconico_doc);
+        element.replaceWith(niconico_doc);
         /**
          * The player element.
          * @type {HTMLIFrameElement}
@@ -262,28 +269,28 @@ class mep_niconico{
      * @returns {number} The current time of the video.
      */
     getCurrentTime(): number{
-        return this.state.currentTime/1000;//msec->sec
+        return (this.state.currentTime ?? 0)/1000;//msec->sec
     }
     /**
      * Get the duration of the video.
      * @returns {number} The duration of the video.
      */
     getDuration(): number{
-        return this.state.duration/1000;//msec->sec
+        return (this.state.duration ?? 0)/1000;//msec->sec
     }
     /**
      * Get the title of the video.
      * @returns {string} The title of the video.
      */
     getTitle(): string{
-        return this.state.videoInfo.title;
+        return this.state.videoInfo?.title ?? '';
     }
     /**
      * Check if the video is muted.
      * @returns {boolean} Whether the video is muted.
      */
     isMuted(): boolean{
-        return this.state.muted;
+        return this.state.muted ?? false;
     }
     /**
      * Get the volume of the video.
@@ -371,7 +378,9 @@ class mep_niconico{
             sourceConnectorType: 1,
             playerId: this.playerId
         }, request);
-        this.player.contentWindow.postMessage(message, (window as any).mep_niconico.origin);
+        if (this.player.contentWindow) {
+            this.player.contentWindow.postMessage(message, (window as any).mep_niconico.origin);
+        }
     }
     /**
      * Listen for messages from the player.
@@ -410,7 +419,7 @@ class mep_niconico{
             }
             
             this.state = Object.assign({}, this.state, data);
-            if(this.endSeconds!=-1&&this.state.currentTime>=this.endSeconds*1000){//終了時間の時自動で停止
+            if(this.endSeconds!=-1&&(this.state.currentTime ?? 0)>=this.endSeconds*1000){//終了時間の時自動で停止
                 this.pauseVideo();
             }
           }

@@ -220,13 +220,23 @@ class multi_embed_player extends HTMLElement{
             else if(this.getAttribute("picture_tag")!=null){
                 this.picture_tag = document.createElement("picture");
                 this.appendChild(this.picture_tag);
-                this.picture_tag.innerHTML = this.getAttribute("picture_tag");
+                this.picture_tag.innerHTML = this.getAttribute("picture_tag") || "";
             }
             else{
-                this.image_url = await this.#mep_imageurl(this.videoid,this.service);
-                if(!await this.#check_image_status(this.image_url)){
-                    this.image_url = await this.#mep_imageurl(this.getAttribute("subVideoid"),this.getAttribute("subService") as ServiceType);
-                    if(!await this.#check_image_status(this.image_url)){
+                if (this.videoid && this.service) {
+                    this.image_url = await this.#mep_imageurl(this.videoid, this.service);
+                } else {
+                    this.image_url = null;
+                }
+                if(this.image_url && !await this.#check_image_status(this.image_url)){
+                    const subVideoid = this.getAttribute("subVideoid");
+                const subService = this.getAttribute("subService") as ServiceType;
+                if (subVideoid && subService) {
+                    this.image_url = await this.#mep_imageurl(subVideoid, subService);
+                } else {
+                    this.image_url = null;
+                }
+                    if(this.image_url && !await this.#check_image_status(this.image_url)){
                         this.style.backgroundImage = `${(window as any).multi_embed_player.script_origin}icon/video_not_found.svgz`;
                     }
                 }
@@ -242,7 +252,7 @@ class multi_embed_player extends HTMLElement{
                 this.addEventListener('click', this.#add_iframe,{once:true});
             }
             if(this.getAttribute("type")==="thumbnail-click"){
-                this.addEventListener('click',()=>{this.#PlayOnPlayer(this.getAttribute("for"),this.getAttribute("service"),this.getAttribute("videoid"),this.getAttribute("start"),this.getAttribute("end"),this.getAttribute("subService"),this.getAttribute("subVideoid"))});
+                this.addEventListener('click',()=>{this.#PlayOnPlayer(this.getAttribute("for") || "",this.getAttribute("service") || "",this.getAttribute("videoid") || "",this.getAttribute("start"),this.getAttribute("end"),this.getAttribute("subService"),this.getAttribute("subVideoid"))});
                 this.addEventListener('contextmenu',(e)=>{e.preventDefault();this.#addPlaylist()});
             }
         }
@@ -282,7 +292,7 @@ class multi_embed_player extends HTMLElement{
             content.endSeconds = Number(this.getAttribute("end"));
         }
         if(this.getAttribute("subvideoid")!=null&&this.getAttribute("subservice")!=null){
-            content.subVideoid = this.getAttribute("subvideoid");
+            content.subVideoid = this.getAttribute("subvideoid") || undefined;
             content.subService = this.getAttribute("subservice") as ServiceType;
         }
         this.player = {};
@@ -426,7 +436,9 @@ class multi_embed_player extends HTMLElement{
                     this.#deleteEvent();
                     service_changed = true;
                 }
-                this.previousData.call_index++;
+                if (this.previousData) {
+            this.previousData.call_index++;
+        }
             }
             else{
                 if(sub==false){//1回目
@@ -461,7 +473,7 @@ class multi_embed_player extends HTMLElement{
             }
             this.setAttribute("videoid",data.videoId);//いらないけど勘違い防止用に
             this.setAttribute("service",data.service);
-            if(Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
+            if(this.service && Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
                 await this.iframe_api_loader(this.service);
                 if(service_changed==false){
                     //動画idを変えてiframeを再読み込み
@@ -499,8 +511,10 @@ class multi_embed_player extends HTMLElement{
                     else{
                         player_argument["play_control_wrap"] = true;
                     }
-                    this.player = new (window as any).multi_embed_player.iframe_api_class[this.service](divdoc,player_argument,this.#setEvent.bind(this));
-                    this.player.service = this.service;
+                    if (this.service) {
+                        this.player = new (window as any).multi_embed_player.iframe_api_class[this.service](divdoc,player_argument,this.#setEvent.bind(this));
+                        this.player.service = this.service;
+                    }
                 }
             }
             else{
@@ -529,7 +543,7 @@ class multi_embed_player extends HTMLElement{
     #setEvent(element?: HTMLElement): void {
         try{
             if(typeof element === "undefined"){
-                if(Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
+                if(this.service && Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
                     this.player.player.addEventListener("onReady",()=>{this.dispatchEvent(new Event("onReady"))});//need bind
                     this.player.player.addEventListener("onError",(e: Event)=>{this.#error_event_handler(e)});
                     this.player.player.addEventListener("onStateChange",(e: CustomEvent)=>{this.dispatchEvent(new CustomEvent("onStateChange",{detail:e.detail}));});
@@ -540,7 +554,7 @@ class multi_embed_player extends HTMLElement{
                 }
             }
             else{
-                if(Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
+                if(this.service && Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
                     element.addEventListener("onReady",()=>{this.dispatchEvent(new Event("onReady"))});
                     element.addEventListener("onError",(e)=>{this.#error_event_handler(e)});
                     element.addEventListener("onStateChange",(e: CustomEvent)=>{this.dispatchEvent(new CustomEvent("onStateChange",{detail:e.detail}))});
@@ -562,7 +576,7 @@ class multi_embed_player extends HTMLElement{
      */
     #deleteEvent(): void {//plese before change service
         try{
-            if(Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
+            if(this.service && Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
                 this.player.player.removeEventListener("onReady",()=>{this.dispatchEvent(new Event("onReady"))});//need bind
                 this.player.player.removeEventListener("onError",(e: Event)=>{this.#error_event_handler(e)});
                 this.player.player.removeEventListener("onStateChange",(e: CustomEvent)=>{this.dispatchEvent(new CustomEvent("onStateChange",{detail:e.detail}));});
@@ -657,7 +671,7 @@ class multi_embed_player extends HTMLElement{
      * @returns {number} The real duration of the video.
      */
     getRealDulation(): number {
-        if(Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
+        if(this.service && Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
             return this.player.getRealDulation();
         }
         else{
@@ -703,7 +717,7 @@ class multi_embed_player extends HTMLElement{
      * 4 -> video ended
      */
     getPlayerState(): number {
-        if(Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
+        if(this.service && Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
             return this.player.getPlayerState();
         }
         else{
@@ -830,10 +844,16 @@ class multi_embed_player extends HTMLElement{
         }
         if(this.getAttribute("subService")!=null&&this.getAttribute("subVideoid")!=null){
             k_data.subService = this.getAttribute("subService") as ServiceType;
-            k_data.subVideoid = this.getAttribute("subVideoid");
+            k_data.subVideoid = this.getAttribute("subVideoid") || undefined;
         }
-        (document.getElementById(this.getAttribute("for")) as any).playlist.push(k_data.toData());
-        (document.getElementById(this.getAttribute("for")) as any).dispatchEvent(new Event("addPlaylist"));
+        const forElement = this.getAttribute("for");
+        if (forElement) {
+            const targetElement = document.getElementById(forElement) as any;
+            if (targetElement) {
+                targetElement.playlist.push(k_data.toData());
+                targetElement.dispatchEvent(new Event("addPlaylist"));
+            }
+        }
     }
 }
 class mep_playitem{
@@ -895,7 +915,10 @@ if(typeof multi_embed_player_set_variable === "function"){
 //load GDPR status
 try{
     if(localStorage.getItem("multi_embed_player_GDPR_accepted")!==null){
-        (window as any).multi_embed_player.GDPR_accepted = JSON.parse(localStorage.getItem("multi_embed_player_GDPR_accepted"));
+        const gdprData = localStorage.getItem("multi_embed_player_GDPR_accepted");
+        if (gdprData) {
+            (window as any).multi_embed_player.GDPR_accepted = JSON.parse(gdprData);
+        }
     }
 }
 catch{

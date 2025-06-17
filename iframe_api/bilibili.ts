@@ -128,10 +128,10 @@ class mep_bilibili{
     async #image_player(first_load = false){
         try{
             let exist_img_children = false;
-            this.player.parentElement.childNodes.forEach((node)=>{if(node.nodeName==="IMG"){exist_img_children = true}if(node.nodeName==="DIV"&&(node as Element).classList.contains("mep_bilibili_transparent")){(node as Element).remove()}});
+            this.player.parentElement?.childNodes.forEach((node)=>{if(node.nodeName==="IMG"){exist_img_children = true}if(node.nodeName==="DIV"&&(node as Element).classList.contains("mep_bilibili_transparent")){(node as Element).remove()}});
             if(!exist_img_children&&this.play_control_wrap){
                 const img_element = document.createElement("img");
-                img_element.src = (await this.#getVideodataApi())["image_base64"];
+                img_element.src = (await this.#getVideodataApi())["image_base64"] || "";
                 img_element.width = Number((this.player as HTMLIFrameElement).width);
                 img_element.height = Number((this.player as HTMLIFrameElement).height);
                 img_element.style.width = "100%";
@@ -139,7 +139,7 @@ class mep_bilibili{
                 img_element.style.objectFit = "cover";
                 img_element.style.cursor = "pointer";
                 img_element.addEventListener("click",()=>{this.playVideo()});
-                this.player.parentElement.prepend(img_element);
+                this.player.parentElement?.prepend(img_element);
             }
             this.player.hidden = true;
             (this.player as HTMLIFrameElement).src = "";
@@ -158,7 +158,7 @@ class mep_bilibili{
      */
     #set_pause_transparent(){
         let exist_div_children = false;
-        this.player.parentElement.childNodes.forEach((node)=>{if(node.nodeName==="DIV"&&(node as Element).classList.contains("mep_bilibili_transparent")){exist_div_children = true}});
+        this.player.parentElement?.childNodes.forEach((node)=>{if(node.nodeName==="DIV"&&(node as Element).classList.contains("mep_bilibili_transparent")){exist_div_children = true}});
         if(!exist_div_children&&this.play_control_wrap){
             const div_element = document.createElement("div");
             div_element.classList.add("mep_bilibili_transparent");
@@ -168,7 +168,7 @@ class mep_bilibili{
             div_element.style.position = "absolute";
             div_element.style.cursor = "pointer";
             div_element.addEventListener("click",()=>{this.pauseVideo()});
-            this.player.parentElement.prepend(div_element);
+            this.player.parentElement?.prepend(div_element);
         }
     }
     /**
@@ -202,7 +202,7 @@ class mep_bilibili{
             document.head.appendChild(style_element);
         }
         let exist_animation_div = false;
-        this.player.parentElement.childNodes.forEach((node)=>{if(node.nodeName==="DIV"&&(node as Element).classList.contains("mep_loading_animation")){exist_animation_div = true}});
+        this.player.parentElement?.childNodes.forEach((node)=>{if(node.nodeName==="DIV"&&(node as Element).classList.contains("mep_loading_animation")){exist_animation_div = true}});
         if(!exist_animation_div){
             const div_element = document.createElement("div");
             div_element.classList.add("mep_loading_animation");
@@ -210,7 +210,7 @@ class mep_bilibili{
             div_element.style.top = "calc(50% - 50px)";
             div_element.style.left = "calc(50% - 50px)";
             div_element.style.position = "absolute";
-            this.player.parentElement.prepend(div_element);
+            this.player.parentElement?.prepend(div_element);
         }
     }
     /**
@@ -218,7 +218,7 @@ class mep_bilibili{
      * This function will be called when player is loaded.
      */
     #remove_loading_animation(){
-        this.player.parentElement.childNodes.forEach((node)=>{if(node.nodeName==="DIV"&&(node as Element).classList.contains("mep_loading_animation")){(node as Element).remove()}});
+        this.player.parentElement?.childNodes.forEach((node)=>{if(node.nodeName==="DIV"&&(node as Element).classList.contains("mep_loading_animation")){(node as Element).remove()}});
     }
     /**
      * @private
@@ -236,7 +236,7 @@ class mep_bilibili{
         this.player.replaceWith(error_description_document);
         this.player = error_description_document;
         try{
-            this.player.parentElement.style.backgroundImage = "";
+            this.player.parentElement!.style.backgroundImage = "";
         }
         catch{}
     }
@@ -271,7 +271,7 @@ class mep_bilibili{
         this.player.replaceWith(error_description_document);
         this.player = error_description_document;
         try{
-            this.player.parentElement.style.backgroundImage = "";
+            this.player.parentElement!.style.backgroundImage = "";
         }
         catch{}
     }
@@ -294,7 +294,9 @@ class mep_bilibili{
         }
         this.videoid = content["videoId"];
         if(typeof replacing_element === "string"){
-            replacing_element = document.getElementById(replacing_element);
+            const element = document.getElementById(replacing_element);
+            if (!element) throw new Error(`Element with id '${replacing_element}' not found`);
+            replacing_element = element;
         }
         this.original_replacing_element = replacing_element;
         let bilibili_doc = document.createElement("iframe");
@@ -507,13 +509,13 @@ class mep_bilibili{
                     this.estimate_time = (now_time - this.play_start_time)/1000 + this.startSeconds - (window as any).mep_bilibili.currentTime_delay;
                 }
             }
-            if(this.endSeconds!=-1&&this.estimate_time>this.endSeconds){
+            if(this.endSeconds!=-1&&this.estimate_time!==undefined&&this.estimate_time>this.endSeconds){
                 this.custom_state = 4;
                 this.player.dispatchEvent(new Event("onEndVideo"));//再生を終了したことにする
                 clearInterval(this.play_start_count_interval);//確認を消去
                 this.pauseVideo();
             }
-            if(this.endSeconds===-1&&this.estimate_time>=(await this.getDuration())){
+            if(this.endSeconds===-1&&this.estimate_time!==undefined&&this.estimate_time>=(await this.getDuration())){
                 this.player.dispatchEvent(new Event("onEndVideo"));//再生を終了したことにする
                 clearInterval(this.play_start_count_interval);//確認を消去
                 this.pauseVideo();
@@ -563,7 +565,7 @@ class mep_bilibili{
         this.autoplay_flag = false;
         this.no_extention_pause = true;
         if(content["overwrite"]==true){
-            this.videoid = content["videoId"];
+            this.videoid = content["videoId"] || "";
         }
         this.#image_player();
     }
@@ -607,7 +609,7 @@ class mep_bilibili{
             this.#add_local_storage_error_description();
             return;
         }
-        this.player.parentElement.childNodes.forEach((node)=>{if((node as Element).tagName==="IMG"){(node as Element).remove()}});
+        this.player.parentElement?.childNodes.forEach((node)=>{if((node as Element).tagName==="IMG"){(node as Element).remove()}});
         let bilibili_query: BilibiliQuery = {
             bvid: "",
             autoplay: 0,
@@ -619,15 +621,15 @@ class mep_bilibili{
             this.estimate_time = undefined;
             this.noextention_count_stop = 0;
         }
-        this.videoid = content?.videoId;
+        this.videoid = content?.videoId || "";
         if(((await this.#getVideodataApi()) as any)?.code!=0){//video can play or not if code not 0 such as 69002 the video maybe delete.
             this.front_error_code = 3;
             this.player.dispatchEvent(new CustomEvent("onError",{detail:{code:404}}));
             return;
         }
-        bilibili_query.bvid = content?.videoId;
-        if(content?.startSeconds>0){
-            bilibili_query.t = content?.startSeconds;
+        bilibili_query.bvid = content?.videoId || "";
+        if(content?.startSeconds && content.startSeconds>0){
+            bilibili_query.t = content.startSeconds;
         }
         if(this.autoplay_flag){
             bilibili_query.autoplay = 1;
@@ -720,7 +722,7 @@ class mep_bilibili{
             }
         }
         else{
-            return this.state.currentTime;
+            return this.state.currentTime || 0;
         }
     }
     /**
@@ -749,7 +751,7 @@ class mep_bilibili{
             this.loadVideoById(generate_sorce);
         }
         else{
-            (this.player as HTMLIFrameElement).contentWindow.postMessage({eventName:"play"},"*");
+            (this.player as HTMLIFrameElement).contentWindow?.postMessage({eventName:"play"},"*");
         }
     }
     /**
@@ -762,11 +764,11 @@ class mep_bilibili{
             this.no_extention_pause = true;
             this.noextention_count_stop = 1;
             this.#image_player();
-            this.seek_time = this.estimate_time;
+            this.seek_time = this.estimate_time || 0;
             try{(this.player.parentElement as any).deleteEvent()}catch{}
         }
         else{
-            (this.player as HTMLIFrameElement).contentWindow.postMessage({eventName:"pause"},"*");
+            (this.player as HTMLIFrameElement).contentWindow?.postMessage({eventName:"pause"},"*");
         }
     }
     /**
@@ -794,7 +796,7 @@ class mep_bilibili{
             }
         }
         else{
-            (this.player as HTMLIFrameElement).contentWindow.postMessage({eventName:"seek",seekTime:Number(seektime)},"*");
+            (this.player as HTMLIFrameElement).contentWindow?.postMessage({eventName:"seek",seekTime:Number(seektime)},"*");
         }
     }
     /**
@@ -892,10 +894,10 @@ class mep_bilibili{
     async getDuration(): Promise<number> {
         if(!(window as any).mep_bilibili.mep_extension_bilibili){
             let videodata_api = await this.#getVideodataApi();
-            return videodata_api["data"]["duration"];
+            return videodata_api["data"]?.["duration"] || 0;
         }
         else{
-            return this.state.dulation
+            return this.state.dulation || 0
         }
     }
 
@@ -906,10 +908,10 @@ class mep_bilibili{
     async getTitle(): Promise<string> {
         if(!(window as any).mep_bilibili.mep_extension_bilibili){
             let videodata_api = await this.#getVideodataApi();
-            return videodata_api["data"]["title"];
+            return videodata_api["data"]?.["title"] || "";
         }
         else{
-            return this.state.getTitle
+            return this.state.getTitle || ""
         }
     }
     /**
@@ -963,6 +965,7 @@ class mep_bilibili{
                     }
                 }
             }
+            return 0; // Default return value
         }
     }
     /**
@@ -975,7 +978,7 @@ class mep_bilibili{
             console.warn((window as any).mep_bilibili.no_extention_error);
         }
         else{
-            (this.player as HTMLIFrameElement).contentWindow.postMessage({eventName:"setVolume",volume:Number(volume/100)},"*");//100で割って差をなくす
+            (this.player as HTMLIFrameElement).contentWindow?.postMessage({eventName:"setVolume",volume:Number(volume/100)},"*");//100で割って差をなくす
         }
     }
     /**
@@ -1020,7 +1023,7 @@ class mep_bilibili{
             console.warn((window as any).mep_bilibili.no_extention_error);
         }
         else{
-            this.before_mute_volume = this.getVolume();
+            this.before_mute_volume = this.getVolume() || 0;
             this.setVolume(0);
         }
     }
@@ -1049,7 +1052,7 @@ class mep_bilibili{
             console.warn((window as any).mep_bilibili.no_extention_error);
         }
         else{
-            (this.player as HTMLIFrameElement).contentWindow.postMessage({eventName:"displayComment",commentVisibility:mode},"*");
+            (this.player as HTMLIFrameElement).contentWindow?.postMessage({eventName:"displayComment",commentVisibility:mode},"*");
         }
     }
     /**
