@@ -52,7 +52,7 @@ You need to add attribute `follow_GDPR` to `true` in `multi_embed_player` tag.
         max-width: 100%;
     }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/multi_embed_player@3/dist/multi_embed_player.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/multi_embed_player@v3/dist/multi_embed_player.js"></script>
 <multi-embed-player videoid="_NC_pqMt5rY" service="youtube" follow_GDPR="true"></multi-embed-player>
 
 ## Notice
