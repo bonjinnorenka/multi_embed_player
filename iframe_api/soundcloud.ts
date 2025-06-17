@@ -70,20 +70,20 @@ interface SoundMetadata {
  * Class representing a SoundCloud player.
  */
 class mep_soundcloud{
-    player: HTMLIFrameElement;
+    player: HTMLIFrameElement = document.createElement("iframe");
     playerVars: mep_soundcloud_playerVars | undefined;
     player_statusdata: any;
-    autoplay: boolean;
+    autoplay: boolean = false;
     player_widget: any;
     player_metadata: any;
-    before_mute_volume: number;
-    forse_pause: boolean;
-    first_seek_time: number;
-    endSeconds: number;
-    pause_sended: boolean;
-    interval: NodeJS.Timeout | number;
-    previous_player_status: number;
-    retry_count: number;
+    before_mute_volume: number = 100;
+    forse_pause: boolean = false;
+    first_seek_time: number = -1;
+    endSeconds: number = -1;
+    pause_sended: boolean = false;
+    interval: NodeJS.Timeout | number = 0;
+    previous_player_status: number = -1;
+    retry_count: number = 0;
     
     static soundcloud_api_loaded: boolean | null = null;
     static soundcloud_api_promise: (() => void)[] = [];
@@ -111,7 +111,6 @@ class mep_soundcloud{
         this.#load(replacing_element,content,player_set_event_function);
     }
     async #load(replacing_element: string | HTMLElement, content: mep_soundcloud_content, player_set_event_function?: (player: HTMLIFrameElement) => void){
-        this.player = document.createElement("iframe");
         this.player.style.border = "none";
         this.player.allow = "autoplay";
         if(typeof player_set_event_function === "function"){
@@ -128,7 +127,6 @@ class mep_soundcloud{
         let tflist = ["autoplay","hide_related","show_comments","show_user","show_user","show_reposts","visual"];
         this.playerVars = content.playerVars;
         this.player_statusdata = {playing_status:1,currentPosition:0,volume:100};
-        this.autoplay = false;
         if(typeof content.playerVars === "object" && content.playerVars !== null){
             tflist.forEach(option=>{
                 if(content.playerVars && typeof content.playerVars[option]==="number"){
@@ -165,7 +163,6 @@ class mep_soundcloud{
         }
         this.player_widget = SC.Widget(this.player);
         this.player_metadata = {};//renew when load new ones
-        this.before_mute_volume = 100;
         this.forse_pause = !this.autoplay;
         this.player_widget.bind(SC.Widget.Events.READY,()=>{this.#ready_function()});
         this.player_widget.bind(SC.Widget.Events.PLAY_PROGRESS,(data: TrackData)=>{this.#tracker(data);this.#tracking_function()});
@@ -174,14 +171,11 @@ class mep_soundcloud{
         //this.player_widget.bind(SC.Widget.Events.SEEK,()=>this.player_statusdata.playing_status = 3);
         this.player_widget.bind(SC.Widget.Events.FINISH,()=>{this.player.dispatchEvent(new Event("onEndVideo"));this.player_statusdata.playing_status = 4});
         this.player_widget.bind(SC.Widget.Events.ERROR,()=>this.player.dispatchEvent(new Event("onError")));
-        this.interval = 0;
-        this.previous_player_status = -1;
         if(this.autoplay){
             this.#startTracking();
         }
         this.first_seek_time = (content.playerVars && typeof content.playerVars.startSeconds === "number")?content.playerVars.startSeconds:-1;
         this.endSeconds = (content.playerVars && typeof content.playerVars.endSeconds === "number")?content.playerVars.endSeconds:-1;
-        this.pause_sended = false;
     }
     /**
      * execute when player is ready
@@ -205,26 +199,26 @@ class mep_soundcloud{
     #tracker(trackData: TrackData){
         this.player_statusdata.currentPosition = trackData.currentPosition;
     }
-    /**
-     * This function tracks the player's state and fires events as needed. 
-     * Specifically, it fires events when the playback state changes or when a certain playback time is reached.
-     */
-    #tracking_function(){
-        //this.player_widget.getVolume((volume)=>{this.player_statusdata.volume = volume});
-        //this.player_widget.isPaused((pause_status)=>{pause_status?this.player_statusdata.playing_status = 3:this.player_statusdata.playing_status = 2});
-        if(this.previous_player_status!==this.player_statusdata.playing_status){
-            this.previous_player_status = this.player_statusdata.playing_status;
-            this.player.dispatchEvent(new CustomEvent("onStateChange",{detail:this.getPlayerState()}));
-        }
-        if(this.endSeconds!=-1&&this.endSeconds<=this.getCurrentTime()){
-            if(!this.pause_sended){
-                this.pause_sended = true;
-                this.pauseVideo();
-                this.player.dispatchEvent(new Event("onEndVideo"));
-                this.player_statusdata.playing_status = 4;
-            }
-        }
-    }
+          /**
+       * This function tracks the player's state and fires events as needed. 
+       * Specifically, it fires events when the playback state changes or when a certain playback time is reached.
+       */
+      #tracking_function(){
+          //this.player_widget.getVolume((volume)=>{this.player_statusdata.volume = volume});
+          //this.player_widget.isPaused((pause_status)=>{pause_status?this.player_statusdata.playing_status = 3:this.player_statusdata.playing_status = 2});
+          if(this.previous_player_status!==this.player_statusdata.playing_status){
+              this.previous_player_status = this.player_statusdata.playing_status;
+              this.player.dispatchEvent(new CustomEvent("onStateChange",{detail:this.getPlayerState()}));
+          }
+          if(this.endSeconds!=-1&&this.endSeconds<=this.getCurrentTime()){
+              if(!this.pause_sended){
+                  this.pause_sended = true;
+                  this.pauseVideo();
+                  this.player.dispatchEvent(new Event("onEndVideo"));
+                  this.player_statusdata.playing_status = 4;
+              }
+          }
+      }
     /**
      *  This function sets an interval for state tracking. However, in the current code, it's commented out and does nothing.
      */

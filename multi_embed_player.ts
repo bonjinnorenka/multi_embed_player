@@ -122,12 +122,12 @@ const multi_embed_player_fetch_iframe_api = async(service: ServiceType, videoid:
                         }
                         break;
                 }
-                multi_embed_player.api_promise[service][videoid].res.forEach((resolve: () => void)=>resolve());
+                multi_embed_player.api_promise[service][videoid].res.forEach((resolve: (value: any) => void)=>resolve(undefined));
             }
         }
         catch{
             if(Object.keys(multi_embed_player.api_promise[service][videoid]).includes("rej")){
-                multi_embed_player.api_promise[service][videoid].rej.forEach((reject: () => void)=>reject());
+                multi_embed_player.api_promise[service][videoid].rej.forEach((reject: (reason?: any) => void)=>reject());
             }
             if(failed_send_error&&failed_send_error_target!=null){
                 failed_send_error_target.dispatchEvent(new CustomEvent("onError",{detail:{code:1100}}));
@@ -143,7 +143,7 @@ const multi_embed_player_fetch_iframe_api = async(service: ServiceType, videoid:
                 multi_embed_player.api_promise[service][videoid] = {res:[],rej:[]};
                 fetch_response = await fetch(url);
                 multi_embed_player.api_cache[service][videoid] = await fetch_response.json();
-                multi_embed_player.api_promise[service][videoid].res.forEach((resolve: () => void)=>resolve());
+                multi_embed_player.api_promise[service][videoid].res.forEach((resolve: (value: any) => void)=>resolve(undefined));
             }
             else{
                 await new Promise<void>((resolve,reject)=>{multi_embed_player.api_promise[service][videoid].res.push(resolve);multi_embed_player.api_promise[service][videoid].rej.push(reject)});
@@ -151,7 +151,7 @@ const multi_embed_player_fetch_iframe_api = async(service: ServiceType, videoid:
         }
         catch(e){
             if(Object.keys(multi_embed_player.api_promise[service][videoid]).includes("rej")){
-                multi_embed_player.api_promise[service][videoid].rej.forEach((reject: () => void)=>reject());
+                multi_embed_player.api_promise[service][videoid].rej.forEach((reject: (reason?: any) => void)=>reject());
             }
             if(failed_send_error&&failed_send_error_target!=null){
                 failed_send_error_target.dispatchEvent(new CustomEvent("onError",{detail:{code:1100}}));
@@ -178,16 +178,16 @@ const multi_embed_player_GDPR_accepted_all_back_down = ()=>{
 class multi_embed_player extends HTMLElement{
     videoid: string | null;
     follow_GDPR: boolean;
-    service: ServiceType | null;
-    image_url: string | null;
-    picture_tag: HTMLPictureElement | null;
-    player: any;
-    playlist: PlaylistItem[];
-    autoplay: boolean;
-    error_not_declare: boolean;
-    previousData: PlaylistItem | null;
-    startSeconds: number;
-    endSeconds: number;
+    service: ServiceType | null = null;
+    image_url: string | null = null;
+    picture_tag: HTMLPictureElement | null = null;
+    player: any = null;
+    playlist: PlaylistItem[] = [];
+    autoplay: boolean = false;
+    error_not_declare: boolean = false;
+    previousData: PlaylistItem | null = null;
+    startSeconds: number = 0;
+    endSeconds: number = -1;
     // static script_origin = "https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@v2/";
     static script_origin = "http://localhost:5500/dist/";
     static iframe_api_endpoint = "https://iframe_api.ryokuryu.workers.dev";
@@ -557,7 +557,7 @@ class multi_embed_player extends HTMLElement{
                 if(this.service && Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
                     element.addEventListener("onReady",()=>{this.dispatchEvent(new Event("onReady"))});
                     element.addEventListener("onError",(e)=>{this.#error_event_handler(e)});
-                    element.addEventListener("onStateChange",(e: CustomEvent)=>{this.dispatchEvent(new CustomEvent("onStateChange",{detail:e.detail}))});
+                    element.addEventListener("onStateChange",(e: Event)=>{this.dispatchEvent(new CustomEvent("onStateChange",{detail:(e as CustomEvent).detail}))});
                     element.addEventListener("onEndVideo",()=>{this.dispatchEvent(new Event("onEndVideo"))});
                 }
                 else{

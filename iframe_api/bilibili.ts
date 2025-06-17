@@ -65,36 +65,36 @@ interface BilibiliQuery {
  * @param {Function} player_set_event_function - The function to set the player event.
  */
 class mep_bilibili{
-    player: HTMLIFrameElement | HTMLElement;
-    play_control_wrap: boolean;
+    player: HTMLIFrameElement | HTMLElement = document.createElement("iframe");
+    play_control_wrap: boolean = false;
     front_error_code: number | undefined;
-    loading: boolean;
-    before_mute_volume: number;
-    content_width: number;
-    content_height: number;
-    videoid: string;
-    original_replacing_element: HTMLElement;
+    loading: boolean = false;
+    before_mute_volume: number = 100;
+    content_width: number = 0;
+    content_height: number = 0;
+    videoid: string = "";
+    original_replacing_element: HTMLElement = document.createElement("div");
     player_set_event: ((player: HTMLIFrameElement) => void) | undefined;
-    seek_time: number;
-    seek_time_used: boolean;
-    noextention_count_stop: number;
-    state: BilibiliPlayerState;
-    apicache: Record<string, any>;
-    no_extention_pause: boolean;
-    startSeconds: number;
-    innerStartSeconds: number;
-    autoplay_flag: boolean;
-    displayCommentMode: boolean;
-    fastload: boolean;
-    no_extention_estimate_stop: boolean;
-    play_start_time: number;
+    seek_time: number = 0;
+    seek_time_used: boolean = false;
+    noextention_count_stop: number = 0;
+    state: BilibiliPlayerState = { getPlayerState: "0" };
+    apicache: Record<string, any> = {};
+    no_extention_pause: boolean = false;
+    startSeconds: number = 0;
+    innerStartSeconds: number = 0;
+    autoplay_flag: boolean = false;
+    displayCommentMode: boolean = false;
+    fastload: boolean = false;
+    no_extention_estimate_stop: boolean = false;
+    play_start_time: number = 0;
     play_start_count_interval: NodeJS.Timeout | undefined;
-    endSeconds: number;
+    endSeconds: number = -1;
     end_point_observe: NodeJS.Timeout | undefined;
     custom_state: number | undefined;
     estimate_time: number | undefined;
-    start_event_count: number;
-    end_event_count: number;
+    start_event_count: number = 0;
+    end_event_count: number = 0;
     
     static error_description = {0:"unknown error occurred",1:"data api endpoint invalid or throw error",2:"can't access local storage",3:"data api throw error",4:"player throw error direct"};
     static localStorageCheck: boolean | null = null;//ニコニコと同じくlocalstorageにアクセスできないと死ぬため

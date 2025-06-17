@@ -30,11 +30,11 @@ class mep_youtube{
     static youtube_api_loaded: number = 0;
     static youtube_api_promise: (() => void)[] = [];
     
-    player: HTMLElement;
-    autoplay: number;
-    startSeconds: number;
-    endSeconds: number;
-    el: HTMLElement;
+    player: HTMLElement = document.createElement("div");
+    autoplay: number = 0;
+    startSeconds: number = 0;
+    endSeconds: number = -1;
+    el: HTMLElement = document.createElement("div");
     YT_player: any;
 
     /**
@@ -84,7 +84,6 @@ class mep_youtube{
         }
         const playerVars = content.playerVars || {};
         let playerVars_pass_over = {};
-        this.autoplay = 0;
         if(playerVars.autoplay){
             this.autoplay = 1;
             (playerVars_pass_over as any).autoplay = 1;
@@ -92,8 +91,6 @@ class mep_youtube{
         else{
             (playerVars_pass_over as any).autoplay = 0;
         }
-        this.startSeconds = 0;
-        this.endSeconds = -1;
         if(playerVars.startSeconds){
             this.startSeconds = playerVars.startSeconds;
             (playerVars_pass_over as any).start = playerVars.startSeconds;
