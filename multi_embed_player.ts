@@ -325,7 +325,7 @@ class multi_embed_player extends HTMLElement{
      * @returns {Promise<void>} - A promise that resolves when GDPR is accepted.
      */
     async #GDPR_accept(service){
-        return new Promise(async(resolve,reject)=>{
+        return new Promise<void>(async(resolve,reject)=>{
             if(this.follow_GDPR){
                 if((window as any).multi_embed_player.GDPR_accepted[service]){
                     resolve();
@@ -451,13 +451,13 @@ class multi_embed_player extends HTMLElement{
                     this.appendChild(divdoc);
                     let playerVars = {};
                     if(autoplay){
-                        playerVars.autoplay = 1;
+                        (playerVars as any).autoplay = 1;
                     }
                     if(data["startSeconds"]!=undefined){
-                        playerVars.startSeconds = data["startSeconds"];
+                        (playerVars as any).startSeconds = data["startSeconds"];
                     }
                     if(data["endSeconds"]!=undefined){
-                        playerVars.endSeconds = data["endSeconds"];
+                        (playerVars as any).endSeconds = data["endSeconds"];
                     }
                     let player_argument = {
                         "videoId":this.videoid,
@@ -647,8 +647,8 @@ class multi_embed_player extends HTMLElement{
      * Calculates the percentage of the current time relative to the total duration of the media.
      * @returns {number} The percentage of the current time.
      */
-    getPercentOfCurremtTime(){//notice sometimes over 100%
-        return (this.getRelativeCurrentTime()/this.getRealDulation())*100
+    async getPercentOfCurremtTime(){//notice sometimes over 100%
+        return ((await this.getRelativeCurrentTime())/this.getRealDulation())*100
     }
     /**
      * Seeks to a relative position in the video based on the current time.
@@ -705,7 +705,7 @@ class multi_embed_player extends HTMLElement{
             content.subVideoid = subVideoid;
             content.subService = subService;
         }
-        playdoc.loadVideoById(content.toData());
+        (playdoc as any).loadVideoById(content.toData());
     }
     /**
      * Loads the YouTube API asynchronously and returns a Promise that resolves when the API is ready.
@@ -714,12 +714,12 @@ class multi_embed_player extends HTMLElement{
      * @returns {Promise<void>} A Promise that resolves when the YouTube API is ready.
      */
     async youtube_api_loader(){
-        return new Promise(async(resolve,reject)=>{
+        return new Promise<void>(async(resolve,reject)=>{
             if((window as any).multi_embed_player.mep_status_load_api.youtube===0){
                 let script_url = "https://www.youtube.com/iframe_api";
                 (window as any).multi_embed_player.mep_status_load_api.youtube = 1;
                 await this.mep_promise_script_loader(script_url);
-                YT.ready(()=>{(window as any).multi_embed_player.mep_load_api_promise.youtube.forEach(func=>func());(window as any).multi_embed_player.mep_status_load_api.youtube = 2;resolve()});
+                YT.ready(()=>{(window as any).multi_embed_player.mep_load_api_promise.youtube.forEach((func: any)=>func());(window as any).multi_embed_player.mep_status_load_api.youtube = 2;resolve()});
             }
             else if((window as any).multi_embed_player.mep_status_load_api.youtube==1){
                 (window as any).multi_embed_player.mep_load_api_promise.youtube.push(resolve);
@@ -736,7 +736,7 @@ class multi_embed_player extends HTMLElement{
      * @returns {Promise<void>} A promise that resolves when the API is loaded.
      */
     async iframe_api_loader(service){
-        return new Promise(async(resolve,reject)=>{
+        return new Promise<void>(async(resolve,reject)=>{
             if((window as any).multi_embed_player.mep_status_load_api[service]===0){
                 (window as any).multi_embed_player.mep_status_load_api[service] = 1;
                 await this.mep_promise_script_loader(`${(window as any).multi_embed_player.script_origin}iframe_api/${service}.js`);
@@ -755,7 +755,7 @@ class multi_embed_player extends HTMLElement{
                         (window as any).multi_embed_player.iframe_api_class["soundcloud"] = mep_soundcloud;
                         break;
                 }
-                (window as any).multi_embed_player.mep_load_api_promise[service].forEach(func=>func());
+                (window as any).multi_embed_player.mep_load_api_promise[service].forEach((func: any)=>func());
                 resolve();
             }
             else if((window as any).multi_embed_player.mep_status_load_api[service]===1){
@@ -772,7 +772,7 @@ class multi_embed_player extends HTMLElement{
      * @returns {Promise<void>} - A promise that resolves when the script is loaded successfully or rejects when there is an error.
      */
     async mep_promise_script_loader(src){
-        return new Promise((resolve,reject)=>{
+        return new Promise<void>((resolve,reject)=>{
             let script_document = document.createElement("script");
             script_document.src = src;
             script_document.async = true;
@@ -804,8 +804,8 @@ class multi_embed_player extends HTMLElement{
             k_data.subService = this.getAttribute("subService");
             k_data.subVideoid = this.getAttribute("subVideoid");
         }
-        document.getElementById(this.getAttribute("for")).playlist.push(k_data.toData());
-        document.getElementById(this.getAttribute("for")).dispatchEvent(new Event("addPlaylist"));
+        (document.getElementById(this.getAttribute("for")) as any).playlist.push(k_data.toData());
+        (document.getElementById(this.getAttribute("for")) as any).dispatchEvent(new Event("addPlaylist"));
     }
 }
 class mep_playitem{

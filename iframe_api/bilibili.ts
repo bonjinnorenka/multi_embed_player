@@ -65,6 +65,8 @@ class mep_bilibili{
     end_point_observe: any;
     custom_state: any;
     estimate_time: any;
+    start_event_count: any;
+    end_event_count: any;
     
     static error_description = {0:"unknown error occurred",1:"data api endpoint invalid or throw error",2:"can't access local storage",3:"data api throw error",4:"player throw error direct"};
     static localStorageCheck = null;//ニコニコと同じくlocalstorageにアクセスできないと死ぬため
@@ -278,7 +280,7 @@ class mep_bilibili{
             this.player_set_event = player_set_event_function;
         }
         const api_response = await this.#getVideodataApi();
-        if(api_response?.code!==0){//video can play or not if code not 0 such as 69002 the video maybe delete.
+        if((api_response as any)?.code!==0){//video can play or not if code not 0 such as 69002 the video maybe delete.
             console.error("error occured when get bilibili api. Are you sure you overwrite iframe_api endpoint? or cors proxy is not working? or videoid is invalid?");
             this.front_error_code = 1;
             this.player.dispatchEvent(new CustomEvent("onError",{detail:{code:1100}}));
@@ -383,12 +385,12 @@ class mep_bilibili{
         }
         this.#add_player_css_style();
         bilibili_doc.classList.add("mep_bilibili_player");
-        bilibili_doc.width = parseInt(content.width);
-        bilibili_doc.height = parseInt(content.height);
+        bilibili_doc.width = content.width;
+        bilibili_doc.height = content.height;
         bilibili_doc.allow = "autoplay";//fix bug not autoplay on chrome
         bilibili_doc.allowFullscreen = true;//fix bug can't watch on full screen(all browser)
         bilibili_doc.style.border = "none";//fix bug display border on outer frame
-        try{bilibili_doc.parentElement.setEvent()}catch{}
+        try{(bilibili_doc.parentElement as any).setEvent()}catch{}
         //bilibili_doc.sandbox = "allow-scripts";
         this.endSeconds = -1;
         if(content?.playerVars?.endSeconds!=undefined){
@@ -419,7 +421,7 @@ class mep_bilibili{
             cdls.height = "0";
             cdls.src = selected_localStorageCheck_url;//if you don't prefer you can change this file.But you must change origin.If you this embed example.com,you must not this otherdomain.example.com
             //and if extention exists,it will redirect to send information about exist browser extention
-            cdls.style = "border:none;"
+            cdls.style.cssText = "border:none;"
             const origin = new URL(selected_localStorageCheck_url).origin;
             document.body.appendChild(cdls);
             const return_localstorage_status = await new Promise(function(resolve,reject){
@@ -578,7 +580,7 @@ class mep_bilibili{
             this.noextention_count_stop = 0;
         }
         this.videoid = content?.videoId;
-        if((await this.#getVideodataApi())?.code!=0){//video can play or not if code not 0 such as 69002 the video maybe delete.
+        if(((await this.#getVideodataApi()) as any)?.code!=0){//video can play or not if code not 0 such as 69002 the video maybe delete.
             this.front_error_code = 3;
             this.player.dispatchEvent(new CustomEvent("onError"),{detail:{code:404}});
             return;
@@ -588,10 +590,10 @@ class mep_bilibili{
             bilibili_query["t"] = content?.startSeconds;
         }
         if(this.autoplay_flag){
-            bilibili_query.autoplay = 1;
+            (bilibili_query as any).autoplay = 1;
         }
         else{
-            bilibili_query.autoplay = 0;
+            (bilibili_query as any).autoplay = 0;
         }
         if(content?.displayComment!=undefined){
             if(content?.displayComment==0){
@@ -788,7 +790,7 @@ class mep_bilibili{
             }
             if(multi_embed_player_class_usable){
                 if(!(this.videoid in multi_embed_player.api_cache.bilibili)){
-                    await multi_embed_player_fetch_iframe_api("bilibili",this.videoid,!multi_embed_player.cors_proxy==="",true,false,true,this.player);
+                    await multi_embed_player_fetch_iframe_api("bilibili",this.videoid,multi_embed_player.cors_proxy!=="",true,false,true,this.player);
                 }
                 resolve(multi_embed_player.api_cache.bilibili[this.videoid]);
             }
@@ -874,7 +876,7 @@ class mep_bilibili{
         if(!(window as any).mep_bilibili.mep_extension_bilibili){
             const realDulationCache = await this.getRealDulation();
             const currentTimeCahce = await this.getCurrentTime();
-            if(this.loading||currentTimeCahce==undefined||realDulationCache==undefined||realDulationCache==NaN){
+            if(this.loading||currentTimeCahce==undefined||realDulationCache==undefined||Number.isNaN(realDulationCache)){
                 return 0//1のほうが適切かもしれない
             }
             else if(this.innerStartSeconds==currentTimeCahce){
@@ -968,7 +970,7 @@ class mep_bilibili{
             console.warn((window as any).mep_bilibili.no_extention_error);
         }
         else{
-            rhis.before_mute_volume = this.getVolume();
+            this.before_mute_volume = this.getVolume();
             this.setVolume(0);
         }
     }

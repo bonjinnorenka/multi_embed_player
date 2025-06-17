@@ -361,13 +361,13 @@ class mep_soundcloud{
         let musicId = "";
         if(typeof content === "object"){
             musicId = content.videoId;
-            if(typeof content.startSeconds=="number"&&content.startSeconds!==NaN){
+            if(typeof content.startSeconds=="number"&&!Number.isNaN(content.startSeconds)){
                 this.first_seek_time = content.startSeconds;
             }
             else{
                 this.first_seek_time = -1;
             }
-            if(typeof content.endSeconds=="number"&&content.endSeconds!==NaN){
+            if(typeof content.endSeconds=="number"&&!Number.isNaN(content.endSeconds)){
                 this.endSeconds = content.endSeconds;
             }
             else{
@@ -376,7 +376,7 @@ class mep_soundcloud{
         }
         else if(typeof content === "string"){
             musicId = content;
-            if(typeof startSeconds === "number" && startSeconds!==NaN){
+            if(typeof startSeconds === "number" && !Number.isNaN(startSeconds)){
                 this.first_seek_time = startSeconds;
             }
             else{

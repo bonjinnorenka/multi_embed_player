@@ -45,13 +45,13 @@ class mep_youtube{
      * @returns {Promise} Promise that resolves when the API is loaded.
      */
     async #load_youtube_api(){
-        return new Promise(async(resolve,reject)=>{
+        return new Promise<void>(async(resolve,reject)=>{
             if((window as any).mep_youtube.youtube_api_loaded===0){
                 (window as any).mep_youtube.youtube_api_loaded = 1;
                 const script_doc = document.createElement("script");
                 script_doc.src = "https://www.youtube.com/iframe_api";
                 //script_doc.addEventListener("error",this.#dispatchEvent(new CustomEvent("onError",{detail:{code:1001}})));
-                script_doc.addEventListener("load",()=>{YT.ready(()=>{(window as any).mep_youtube.youtube_api_promise.forEach(func=>func());(window as any).mep_youtube.youtube_api_loaded = 2;resolve()})});
+                script_doc.addEventListener("load",()=>{YT.ready(()=>{(window as any).mep_youtube.youtube_api_promise.forEach((func: any)=>func());(window as any).mep_youtube.youtube_api_loaded = 2;resolve()})});
                 document.body.appendChild(script_doc);
             }
             else if((window as any).mep_youtube.youtube_api_loaded==1){
@@ -94,20 +94,20 @@ class mep_youtube{
         this.autoplay = 0;
         if(playerVars.autoplay){
             this.autoplay = 1;
-            playerVars_pass_over.autoplay = 1;
+            (playerVars_pass_over as any).autoplay = 1;
         }
         else{
-            playerVars_pass_over.autoplay = 0;
+            (playerVars_pass_over as any).autoplay = 0;
         }
         this.startSeconds = 0;
         this.endSeconds = -1;
         if(playerVars.startSeconds){
             this.startSeconds = playerVars.startSeconds;
-            playerVars_pass_over.start = playerVars.startSeconds;
+            (playerVars_pass_over as any).start = playerVars.startSeconds;
         }
         if(playerVars.endSeconds){
             this.endSeconds = playerVars.endSeconds;
-            playerVars_pass_over.end = playerVars.endSeconds;
+            (playerVars_pass_over as any).end = playerVars.endSeconds;
         }
         this.el = iframe_replace_node;
         this.YT_player = new YT.Player(iframe_replace_node,{
