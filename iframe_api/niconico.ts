@@ -298,14 +298,14 @@ class mep_niconico{
             sourceConnectorType: 1,
             playerId: this.playerId
         }, request);
-        this.player.contentWindow.postMessage(message, mep_niconico.origin);
+        this.player.contentWindow.postMessage(message, (window as any).mep_niconico.origin);
     }
     /**
      * Listen for messages from the player.
      */
     #messageListener() {
         window.addEventListener('message', (e) => {
-          if (e.origin === mep_niconico.origin && e.data.playerId === this.playerId) {
+          if (e.origin === (window as any).mep_niconico.origin && e.data.playerId === this.playerId) {
             const { data } = e.data;
             switch (e.data.eventName) {
                 case 'statusChange': {
@@ -344,3 +344,4 @@ class mep_niconico{
         });
       }
 }
+(window as any).mep_niconico = mep_niconico;

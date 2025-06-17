@@ -199,8 +199,8 @@ class mep_bilibili{
         error_description_document.style.width = "100%";
         error_description_document.style.height = "100%";
         let error_message = "unknown error occurred";
-        if(this.front_error_code!=undefined&&mep_bilibili.error_description[this.front_error_code]!=undefined){
-            error_message = mep_bilibili.error_description[this.front_error_code] + "\n front end error code:" + String(this.front_error_code);
+        if(this.front_error_code!=undefined&&(window as any).mep_bilibili.error_description[this.front_error_code]!=undefined){
+            error_message = (window as any).mep_bilibili.error_description[this.front_error_code] + "\n front end error code:" + String(this.front_error_code);
         }
         error_description_document.innerText = error_message;
         this.player.replaceWith(error_description_document);
@@ -294,10 +294,10 @@ class mep_bilibili{
             getPlayerState: "PAUSE"
         };
         this.apicache = {};
-        if(mep_bilibili.localStorageCheck!=true){
+        if((window as any).mep_bilibili.localStorageCheck!=true){
             await this.#checkLocalstorage();
         }
-        if(mep_bilibili.localStorageCheck===false){
+        if((window as any).mep_bilibili.localStorageCheck===false){
             this.#add_local_storage_error_description();
             return;
         }
@@ -339,7 +339,7 @@ class mep_bilibili{
         else{
             bilibili_query["autoplay"] = 0;
         }
-        if(!this.autoplay_flag&&!mep_bilibili.mep_extension_bilibili){
+        if(!this.autoplay_flag&&!(window as any).mep_bilibili.mep_extension_bilibili){
             this.no_extention_pause = true;
         }
         if(this.displayCommentMode){
@@ -350,7 +350,7 @@ class mep_bilibili{
         }
         this.fastload = false;
         if(content?.playerVars?.fastLoad!=undefined){
-            if(!mep_bilibili.mep_extension_bilibili){
+            if(!(window as any).mep_bilibili.mep_extension_bilibili){
                 console.log("fast load ignored because of mep extention not installed in your browser")
             }
             else{
@@ -366,7 +366,7 @@ class mep_bilibili{
         }
         query_string = query_string.slice(0,-1);
         if(this.autoplay_flag){
-            if(!mep_bilibili.mep_extension_bilibili){//時間カウント用プログラムの追加
+            if(!(window as any).mep_bilibili.mep_extension_bilibili){//時間カウント用プログラムの追加
                 this.no_extention_estimate_stop = true;
                 this.#set_pause_transparent();
                 this.player.addEventListener("load",()=>{this.play_start_time = new Date().getTime();this.no_extention_estimate_stop = false;this.play_start_count_interval = setInterval(this.#observe_load_time.bind(this),500);this.player.dispatchEvent(new Event("onReady"))},{once:true});
@@ -375,8 +375,8 @@ class mep_bilibili{
                 this.player.addEventListener("onReady",()=>{if(this.fastload&&this.startSeconds!=0){this.seekTo(this.startSeconds)};if(this.fastload&&this.autoplay_flag){this.playVideo()}})
             }
         }
-        if(this.autoplay_flag||mep_bilibili.mep_extension_bilibili===true){
-            bilibili_doc.src = mep_bilibili.player_base_url + query_string;
+        if(this.autoplay_flag||(window as any).mep_bilibili.mep_extension_bilibili===true){
+            bilibili_doc.src = (window as any).mep_bilibili.player_base_url + query_string;
         }
         else{
             this.#image_player(true);
@@ -406,7 +406,7 @@ class mep_bilibili{
     async #checkLocalstorage(){
         //check whether cross domain iframe can use local storage
         //if can't ,it will not load bilibili embed
-        if(mep_bilibili.localStorageCheck==null){
+        if((window as any).mep_bilibili.localStorageCheck==null){
             let selected_localStorageCheck_url = "";
             if(!location.origin.includes("pages.dev")){
                 selected_localStorageCheck_url = "https://multi-embed-player.pages.dev/localStorageCheck";
@@ -427,7 +427,7 @@ class mep_bilibili{
                     if(ms.origin==origin){
                         try{
                             if(ms.data.extention){
-                                mep_bilibili.mep_extension_bilibili = true;
+                                (window as any).mep_bilibili.mep_extension_bilibili = true;
                             }
                         }
                         catch{}
@@ -437,15 +437,15 @@ class mep_bilibili{
             }.bind(origin));
             cdls.remove();
             if(!return_localstorage_status){
-                mep_bilibili.localStorageCheck = false;
+                (window as any).mep_bilibili.localStorageCheck = false;
                 this.front_error_code = 2;
                 this.player.dispatchEvent(new CustomEvent("onError",{detail:{code:1200}}));//can't play bilibili video
             }
             else{
-                mep_bilibili.localStorageCheck = true;
+                (window as any).mep_bilibili.localStorageCheck = true;
             }
         }
-        else if(mep_bilibili.localStorageCheck==false){
+        else if((window as any).mep_bilibili.localStorageCheck==false){
             this.front_error_code = 2;
             this.player.dispatchEvent(new CustomEvent("onError",{detail:{code:1200}}));//can't play bilibili video
             console.log("error")
@@ -460,13 +460,13 @@ class mep_bilibili{
             let now_time = new Date().getTime();
             if(!this.no_extention_estimate_stop){
                 if(this.innerStartSeconds!=undefined&&this.innerStartSeconds!=0){
-                    this.estimate_time = (now_time - this.play_start_time)/1000 + this.innerStartSeconds - mep_bilibili.currentTime_delay;
+                    this.estimate_time = (now_time - this.play_start_time)/1000 + this.innerStartSeconds - (window as any).mep_bilibili.currentTime_delay;
                 }
                 else if(this.seek_time!=undefined&&this.seek_time!=0){
-                    this.estimate_time = (now_time - this.play_start_time)/1000 + this.seek_time - mep_bilibili.currentTime_delay;
+                    this.estimate_time = (now_time - this.play_start_time)/1000 + this.seek_time - (window as any).mep_bilibili.currentTime_delay;
                 }
                 else{
-                    this.estimate_time = (now_time - this.play_start_time)/1000 + this.startSeconds - mep_bilibili.currentTime_delay;
+                    this.estimate_time = (now_time - this.play_start_time)/1000 + this.startSeconds - (window as any).mep_bilibili.currentTime_delay;
                 }
             }
             if(this.endSeconds!=-1&&this.estimate_time>this.endSeconds){
@@ -565,7 +565,7 @@ class mep_bilibili{
         }
         this.loading = true;
         this.#add_loading_animation();
-        if(mep_bilibili.localStorageCheck===false){
+        if((window as any).mep_bilibili.localStorageCheck===false){
             this.#add_local_storage_error_description();
             return;
         }
@@ -630,7 +630,7 @@ class mep_bilibili{
         }
         this.player.addEventListener("onReady",()=>{this.#remove_loading_animation();this.loading = false},{once:true});
         this.player.addEventListener("onError",()=>{this.#remove_loading_animation();this.#add_error_description()},{once:true});
-        if(!mep_bilibili.mep_extension_bilibili){//時間カウント用プログラムの追加
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){//時間カウント用プログラムの追加
             this.no_extention_estimate_stop = true;
             if(this.autoplay_flag){
                 this.#set_pause_transparent();
@@ -640,7 +640,7 @@ class mep_bilibili{
             }
             new_player.addEventListener("load",()=>{this.play_start_time = new Date().getTime();this.no_extention_estimate_stop = false;this.play_start_count_interval = setInterval(this.#observe_load_time.bind(this),500);this.player.dispatchEvent(new Event("onReady"))},{once:true});
         }
-        this.player.src = mep_bilibili.player_base_url + query_string;
+        this.player.src = (window as any).mep_bilibili.player_base_url + query_string;
         this.player.allow = "autoplay";//fix bug not autoplay on chrome
         this.player.allowFullscreen = true;//fix bug can't watch on full screen(all browser)
         this.player.style.border = "none";//fix bug display border on outer frame
@@ -659,7 +659,7 @@ class mep_bilibili{
      * @returns {Promise<number>} - The current time of the video.
      */
     getCurrentTime(){
-        if(!mep_bilibili.mep_extension_bilibili){
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
             if(this.loading){
                 return this.startSeconds;
             }
@@ -682,7 +682,7 @@ class mep_bilibili{
      * If the extension is installed, sends a message to the extension to play the video.
      */
     playVideo(){
-        if(!mep_bilibili.mep_extension_bilibili){
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
             this.#set_pause_transparent();
             this.no_extention_pause = false;
             this.noextention_count_stop = 0;
@@ -711,7 +711,7 @@ class mep_bilibili{
      * @function
      */
     pauseVideo(){
-        if(!mep_bilibili.mep_extension_bilibili){
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
             clearInterval(this.play_start_count_interval);
             this.no_extention_pause = true;
             this.noextention_count_stop = 1;
@@ -729,7 +729,7 @@ class mep_bilibili{
      * @param {number} seektime - The time to seek to, in seconds.
      */
     async seekTo(seektime){
-        if(!mep_bilibili.mep_extension_bilibili){
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
             let generate_sorce = {"videoId":this.videoid,"overwrite":false};
             if(this.endSeconds!=-1){
                 generate_sorce["endSeconds"] = this.endSeconds;
@@ -784,7 +784,7 @@ class mep_bilibili{
                 url = multi_embed_player.cors_proxy;
             }
             else{
-                url = mep_bilibili.cors_proxy;
+                url = (window as any).mep_bilibili.cors_proxy;
             }
             if(multi_embed_player_class_usable){
                 if(!(this.videoid in multi_embed_player.api_cache.bilibili)){
@@ -793,22 +793,22 @@ class mep_bilibili{
                 resolve(multi_embed_player.api_cache.bilibili[this.videoid]);
             }
             else{
-                if(!(this.videoid in mep_bilibili.bilibili_api_cache)){
-                    if(mep_bilibili.bilibili_api_promise[this.videoid]==undefined){
-                        mep_bilibili.bilibili_api_promise[this.videoid] = {res:[],rej:[]};
+                if(!(this.videoid in (window as any).mep_bilibili.bilibili_api_cache)){
+                    if((window as any).mep_bilibili.bilibili_api_promise[this.videoid]==undefined){
+                        (window as any).mep_bilibili.bilibili_api_promise[this.videoid] = {res:[],rej:[]};
                         try{
-                            if(mep_bilibili.cors_proxy===""){
-                                mep_bilibili.bilibili_api_cache[this.videoid] = await(await fetch(`${mep_bilibili.api_endpoint}?route=bilibili&videoid=${this.videoid}&image_base64=1`)).json();
+                            if((window as any).mep_bilibili.cors_proxy===""){
+                                (window as any).mep_bilibili.bilibili_api_cache[this.videoid] = await(await fetch(`${(window as any).mep_bilibili.api_endpoint}?route=bilibili&videoid=${this.videoid}&image_base64=1`)).json();
                             }
                             else{
-                                let json_response_bilibili = await(await fetch(url + `https://api.bilibili.com/x/web-interface/view?bvid=${videoid}`)).json();
+                                let json_response_bilibili = await(await fetch(url + `https://api.bilibili.com/x/web-interface/view?bvid=${this.videoid}`)).json();
                                 if(json_response_bilibili?.data?.pic===undefined){
                                     json_response_bilibili["image_base64"] = null;
                                 }
                                 else{
                                     json_response_bilibili["image_base64"] = url + json_response_bilibili.data.pic;
                                 }
-                                mep_bilibili.bilibili_api_cache[this.videoid] = json_response_bilibili;
+                                (window as any).mep_bilibili.bilibili_api_cache[this.videoid] = json_response_bilibili;
                             }
                         }
                         catch{
@@ -816,17 +816,17 @@ class mep_bilibili{
                             this.front_error_code = 1;
                             this.player.dispatchEvent(new CustomEvent("onError",{detail:{code:1100}}));
                         }
-                        mep_bilibili.bilibili_api_promise[this.videoid].res.forEach((resolve)=>{resolve(mep_bilibili.bilibili_api_cache[this.videoid])});
-                        resolve(mep_bilibili.bilibili_api_cache[this.videoid]);
+                        (window as any).mep_bilibili.bilibili_api_promise[this.videoid].res.forEach((resolve)=>{resolve((window as any).mep_bilibili.bilibili_api_cache[this.videoid])});
+                        resolve((window as any).mep_bilibili.bilibili_api_cache[this.videoid]);
                     }
                     else{
-                        mep_bilibili.bilibili_api_promise[this.videoid].res.push(resolve);
-                        mep_bilibili.bilibili_api_promise[this.videoid].rej.push(reject);
+                        (window as any).mep_bilibili.bilibili_api_promise[this.videoid].res.push(resolve);
+                        (window as any).mep_bilibili.bilibili_api_promise[this.videoid].rej.push(reject);
                         return;
                     }
                 }
                 else{
-                    resolve(mep_bilibili.bilibili_api_cache[this.videoid]);
+                    resolve((window as any).mep_bilibili.bilibili_api_cache[this.videoid]);
                 }
             }
         });
@@ -838,7 +838,7 @@ class mep_bilibili{
      * @returns {Promise<number>} The duration of the video in seconds.
      */
     async getDuration(){
-        if(!mep_bilibili.mep_extension_bilibili){
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
             let videodata_api = await this.#getVideodataApi();
             return videodata_api["data"]["duration"];
         }
@@ -852,7 +852,7 @@ class mep_bilibili{
      * @returns {Promise<string>} The title of the video.
      */
     async getTitle(){
-        if(!mep_bilibili.mep_extension_bilibili){
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
             let videodata_api = await this.#getVideodataApi();
             return videodata_api["data"]["title"];
         }
@@ -871,7 +871,7 @@ class mep_bilibili{
      * 4 - Player was ended.
      */
     async getPlayerState(){
-        if(!mep_bilibili.mep_extension_bilibili){
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
             const realDulationCache = await this.getRealDulation();
             const currentTimeCahce = await this.getCurrentTime();
             if(this.loading||currentTimeCahce==undefined||realDulationCache==undefined||realDulationCache==NaN){
@@ -919,8 +919,8 @@ class mep_bilibili{
      * @param {number} volume - The volume level to set, between 0 and 100.
      */
     setVolume(volume){
-        if(!mep_bilibili.mep_extension_bilibili){
-            console.warn(mep_bilibili.no_extention_error);
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
+            console.warn((window as any).mep_bilibili.no_extention_error);
         }
         else{
             this.player.contentWindow.postMessage({eventName:"setVolume",volume:Number(volume/100)},"*");//100で割って差をなくす
@@ -932,8 +932,8 @@ class mep_bilibili{
      * @returns {number} The current volume value.
      */
     getVolume(){
-        if(!mep_bilibili.mep_extension_bilibili){
-            console.warn(mep_bilibili.no_extention_error);
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
+            console.warn((window as any).mep_bilibili.no_extention_error);
         }
         else{
             return this.state.volumeValue
@@ -945,8 +945,8 @@ class mep_bilibili{
      * @returns {boolean} True if the player is muted, false otherwise.
      */
     isMuted(){
-        if(!mep_bilibili.mep_extension_bilibili){
-            console.warn(mep_bilibili.no_extention_error);
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
+            console.warn((window as any).mep_bilibili.no_extention_error);
         }
         else{
             if(this.getVolume()!=0){
@@ -964,8 +964,8 @@ class mep_bilibili{
      * @returns {void}
      */
     mute(){
-        if(!mep_bilibili.mep_extension_bilibili){
-            console.warn(mep_bilibili.no_extention_error);
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
+            console.warn((window as any).mep_bilibili.no_extention_error);
         }
         else{
             rhis.before_mute_volume = this.getVolume();
@@ -979,8 +979,8 @@ class mep_bilibili{
      * @returns {void}
      */
     unMute(){
-        if(!mep_bilibili.mep_extension_bilibili){
-            console.warn(mep_bilibili.no_extention_error);
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
+            console.warn((window as any).mep_bilibili.no_extention_error);
         }
         else{
             this.setVolume(this.before_mute_volume);
@@ -993,8 +993,8 @@ class mep_bilibili{
      * @returns {void}
      */
     displayComment(mode){
-        if(!mep_bilibili.mep_extension_bilibili){
-            console.warn(mep_bilibili.no_extention_error);
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
+            console.warn((window as any).mep_bilibili.no_extention_error);
         }
         else{
             this.player.contentWindow.postMessage({eventName:"displayComment",commentVisibility:mode},"*");
@@ -1031,3 +1031,4 @@ class mep_bilibili{
 if(typeof multi_embed_player_set_variable === "function"){
     multi_embed_player_set_variable(mep_bilibili);
 }
+(window as any).mep_bilibili = mep_bilibili;

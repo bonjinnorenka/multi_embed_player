@@ -46,16 +46,16 @@ class mep_youtube{
      */
     async #load_youtube_api(){
         return new Promise(async(resolve,reject)=>{
-            if(mep_youtube.youtube_api_loaded===0){
-                mep_youtube.youtube_api_loaded = 1;
+            if((window as any).mep_youtube.youtube_api_loaded===0){
+                (window as any).mep_youtube.youtube_api_loaded = 1;
                 const script_doc = document.createElement("script");
                 script_doc.src = "https://www.youtube.com/iframe_api";
                 //script_doc.addEventListener("error",this.#dispatchEvent(new CustomEvent("onError",{detail:{code:1001}})));
-                script_doc.addEventListener("load",()=>{YT.ready(()=>{mep_youtube.youtube_api_promise.forEach(func=>func());mep_youtube.youtube_api_loaded = 2;resolve()})});
+                script_doc.addEventListener("load",()=>{YT.ready(()=>{(window as any).mep_youtube.youtube_api_promise.forEach(func=>func());(window as any).mep_youtube.youtube_api_loaded = 2;resolve()})});
                 document.body.appendChild(script_doc);
             }
-            else if(mep_youtube.youtube_api_loaded==1){
-                mep_youtube.youtube_api_promise.push(resolve);
+            else if((window as any).mep_youtube.youtube_api_loaded==1){
+                (window as any).mep_youtube.youtube_api_promise.push(resolve);
             }
             else{
                 resolve();
@@ -330,3 +330,4 @@ class mep_youtube{
         }
     }
 }
+(window as any).mep_youtube = mep_youtube;

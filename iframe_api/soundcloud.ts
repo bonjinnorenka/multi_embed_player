@@ -54,22 +54,22 @@ class mep_soundcloud{
     static soundcloud_api_promise = [];
     static numericRegex = /^[0-9]+$/;
     async #load_soundcloud_api(){
-        if(mep_soundcloud.soundcloud_api_loaded === null){
+        if((window as any).mep_soundcloud.soundcloud_api_loaded === null){
             if(typeof SC!=="object"){
-                mep_soundcloud.soundcloud_api_loaded = false;
+                (window as any).mep_soundcloud.soundcloud_api_loaded = false;
                 const script_document = document.createElement("script");
                 script_document.src = "https://w.soundcloud.com/player/api.js";
-                script_document.addEventListener("load",()=>{mep_soundcloud.soundcloud_api_loaded = true;mep_soundcloud.soundcloud_api_promise.forEach((func)=>func())});
+                script_document.addEventListener("load",()=>{(window as any).mep_soundcloud.soundcloud_api_loaded = true;(window as any).mep_soundcloud.soundcloud_api_promise.forEach((func)=>func())});
                 script_document.addEventListener("error",()=>{this.player.dispatchEvent(new CustomEvent("onError",{detail:{code:1001}}))});
                 document.body.appendChild(script_document);
-                await new Promise((resolve,reject)=>mep_soundcloud.soundcloud_api_promise.push(resolve));
+                await new Promise((resolve,reject)=>(window as any).mep_soundcloud.soundcloud_api_promise.push(resolve));
             }
             else{
-                mep_soundcloud.soundcloud_api_loaded = true;
+                (window as any).mep_soundcloud.soundcloud_api_loaded = true;
             }
         }
-        else if(mep_soundcloud.soundcloud_api_loaded === false){
-            await new Promise((resolve,reject)=>mep_soundcloud.soundcloud_api_promise.push(resolve));
+        else if((window as any).mep_soundcloud.soundcloud_api_loaded === false){
+            await new Promise((resolve,reject)=>(window as any).mep_soundcloud.soundcloud_api_promise.push(resolve));
         }
     }
     constructor(replacing_element: any, content: any, player_set_event_function: any){
@@ -117,7 +117,7 @@ class mep_soundcloud{
         else{
             tflist.forEach(option=>{url_params.set(option,"false");});
         }
-        if(mep_soundcloud.numericRegex.test(content.videoId)){
+        if((window as any).mep_soundcloud.numericRegex.test(content.videoId)){
             this.player.src = `https://w.soundcloud.com/player/?url=https://api.soundcloud.com/tracks/${content.videoId}&${url_params.toString()}`;
         }
         else{
@@ -387,7 +387,7 @@ class mep_soundcloud{
         else{
             this.player.dispatchEvent(new CustomEvent("onError",{detail:{code:401}}));
         }
-        if(mep_soundcloud.numericRegex.test(musicId)){
+        if((window as any).mep_soundcloud.numericRegex.test(musicId)){
             this.player_widget.load(`https://api.soundcloud.com/tracks/${String(musicId)}`,url_params,this.#ready_function);
         }
         else{
@@ -414,3 +414,4 @@ class mep_soundcloud{
         this.#musicLoader(content,startSeconds,false);
     }
 }
+(window as any).mep_soundcloud = mep_soundcloud;
