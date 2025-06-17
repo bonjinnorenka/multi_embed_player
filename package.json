@@ -2,7 +2,7 @@
     "name":"multi_embed_player",
     "main":"./dist/multi_embed_player.js",
     "types":"./dist/multi_embed_player.d.ts",
-    "version": "3.0.0",
+    "version": "3.1.0",
     "license": "Apache-2.0",
     "style":"./multi_embed_player.css",
     "description": "some video site embed and control playing",
