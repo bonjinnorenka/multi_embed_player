@@ -31,6 +31,40 @@ declare var SC: any;
  * @property {number} height - The height of the video player.
  */
 
+// TypeScript interfaces based on JSDoc
+interface mep_soundcloud_load_object {
+    videoId: string;
+    startSeconds?: number;
+    endSeconds?: number;
+}
+
+interface mep_soundcloud_playerVars {
+    autoplay?: number | string;
+    hide_related?: number | string;
+    show_comments?: number | string;
+    show_user?: number | string;
+    show_reposts?: number | string;
+    visual?: number | string;
+    startSeconds?: number;
+    endSeconds?: number;
+}
+
+interface mep_soundcloud_content {
+    videoId: string;
+    playerVars?: mep_soundcloud_playerVars;
+    width: number;
+    height: number;
+}
+
+interface TrackData {
+    currentPosition: number;
+}
+
+interface SoundMetadata {
+    title: string;
+    duration: number;
+}
+
 /**
  * Class representing a SoundCloud player.
  */
@@ -50,8 +84,8 @@ class mep_soundcloud{
     previous_player_status: any;
     retry_count: any;
     
-    static soundcloud_api_loaded = null;
-    static soundcloud_api_promise = [];
+    static soundcloud_api_loaded: boolean | null = null;
+    static soundcloud_api_promise: (() => void)[] = [];
     static numericRegex = /^[0-9]+$/;
     async #load_soundcloud_api(){
         if((window as any).mep_soundcloud.soundcloud_api_loaded === null){
@@ -59,7 +93,7 @@ class mep_soundcloud{
                 (window as any).mep_soundcloud.soundcloud_api_loaded = false;
                 const script_document = document.createElement("script");
                 script_document.src = "https://w.soundcloud.com/player/api.js";
-                script_document.addEventListener("load",()=>{(window as any).mep_soundcloud.soundcloud_api_loaded = true;(window as any).mep_soundcloud.soundcloud_api_promise.forEach((func)=>func())});
+                script_document.addEventListener("load",()=>{(window as any).mep_soundcloud.soundcloud_api_loaded = true;(window as any).mep_soundcloud.soundcloud_api_promise.forEach((func: () => void)=>func())});
                 script_document.addEventListener("error",()=>{this.player.dispatchEvent(new CustomEvent("onError",{detail:{code:1001}}))});
                 document.body.appendChild(script_document);
                 await new Promise((resolve,reject)=>(window as any).mep_soundcloud.soundcloud_api_promise.push(resolve));
@@ -129,7 +163,7 @@ class mep_soundcloud{
         this.before_mute_volume = 100;
         this.forse_pause = !this.autoplay;
         this.player_widget.bind(SC.Widget.Events.READY,()=>{this.#ready_function()});
-        this.player_widget.bind(SC.Widget.Events.PLAY_PROGRESS,(data)=>{this.#tracker(data);this.#tracking_function()});
+        this.player_widget.bind(SC.Widget.Events.PLAY_PROGRESS,(data: TrackData)=>{this.#tracker(data);this.#tracking_function()});
         this.player_widget.bind(SC.Widget.Events.PLAY,()=>{if(this.first_seek_time!==-1){this.seekTo(this.first_seek_time);this.first_seek_time=-1};this.player_statusdata.playing_status = 2});
         this.player_widget.bind(SC.Widget.Events.PAUSE,()=>{this.player_statusdata.playing_status = 3;this.pause_sended = false;this.forse_pause = true});
         //this.player_widget.bind(SC.Widget.Events.SEEK,()=>this.player_statusdata.playing_status = 3);
@@ -148,9 +182,9 @@ class mep_soundcloud{
      * execute when player is ready
      * @param {boolean} retry 
      */
-    #ready_function(retry=false){
+    #ready_function(retry: boolean = false){
         this.player.dispatchEvent(new Event("onReady"));
-        this.player_widget.getCurrentSound((data)=>{if(data===null){this.player.dispatchEvent(new Event("onError"))};this.player_metadata = data});
+        this.player_widget.getCurrentSound((data: SoundMetadata | null)=>{if(data===null){this.player.dispatchEvent(new Event("onError"))};this.player_metadata = data});
         if(this.autoplay&&!this.forse_pause){
             this.playVideo();
             if(retry&&this.retry_count<7){
@@ -163,7 +197,7 @@ class mep_soundcloud{
      * save current position
      * @param {Object} trackData 
      */
-    #tracker(trackData){
+    #tracker(trackData: TrackData){
         this.player_statusdata.currentPosition = trackData.currentPosition;
     }
     /**
@@ -239,7 +273,7 @@ class mep_soundcloud{
      * This function seeks to a specified time in the video.
      * @param {number} skipSecounds - The time to which the player should advance.
      */
-    seekTo(skipSecounds){
+    seekTo(skipSecounds: number){
         if(typeof skipSecounds === "number"){
             this.player_widget.seekTo(skipSecounds*1000);
         }
@@ -251,7 +285,7 @@ class mep_soundcloud{
      * This function sets the volume of the video player.
      * @param {number} volume 
      */
-    setVolume(volume){
+    setVolume(volume: number){
         this.player_widget.setVolume(volume);
         this.player_statusdata.volume = volume;
     }
@@ -314,7 +348,7 @@ class mep_soundcloud{
      * @param {number} startSeconds 
      * @param {boolean} autoplay 
      */
-    #musicLoader(content,startSeconds,autoplay){
+    #musicLoader(content: mep_soundcloud_load_object | string, startSeconds: number, autoplay: boolean){
         /*
         let options = {playerVars:this.playerVars};
         if(options.playerVars === undefined){
@@ -341,7 +375,7 @@ class mep_soundcloud{
         this.load(tmp_replace_element,options);
         */
         
-        let url_params = {set(op,val){this[op]=val}}
+        let url_params: any = {set(op: string, val: string){this[op]=val}}
         let tflist = ["hide_related","show_comments","show_user","show_user","show_reposts","visual"];
         if(typeof this.playerVars==="object"){
             tflist.forEach(option=>{
@@ -402,7 +436,7 @@ class mep_soundcloud{
      * @param {mep_soundcloud_load_object} content 
      * @param {number} startSeconds 
      */
-    loadVideoById(content,startSeconds){
+    loadVideoById(content: mep_soundcloud_load_object | string, startSeconds: number){
         this.#musicLoader(content,startSeconds,true);
     }
     /**
@@ -410,7 +444,7 @@ class mep_soundcloud{
      * @param {mep_soundcloud_load_object} content 
      * @param {number} startSeconds 
      */
-    cueVideoById(content,startSeconds){
+    cueVideoById(content: mep_soundcloud_load_object | string, startSeconds: number){
         this.#musicLoader(content,startSeconds,false);
     }
 }

@@ -8,6 +8,11 @@
  * @property {number} [startSeconds] - The start time of the video.
  * @property {number} [endSeconds] - The end time of the video.
  */
+interface mep_niconico_load_object {
+    videoId: string;
+    startSeconds?: number;
+    endSeconds?: number;
+}
 
 /**
  * @typedef {Object} mep_niconico_playerVars
@@ -16,6 +21,12 @@
  * @property {number} [autoplay] - Whether the video is on autoplay.
  * @property {number} [displayComment] - Whether the video is on display comment mode.
  */
+interface mep_niconico_playerVars {
+    startSeconds?: number;
+    endSeconds?: number;
+    autoplay?: number;
+    displayComment?: number;
+}
 
 /**
  * @typedef {Object} mep_niconico_content
@@ -24,18 +35,24 @@
  * @property {number} height - The height of the player.
  * @property {mep_niconico_playerVars} playerVars - The player variables.
  */
+interface mep_niconico_content {
+    videoId: string;
+    width: number;
+    height: number;
+    playerVars?: mep_niconico_playerVars;
+}
 
 /**
  * Class representing a Niconico player.
  */
 class mep_niconico{
     state: any;
-    startSeconds: any;
-    player: any;
-    playerId: any;
-    autoplay_flag: any;
-    endSeconds: any;
-    displayCommentMode: any;
+    startSeconds: number;
+    player: HTMLIFrameElement;
+    playerId: string;
+    autoplay_flag: boolean;
+    endSeconds: number;
+    displayCommentMode: boolean | undefined;
     
     /**
      * The ID of the player.
@@ -51,14 +68,14 @@ class mep_niconico{
      * The result of checking local storage.
      * @type {boolean}
      */
-    static localStorageCheck = null;
+    static localStorageCheck: boolean | null = null;
     /**
      * Create a Niconico player.
      * @param {string|HTMLElement} replacing_element - The element to replace with the player.
      * @param {Object} content - The content of the player.
      * @param {Function} player_set_event_function - The function to set player events.
      */
-    constructor(replacing_element: any, content: any, player_set_event_function: any){
+    constructor(replacing_element: string | HTMLElement, content: mep_niconico_content, player_set_event_function?: (player: HTMLIFrameElement) => void){
         /**
          * The state of the player.
          * @type {Object}
@@ -85,8 +102,8 @@ class mep_niconico{
         niconico_doc.src = "https://embed.nicovideo.jp/watch/" + content["videoId"] + "?jsapi=1&playerId=" + String(mep_niconico.playerId) + "&from=" + String(this.startSeconds);
         this.playerId = String(mep_niconico.playerId);
         mep_niconico.playerId++;
-        niconico_doc.width = content["width"];
-        niconico_doc.height = content["height"];
+        niconico_doc.width = String(content["width"]);
+        niconico_doc.height = String(content["height"]);
         niconico_doc.allow = "autoplay";//fix bug not autoplay on chrome
         niconico_doc.allowFullscreen = true;//fix bug can't watch on full screen(all browser)
         niconico_doc.style.border = "none";//fix bug display border on outer frame
@@ -128,7 +145,7 @@ class mep_niconico{
      * Cue a video by ID.
      * @param {mep_niconico_load_object} content - The content of the video.
      */
-    cueVideoById(content){
+    cueVideoById(content: mep_niconico_load_object){
         this.startSeconds = 0;
         if(content["startSeconds"]!=undefined){
             this.startSeconds = content["startSeconds"];
@@ -144,7 +161,7 @@ class mep_niconico{
      * Load a video by ID.
      * @param {mep_niconico_load_object} content - The content of the video.
      */
-    loadVideoById(content){
+    loadVideoById(content: mep_niconico_load_object){
         this.startSeconds = 0;
         if(content["startSeconds"]!=undefined){
             this.startSeconds = content["startSeconds"];
@@ -160,7 +177,7 @@ class mep_niconico{
      * Get the real duration of the video.
      * @returns {number} The duration of the video.
      */
-    getRealDulation(){//original function
+    getRealDulation(): number{//original function
         if(this.endSeconds==-1){
             return this.getDuration() - this.startSeconds;
         }
@@ -171,7 +188,7 @@ class mep_niconico{
     /**
      * Play the video.
      */
-    playVideo(){
+    playVideo(): void{
         this.#postMessage({
             eventName: 'play'
         })
@@ -179,7 +196,7 @@ class mep_niconico{
     /**
      * Pause the video.
      */
-    pauseVideo(){
+    pauseVideo(): void{
         this.#postMessage({
             eventName: 'pause'
         })
@@ -188,42 +205,42 @@ class mep_niconico{
      * Get the current time of the video.
      * @returns {number} The current time of the video.
      */
-    getCurrentTime(){
+    getCurrentTime(): number{
         return this.state.currentTime/1000;//msec->sec
     }
     /**
      * Get the duration of the video.
      * @returns {number} The duration of the video.
      */
-    getDuration(){
+    getDuration(): number{
         return this.state.duration/1000;//msec->sec
     }
     /**
      * Get the title of the video.
      * @returns {string} The title of the video.
      */
-    getTitle(){
+    getTitle(): string{
         return this.state.videoInfo.title;
     }
     /**
      * Check if the video is muted.
      * @returns {boolean} Whether the video is muted.
      */
-    isMuted(){
+    isMuted(): boolean{
         return this.state.muted;
     }
     /**
      * Get the volume of the video.
      * @returns {number} The volume of the video.
      */
-    getVolume(){
+    getVolume(): number{
         return Number(this.state.volume)*100;
     }
     /**
      * Seek to a specific time in the video.
      * @param {number} seconds - The time to seek to.
      */
-    seekTo(seconds){
+    seekTo(seconds: number): void{
         this.#postMessage({
             eventName: 'seek',
             data: {
@@ -235,7 +252,7 @@ class mep_niconico{
      * Change the display comment mode of the video.
      * @param {boolean} mode - The display comment mode to set.
      */
-    displayComment(mode){
+    displayComment(mode: boolean): void{
         this.#postMessage({
             eventName: "commentVisibilityChange",
             data:{
@@ -246,7 +263,7 @@ class mep_niconico{
     /**
      * Mute the video.
      */
-    mute(){
+    mute(): void{
         this.#postMessage({
             eventName: "mute",
             data:{
@@ -257,7 +274,7 @@ class mep_niconico{
     /**
      * Unmute the video.
      */
-    unMute(){
+    unMute(): void{
         this.#postMessage({
             eventName: "mute",
             data:{
@@ -269,7 +286,7 @@ class mep_niconico{
      * Set the volume of the video.
      * @param {number} volume - The volume to set.
      */
-    setVolume(volume){
+    setVolume(volume: number): void{
         this.#postMessage({
             eventName: "volumeChange",
             data:{
@@ -281,7 +298,7 @@ class mep_niconico{
      * Get the state of the player.
      * @returns {number} The state of the player.
      */
-    getPlayerState(){
+    getPlayerState(): number{
         if(this.getCurrentTime()>=this.getDuration()-0.5||(this.endSeconds!=-1&&this.getCurrentTime()>=(this.endSeconds-0.5))){//最後まで行った
             return 4
         }
@@ -293,7 +310,7 @@ class mep_niconico{
      * Post a message to the player.
      * @param {Object} request - The request to post.
      */
-    #postMessage(request) {
+    #postMessage(request: any): void {
         const message = Object.assign({
             sourceConnectorType: 1,
             playerId: this.playerId
@@ -303,7 +320,7 @@ class mep_niconico{
     /**
      * Listen for messages from the player.
      */
-    #messageListener() {
+    #messageListener(): void {
         window.addEventListener('message', (e) => {
           if (e.origin === (window as any).mep_niconico.origin && e.data.playerId === this.playerId) {
             const { data } = e.data;
