@@ -88,9 +88,9 @@ class mep_bilibili{
     fastload: boolean = false;
     no_extention_estimate_stop: boolean = false;
     play_start_time: number = 0;
-    play_start_count_interval: NodeJS.Timeout | undefined;
+    play_start_count_interval: number | undefined;
     endSeconds: number = -1;
-    end_point_observe: NodeJS.Timeout | undefined;
+    end_point_observe: number | undefined;
     custom_state: number | undefined;
     estimate_time: number | undefined;
     start_event_count: number = 0;

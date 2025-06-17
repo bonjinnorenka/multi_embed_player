@@ -81,7 +81,7 @@ class mep_soundcloud{
     first_seek_time: number = -1;
     endSeconds: number = -1;
     pause_sended: boolean = false;
-    interval: NodeJS.Timeout | number = 0;
+    interval: number = 0;
     previous_player_status: number = -1;
     retry_count: number = 0;
     
