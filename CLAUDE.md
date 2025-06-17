@@ -86,3 +86,7 @@ TypeScript コンパイル時に `multi_embed_player.iframe_api_class[this.servi
    ```
 
 これによりコンパイル後も `multi_embed_player.iframe_api_class` の形でクラス名が保持される。
+
+## Memories
+
+- moduleを使わないこと

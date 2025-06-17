@@ -1,3 +1,31 @@
+// 型定義
+type ServiceType = 'youtube' | 'niconico' | 'bilibili' | 'soundcloud';
+
+interface ApiPromiseData {
+  res: Array<(value: any) => void>;
+  rej: Array<(reason?: any) => void>;
+}
+
+interface PlaylistItem {
+  service: ServiceType;
+  videoId: string;
+  call_array: any[];
+  call_index: number;
+  startSeconds?: number;
+  endSeconds?: number;
+  subService?: ServiceType;
+  subVideoId?: string;
+  [key: string]: any;
+}
+
+// multi_embed_player クラス用の型定義
+type ServiceStatusMap = Record<ServiceType, number>;
+type ServiceApiCache = Record<ServiceType, Record<string, any>>;
+type ServiceApiPromise = Record<ServiceType, Record<string, ApiPromiseData>>;
+type ServiceBooleanMap = Record<ServiceType, boolean>;
+type ServiceUrlMap = Record<ServiceType, string>;
+type IframeApiClassMap = Record<string, any>;
+
 declare var multi_embed_player_set_variable: any;
 declare var YT: any;
 
@@ -12,7 +40,7 @@ declare var YT: any;
  * @param {HTMLElement} failed_send_error_target - The target to send the error to.
  * @returns {Promise}
  */
-const multi_embed_player_fetch_iframe_api = async(service: string, videoid: string, use_cors: boolean, image_proxy: boolean, GDPR_access_accept: boolean, failed_send_error: boolean = false, failed_send_error_target: HTMLElement | null = null): Promise<void> => {
+const multi_embed_player_fetch_iframe_api = async(service: ServiceType, videoid: string, use_cors: boolean, image_proxy: boolean, GDPR_access_accept: boolean, failed_send_error: boolean = false, failed_send_error_target: HTMLElement | null = null): Promise<void> => {
     const xml_first_search = (data: string, search_string: string, start: number = 0): string => {
 		return data.substring(data.indexOf("<"+search_string+">",start)+search_string.length+2,data.indexOf("</"+search_string+">",start))
 	}
@@ -34,7 +62,7 @@ const multi_embed_player_fetch_iframe_api = async(service: string, videoid: stri
             first_access = true;
         }
         else{
-            await new Promise((resolve,reject)=>{multi_embed_player.api_promise[service][videoid].res.push(resolve);multi_embed_player.api_promise[service][videoid].rej.push(reject)});
+            await new Promise<void>((resolve,reject)=>{multi_embed_player.api_promise[service][videoid].res.push(resolve);multi_embed_player.api_promise[service][videoid].rej.push(reject)});
         }
         try{
             if(first_access){
@@ -57,7 +85,7 @@ const multi_embed_player_fetch_iframe_api = async(service: string, videoid: stri
                         const xml_response = await(await fetch(url + `https://ext.nicovideo.jp/api/getthumbinfo/${videoid}`)).text();
                         let image_url = xml_first_search(xml_response,"thumbnail_url");
                         let predict_long = 43+2*(videoid.length-2);
-                        let return_data = {};
+                        let return_data: Record<string, any> = {};
                         if(image_url.length>predict_long){
                             image_url += ".L";
                         }
@@ -68,7 +96,7 @@ const multi_embed_player_fetch_iframe_api = async(service: string, videoid: stri
                         else{
                             return_data["status"] = "success";
                             return_data["thumbnail_url"] = image_url;
-                            const search_element_names = {video_id:"video_id",title:"title",description:"description",length:"length",view_counter:"view_count",comment_num:"comment_count",mylist_counter:"mylist_count",first_retrieve:"publish_time",embeddable:"embedable",genre:"genre"};
+                            const search_element_names: Record<string, string> = {video_id:"video_id",title:"title",description:"description",length:"length",view_counter:"view_count",comment_num:"comment_count",mylist_counter:"mylist_count",first_retrieve:"publish_time",embeddable:"embedable",genre:"genre"};
                             Object.keys(search_element_names).forEach(key_name=>return_data[search_element_names[key_name]] = xml_first_search(xml_response,key_name));
                         }
                         multi_embed_player.api_cache[service][videoid] = return_data;
@@ -94,12 +122,12 @@ const multi_embed_player_fetch_iframe_api = async(service: string, videoid: stri
                         }
                         break;
                 }
-                multi_embed_player.api_promise[service][videoid].res.forEach(resolve=>resolve());
+                multi_embed_player.api_promise[service][videoid].res.forEach((resolve: () => void)=>resolve());
             }
         }
         catch{
             if(Object.keys(multi_embed_player.api_promise[service][videoid]).includes("rej")){
-                multi_embed_player.api_promise[service][videoid].rej.forEach(reject=>reject());
+                multi_embed_player.api_promise[service][videoid].rej.forEach((reject: () => void)=>reject());
             }
             if(failed_send_error&&failed_send_error_target!=null){
                 failed_send_error_target.dispatchEvent(new CustomEvent("onError",{detail:{code:1100}}));
@@ -115,15 +143,15 @@ const multi_embed_player_fetch_iframe_api = async(service: string, videoid: stri
                 multi_embed_player.api_promise[service][videoid] = {res:[],rej:[]};
                 fetch_response = await fetch(url);
                 multi_embed_player.api_cache[service][videoid] = await fetch_response.json();
-                multi_embed_player.api_promise[service][videoid].res.forEach(resolve=>resolve());
+                multi_embed_player.api_promise[service][videoid].res.forEach((resolve: () => void)=>resolve());
             }
             else{
-                await new Promise((resolve,reject)=>{multi_embed_player.api_promise[service][videoid].res.push(resolve);multi_embed_player.api_promise[service][videoid].rej.push(reject)});
+                await new Promise<void>((resolve,reject)=>{multi_embed_player.api_promise[service][videoid].res.push(resolve);multi_embed_player.api_promise[service][videoid].rej.push(reject)});
             }
         }
         catch(e){
             if(Object.keys(multi_embed_player.api_promise[service][videoid]).includes("rej")){
-                multi_embed_player.api_promise[service][videoid].rej.forEach(reject=>reject());
+                multi_embed_player.api_promise[service][videoid].rej.forEach((reject: () => void)=>reject());
             }
             if(failed_send_error&&failed_send_error_target!=null){
                 failed_send_error_target.dispatchEvent(new CustomEvent("onError",{detail:{code:1100}}));
@@ -139,7 +167,7 @@ const multi_embed_player_fetch_iframe_api = async(service: string, videoid: stri
  * Resets all values in multi_embed_player.GDPR_accepted to false and removes the corresponding item from localStorage.
  */
 const multi_embed_player_GDPR_accepted_all_back_down = ()=>{
-    Object.keys(multi_embed_player.GDPR_accepted).forEach(key=>multi_embed_player.GDPR_accepted[key] = false);
+    Object.keys(multi_embed_player.GDPR_accepted).forEach(key=>multi_embed_player.GDPR_accepted[key as ServiceType] = false);
     localStorage.removeItem('multi_embed_player_GDPR_accepted');
 }
 
@@ -163,17 +191,17 @@ class multi_embed_player extends HTMLElement{
     // static script_origin = "https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@v2/";
     static script_origin = "http://localhost:5500/dist/";
     static iframe_api_endpoint = "https://iframe_api.ryokuryu.workers.dev";
-    static mep_status_load_api = {youtube:0,niconico:0,bilibili:0,soundcloud:0};
+    static mep_status_load_api: ServiceStatusMap = {youtube:0,niconico:0,bilibili:0,soundcloud:0};
     static mep_load_api_promise: Record<'youtube' | 'niconico' | 'bilibili' | 'soundcloud', (() => void)[]> = {youtube:[],niconico:[],bilibili:[],soundcloud:[]};
-    static api_cache = {niconico:{},bilibili:{},soundcloud:{},youtube:{}};
-    static api_promise = {niconico:{},bilibili:{},soundcloud:{},youtube:{}};
+    static api_cache: ServiceApiCache = {niconico:{},bilibili:{},soundcloud:{},youtube:{}};
+    static api_promise: ServiceApiPromise = {niconico:{},bilibili:{},soundcloud:{},youtube:{}};
     static GDPR_accept_promise: Record<'youtube' | 'niconico' | 'bilibili' | 'soundcloud', (() => void)[]> = {youtube:[],niconico:[],bilibili:[],soundcloud:[]};
-    static iframe_api_class = {};
-    static GDPR_accepted = {youtube:false,niconico:false,bilibili:false,soundcloud:false};
-    static possible_direct_access_services = ["youtube","soundcloud"];
-    static cors_proxy = "";//if cors_proxy is not empty string,it use instead of iframe_api_endpoint and follow gdpr
-    static tearms_policy_service = {"youtube":"https://www.youtube.com/t/terms","niconico":"https://account.nicovideo.jp/rules/account?language=en-us","bilibili":"https://www.bilibili.com/blackboard/protocal/activity-lc1L-pIoh.html","soundcloud":"https://soundcloud.com/pages/privacy"};
-    static follow_GDPR = false;
+    static iframe_api_class: IframeApiClassMap = {};
+    static GDPR_accepted: ServiceBooleanMap = {youtube:false,niconico:false,bilibili:false,soundcloud:false};
+    static possible_direct_access_services: ServiceType[] = ["youtube","soundcloud"];
+    static cors_proxy: string = "";//if cors_proxy is not empty string,it use instead of iframe_api_endpoint and follow gdpr
+    static tearms_policy_service: ServiceUrlMap = {"youtube":"https://www.youtube.com/t/terms","niconico":"https://account.nicovideo.jp/rules/account?language=en-us","bilibili":"https://www.bilibili.com/blackboard/protocal/activity-lc1L-pIoh.html","soundcloud":"https://soundcloud.com/pages/privacy"};
+    static follow_GDPR: boolean = false;
     constructor(){
         super();
         this.videoid = null;
@@ -197,7 +225,7 @@ class multi_embed_player extends HTMLElement{
             else{
                 this.image_url = await this.#mep_imageurl(this.videoid,this.service);
                 if(!await this.#check_image_status(this.image_url)){
-                    this.image_url = await this.#mep_imageurl(this.getAttribute("subVideoid"),this.getAttribute("subService"));
+                    this.image_url = await this.#mep_imageurl(this.getAttribute("subVideoid"),this.getAttribute("subService") as ServiceType);
                     if(!await this.#check_image_status(this.image_url)){
                         this.style.backgroundImage = `${(window as any).multi_embed_player.script_origin}icon/video_not_found.svgz`;
                     }
@@ -267,7 +295,7 @@ class multi_embed_player extends HTMLElement{
      * @param {string} [filetype=null] - The type of file to fetch.
      * @returns {Promise<string>} - A promise that resolves with the image URL.
      */
-    async #mep_imageurl(videoid: string, service: string, filetype: string | null = null): Promise<string> {//必ずawaitを使って叩くこと
+    async #mep_imageurl(videoid: string, service: ServiceType, filetype: string | null = null): Promise<string> {//必ずawaitを使って叩くこと
         let GDPR_accepted = false;
         if (!this.follow_GDPR) {
             GDPR_accepted = true;
@@ -324,8 +352,8 @@ class multi_embed_player extends HTMLElement{
      * @param {string} service - The name of the service to accept GDPR for.
      * @returns {Promise<void>} - A promise that resolves when GDPR is accepted.
      */
-    async #GDPR_accept(service){
-        return new Promise<void>(async(resolve,reject)=>{
+    async #GDPR_accept(service: ServiceType): Promise<void>{
+        return new Promise<void>(async(resolve: () => void, reject: () => void)=>{
             if(this.follow_GDPR){
                 if((window as any).multi_embed_player.GDPR_accepted[service]){
                     resolve();
@@ -459,7 +487,7 @@ class multi_embed_player extends HTMLElement{
                     if(data["endSeconds"]!=undefined){
                         (playerVars as any).endSeconds = data["endSeconds"];
                     }
-                    let player_argument = {
+                    let player_argument: Record<string, any> = {
                         "videoId":this.videoid,
                         "width":"560",
                         "height":"315",
@@ -503,8 +531,8 @@ class multi_embed_player extends HTMLElement{
             if(typeof element === "undefined"){
                 if(Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
                     this.player.player.addEventListener("onReady",()=>{this.dispatchEvent(new Event("onReady"))});//need bind
-                    this.player.player.addEventListener("onError",(e)=>{this.#error_event_handler(e)});
-                    this.player.player.addEventListener("onStateChange",(e)=>{this.dispatchEvent(new CustomEvent("onStateChange",{detail:e.detail}))});
+                    this.player.player.addEventListener("onError",(e: Event)=>{this.#error_event_handler(e)});
+                    this.player.player.addEventListener("onStateChange",(e: CustomEvent)=>{this.dispatchEvent(new CustomEvent("onStateChange",{detail:e.detail}));});
                     this.player.player.addEventListener("onEndVideo",()=>{this.dispatchEvent(new Event("onEndVideo"))});
                 }
                 else{
@@ -515,7 +543,7 @@ class multi_embed_player extends HTMLElement{
                 if(Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
                     element.addEventListener("onReady",()=>{this.dispatchEvent(new Event("onReady"))});
                     element.addEventListener("onError",(e)=>{this.#error_event_handler(e)});
-                    element.addEventListener("onStateChange",(e)=>{this.dispatchEvent(new CustomEvent("onStateChange",{detail:e.detail}))});
+                    element.addEventListener("onStateChange",(e: CustomEvent)=>{this.dispatchEvent(new CustomEvent("onStateChange",{detail:e.detail}))});
                     element.addEventListener("onEndVideo",()=>{this.dispatchEvent(new Event("onEndVideo"))});
                 }
                 else{
@@ -536,8 +564,8 @@ class multi_embed_player extends HTMLElement{
         try{
             if(Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
                 this.player.player.removeEventListener("onReady",()=>{this.dispatchEvent(new Event("onReady"))});//need bind
-                this.player.player.removeEventListener("onError",(e)=>{this.#error_event_handler(e)});
-                this.player.player.removeEventListener("onStateChange",(e)=>{this.dispatchEvent(new CustomEvent("onStateChange",{detail:e.detail}))});
+                this.player.player.removeEventListener("onError",(e: Event)=>{this.#error_event_handler(e)});
+                this.player.player.removeEventListener("onStateChange",(e: CustomEvent)=>{this.dispatchEvent(new CustomEvent("onStateChange",{detail:e.detail}));});
                 this.player.player.removeEventListener("onEndVideo",()=>{this.dispatchEvent(new Event("onEndVideo"))});
             }
             else{
@@ -822,20 +850,20 @@ class mep_playitem{
         this.videoid = videoid;
         this.call_array = [];
     }
-    toData(){
-        let content = {"service":this?.service,"videoId":this?.videoid,call_array:this.call_array,call_index:0};
+    toData(): PlaylistItem{
+        let content: PlaylistItem = {"service":this?.service,"videoId":this?.videoid,call_array:this.call_array,call_index:0};
         if(this.service!==undefined&&this.videoid!==undefined){
             content.call_array.push({videoId:this.videoid,service:this.service});
         }
         if(this.startSeconds!=undefined){
-            content["startSeconds"] = this.startSeconds;
+            content.startSeconds = this.startSeconds;
         }
         if(this.endSeconds!=undefined){
-            content["endSeconds"] = this.endSeconds;
+            content.endSeconds = this.endSeconds;
         }
         if(this.subService!=undefined&&this.subVideoid!=undefined){
-            content["subService"] = this.subService;
-            content["subVideoId"] = this.subVideoid;
+            content.subService = this.subService;
+            content.subVideoId = this.subVideoid;
             content.call_array.push({videoId:this.subVideoid,service:this.subService});
         }
         return content
@@ -884,10 +912,10 @@ const multi_embed_player_save_GDPR_status = ()=>{
 }
 
 //recieve GDPR accept by service
-const multi_embed_player_GDPR_reviever = (service)=>{
+const multi_embed_player_GDPR_reviever = (service: ServiceType): void =>{
     multi_embed_player.GDPR_accepted[service] = true;
     multi_embed_player_save_GDPR_status();
-    multi_embed_player.GDPR_accept_promise[service].forEach(func=>func());
+    multi_embed_player.GDPR_accept_promise[service].forEach((func: () => void)=>func());
 }
 
 //Add multi embed player CSS
