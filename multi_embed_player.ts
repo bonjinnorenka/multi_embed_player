@@ -62,7 +62,13 @@ const multi_embed_player_fetch_iframe_api = async(service: ServiceType, videoid:
             first_access = true;
         }
         else{
-            await new Promise<void>((resolve,reject)=>{multi_embed_player.api_promise[service][videoid].res.push(resolve);multi_embed_player.api_promise[service][videoid].rej.push(reject)});
+            await new Promise<void>((resolve,reject)=>{
+                const promiseData = multi_embed_player.api_promise[service][videoid];
+                if (promiseData) {
+                    promiseData.res.push(resolve);
+                    promiseData.rej.push(reject);
+                }
+            });
         }
         try{
             if(first_access){
@@ -97,7 +103,12 @@ const multi_embed_player_fetch_iframe_api = async(service: ServiceType, videoid:
                             return_data["status"] = "success";
                             return_data["thumbnail_url"] = image_url;
                             const search_element_names: Record<string, string> = {video_id:"video_id",title:"title",description:"description",length:"length",view_counter:"view_count",comment_num:"comment_count",mylist_counter:"mylist_count",first_retrieve:"publish_time",embeddable:"embedable",genre:"genre"};
-                            Object.keys(search_element_names).forEach(key_name=>return_data[search_element_names[key_name]] = xml_first_search(xml_response,key_name));
+                            Object.keys(search_element_names).forEach(key_name=>{
+                                const mappedKey = search_element_names[key_name];
+                                if (mappedKey) {
+                                    return_data[mappedKey] = xml_first_search(xml_response,key_name);
+                                }
+                            });
                         }
                         multi_embed_player.api_cache[service][videoid] = return_data;
                         break;
@@ -126,8 +137,9 @@ const multi_embed_player_fetch_iframe_api = async(service: ServiceType, videoid:
             }
         }
         catch{
-            if(Object.keys(multi_embed_player.api_promise[service][videoid]).includes("rej")){
-                multi_embed_player.api_promise[service][videoid].rej.forEach((reject: (reason?: any) => void)=>reject());
+            const promiseData = multi_embed_player.api_promise[service][videoid];
+            if(promiseData && Object.keys(promiseData).includes("rej")){
+                promiseData.rej.forEach((reject: (reason?: any) => void)=>reject());
             }
             if(failed_send_error&&failed_send_error_target!=null){
                 failed_send_error_target.dispatchEvent(new CustomEvent("onError",{detail:{code:1100}}));
@@ -146,12 +158,19 @@ const multi_embed_player_fetch_iframe_api = async(service: ServiceType, videoid:
                 multi_embed_player.api_promise[service][videoid].res.forEach((resolve: (value: any) => void)=>resolve(undefined));
             }
             else{
-                await new Promise<void>((resolve,reject)=>{multi_embed_player.api_promise[service][videoid].res.push(resolve);multi_embed_player.api_promise[service][videoid].rej.push(reject)});
+                await new Promise<void>((resolve,reject)=>{
+                    const promiseData = multi_embed_player.api_promise[service][videoid];
+                    if (promiseData) {
+                        promiseData.res.push(resolve);
+                        promiseData.rej.push(reject);
+                    }
+                });
             }
         }
         catch(e){
-            if(Object.keys(multi_embed_player.api_promise[service][videoid]).includes("rej")){
-                multi_embed_player.api_promise[service][videoid].rej.forEach((reject: (reason?: any) => void)=>reject());
+            const promiseData = multi_embed_player.api_promise[service][videoid];
+            if(promiseData && Object.keys(promiseData).includes("rej")){
+                promiseData.rej.forEach((reject: (reason?: any) => void)=>reject());
             }
             if(failed_send_error&&failed_send_error_target!=null){
                 failed_send_error_target.dispatchEvent(new CustomEvent("onError",{detail:{code:1100}}));

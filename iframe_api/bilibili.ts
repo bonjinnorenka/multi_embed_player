@@ -399,9 +399,11 @@ class mep_bilibili{
         let bilibili_query_keys = Object.keys(bilibili_query) as (keyof BilibiliQuery)[];
         for(let x=0;x<bilibili_query_keys.length;x++){
             const key = bilibili_query_keys[x];
-            const value = bilibili_query[key];
-            if(value !== undefined){
-                query_string += key + "=" + String(value) + "&";
+            if(key !== undefined) {
+                const value = bilibili_query[key];
+                if(value !== undefined){
+                    query_string += key + "=" + String(value) + "&";
+                }
             }
         }
         query_string = query_string.slice(0,-1);
@@ -658,9 +660,11 @@ class mep_bilibili{
         let bilibili_query_keys = Object.keys(bilibili_query) as (keyof BilibiliQuery)[];
         for(let x=0;x<bilibili_query_keys.length;x++){
             const key = bilibili_query_keys[x];
-            const value = bilibili_query[key];
-            if(value !== undefined){
-                query_string += key + "=" + String(value) + "&";
+            if(key !== undefined) {
+                const value = bilibili_query[key];
+                if(value !== undefined){
+                    query_string += key + "=" + String(value) + "&";
+                }
             }
         }
         query_string = query_string.slice(0,-1);
@@ -989,6 +993,7 @@ class mep_bilibili{
     getVolume(): number | undefined {
         if(!(window as any).mep_bilibili.mep_extension_bilibili){
             console.warn((window as any).mep_bilibili.no_extention_error);
+            return undefined;
         }
         else{
             return this.state.volumeValue
@@ -1002,6 +1007,7 @@ class mep_bilibili{
     isMuted(): boolean | undefined {
         if(!(window as any).mep_bilibili.mep_extension_bilibili){
             console.warn((window as any).mep_bilibili.no_extention_error);
+            return undefined;
         }
         else{
             if(this.getVolume()!=0){
