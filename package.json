@@ -1,8 +1,9 @@
 {
     "name":"multi_embed_player",
     "main":"./dist/multi_embed_player.js",
+    "module": "./dist/multi_embed_player.js",
     "types":"./dist/multi_embed_player.d.ts",
-    "version": "3.1.1",
+    "version": "3.2.0",
     "license": "Apache-2.0",
     "style":"./multi_embed_player.css",
     "description": "some video site embed and control playing",
@@ -13,8 +14,14 @@
     "bugs": {
         "url": "https://github.com/bonjinnorenka/multi_embed_player/issues"
     },
+    "exports": {
+        ".": {
+            "types": "./dist/multi_embed_player.d.ts",
+            "default": "./dist/multi_embed_player.js"
+        }
+    },
     "scripts": {
-        "build": "tsc",
+        "build": "tsc && node add_exports.js",
         "dev": "tsc --watch",
         "lint": "tsc --noEmit",
         "lint:fix": "tsc --noEmit"

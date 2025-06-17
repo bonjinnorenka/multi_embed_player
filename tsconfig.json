@@ -26,7 +26,7 @@
     "useUnknownInCatchVariables": true
   },
   "include": [
-    "*.ts",
+    "multi_embed_player.ts",
     "iframe_api/*.ts"
   ],
   "exclude": [
