@@ -176,18 +176,18 @@ const multi_embed_player_GDPR_accepted_all_back_down = ()=>{
  * @extends HTMLElement
  */
 class multi_embed_player extends HTMLElement{
-    videoid: any;
-    follow_GDPR: any;
-    service: any;
-    image_url: any;
-    picture_tag: any;
+    videoid: string | null;
+    follow_GDPR: boolean;
+    service: ServiceType | null;
+    image_url: string | null;
+    picture_tag: HTMLPictureElement | null;
     player: any;
-    playlist: any;
-    autoplay: any;
-    error_not_declare: any;
-    previousData: any;
-    startSeconds: any;
-    endSeconds: any;
+    playlist: PlaylistItem[];
+    autoplay: boolean;
+    error_not_declare: boolean;
+    previousData: PlaylistItem | null;
+    startSeconds: number;
+    endSeconds: number;
     // static script_origin = "https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@v2/";
     static script_origin = "http://localhost:5500/dist/";
     static iframe_api_endpoint = "https://iframe_api.ryokuryu.workers.dev";
@@ -213,7 +213,7 @@ class multi_embed_player extends HTMLElement{
         }
         if(this.getAttribute("type")===null||this.getAttribute("type")==="embed"||this.getAttribute("type")==="thumbnail-click"){
             this.videoid = this.getAttribute("videoid");
-            this.service = this.getAttribute("service");
+            this.service = this.getAttribute("service") as ServiceType | null;
             if(this.getAttribute("img_url")!=null){
                 this.image_url = this.getAttribute("img_url");
             }
@@ -276,14 +276,14 @@ class multi_embed_player extends HTMLElement{
     async #add_iframe(e: Event | null = null, sub: boolean = false): Promise<void> {
         let content = new mep_playitem(this.getAttribute("service"),this.getAttribute("videoid"));
         if(this.getAttribute("start")!=null){
-            content.startSeconds = this.getAttribute("start");
+            content.startSeconds = Number(this.getAttribute("start"));
         }
         if(this.getAttribute("end")!=null){
-            content.endSeconds = this.getAttribute("end");
+            content.endSeconds = Number(this.getAttribute("end"));
         }
         if(this.getAttribute("subvideoid")!=null&&this.getAttribute("subservice")!=null){
             content.subVideoid = this.getAttribute("subvideoid");
-            content.subService = this.getAttribute("subservice");
+            content.subService = this.getAttribute("subservice") as ServiceType;
         }
         this.player = {};
         this.loadVideoById(content.toData());
@@ -724,14 +724,14 @@ class multi_embed_player extends HTMLElement{
         let playdoc = document.getElementById(playerid);
         let content = new mep_playitem(service,videoid);
         if(start!=null){
-            content.startSeconds = start;
+            content.startSeconds = typeof start === 'string' ? Number(start) : start;
         }
         if(end!=null){
-            content.endSeconds = end;
+            content.endSeconds = typeof end === 'string' ? Number(end) : end;
         }
         if(subService!=null&&subVideoid!=null){
             content.subVideoid = subVideoid;
-            content.subService = subService;
+            content.subService = subService as ServiceType;
         }
         (playdoc as any).loadVideoById(content.toData());
     }
@@ -823,13 +823,13 @@ class multi_embed_player extends HTMLElement{
     #addPlaylist(): void {
         let k_data = new mep_playitem(this.getAttribute("service"),this.getAttribute("videoid"));
         if(this.getAttribute("start")!=null){
-            k_data.startSeconds = this.getAttribute("start");
+            k_data.startSeconds = Number(this.getAttribute("start"));
         }
         if(this.getAttribute("end")!=null){
-            k_data.endSeconds = this.getAttribute("end");
+            k_data.endSeconds = Number(this.getAttribute("end"));
         }
         if(this.getAttribute("subService")!=null&&this.getAttribute("subVideoid")!=null){
-            k_data.subService = this.getAttribute("subService");
+            k_data.subService = this.getAttribute("subService") as ServiceType;
             k_data.subVideoid = this.getAttribute("subVideoid");
         }
         (document.getElementById(this.getAttribute("for")) as any).playlist.push(k_data.toData());
@@ -837,13 +837,13 @@ class multi_embed_player extends HTMLElement{
     }
 }
 class mep_playitem{
-    service: any;
-    videoid: any;
-    call_array: any;
-    startSeconds: any;
-    endSeconds: any;
-    subService: any;
-    subVideoid: any;
+    service: ServiceType;
+    videoid: string;
+    call_array: PlaylistItem[];
+    startSeconds: number | undefined;
+    endSeconds: number | undefined;
+    subService: ServiceType | undefined;
+    subVideoid: string | undefined;
     
     constructor(service: any, videoid: any){
         this.service = service;
@@ -870,7 +870,7 @@ class mep_playitem{
     }
 }
 class mep_parallel{
-    data: any;
+    data: mep_parallel_inner[];
     
     constructor(){
         this.data = [];//class mep_parallel_inner
@@ -880,8 +880,8 @@ class mep_parallel{
     }
 }
 class mep_parallel_inner{
-    service: any;
-    videoid: any;
+    service: ServiceType;
+    videoid: string;
     
     constructor(service: any, videoid: any){
         this.service = service;

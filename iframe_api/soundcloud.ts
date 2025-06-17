@@ -47,6 +47,7 @@ interface mep_soundcloud_playerVars {
     visual?: number | string;
     startSeconds?: number;
     endSeconds?: number;
+    [key: string]: number | string | undefined;
 }
 
 interface mep_soundcloud_content {
@@ -69,20 +70,20 @@ interface SoundMetadata {
  * Class representing a SoundCloud player.
  */
 class mep_soundcloud{
-    player: any;
-    playerVars: any;
+    player: HTMLIFrameElement;
+    playerVars: mep_soundcloud_playerVars | undefined;
     player_statusdata: any;
-    autoplay: any;
+    autoplay: boolean;
     player_widget: any;
     player_metadata: any;
-    before_mute_volume: any;
-    forse_pause: any;
-    first_seek_time: any;
-    endSeconds: any;
-    pause_sended: any;
-    interval: any;
-    previous_player_status: any;
-    retry_count: any;
+    before_mute_volume: number;
+    forse_pause: boolean;
+    first_seek_time: number;
+    endSeconds: number;
+    pause_sended: boolean;
+    interval: NodeJS.Timeout | number;
+    previous_player_status: number;
+    retry_count: number;
     
     static soundcloud_api_loaded: boolean | null = null;
     static soundcloud_api_promise: (() => void)[] = [];
@@ -106,10 +107,10 @@ class mep_soundcloud{
             await new Promise((resolve,reject)=>(window as any).mep_soundcloud.soundcloud_api_promise.push(resolve));
         }
     }
-    constructor(replacing_element: any, content: any, player_set_event_function: any){
+    constructor(replacing_element: string | HTMLElement, content: mep_soundcloud_content, player_set_event_function?: (player: HTMLIFrameElement) => void){
         this.#load(replacing_element,content,player_set_event_function);
     }
-    async #load(replacing_element: any, content: any, player_set_event_function: any){
+    async #load(replacing_element: string | HTMLElement, content: mep_soundcloud_content, player_set_event_function?: (player: HTMLIFrameElement) => void){
         this.player = document.createElement("iframe");
         this.player.style.border = "none";
         this.player.allow = "autoplay";
@@ -117,9 +118,11 @@ class mep_soundcloud{
             player_set_event_function(this.player);
         }
         await this.#load_soundcloud_api();
-        let iframe_replace_node = replacing_element;
+        let iframe_replace_node: HTMLElement | null = null;
         if(typeof replacing_element==="string"){
             iframe_replace_node = document.getElementById(replacing_element);
+        } else {
+            iframe_replace_node = replacing_element;
         }
         let url_params = new URLSearchParams();
         let tflist = ["autoplay","hide_related","show_comments","show_user","show_user","show_reposts","visual"];
@@ -157,7 +160,9 @@ class mep_soundcloud{
         else{
             this.player.src = `https://w.soundcloud.com/player/?url=https://soundcloud.com/${content.videoId}&${url_params.toString()}`;
         }
-        iframe_replace_node.replaceWith(this.player);
+        if (iframe_replace_node) {
+            iframe_replace_node.replaceWith(this.player);
+        }
         this.player_widget = SC.Widget(this.player);
         this.player_metadata = {};//renew when load new ones
         this.before_mute_volume = 100;

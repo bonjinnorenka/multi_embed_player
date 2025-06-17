@@ -30,11 +30,11 @@ class mep_youtube{
     static youtube_api_loaded: number = 0;
     static youtube_api_promise: (() => void)[] = [];
     
-    player: any;
-    autoplay: any;
-    startSeconds: any;
-    endSeconds: any;
-    el: any;
+    player: HTMLElement;
+    autoplay: number;
+    startSeconds: number;
+    endSeconds: number;
+    el: HTMLElement;
     YT_player: any;
 
     /**
@@ -76,9 +76,11 @@ class mep_youtube{
             player_set_event_function(this.player);
         }
         await this.#load_youtube_api();
-        let iframe_replace_node = replacing_element;
+        let iframe_replace_node: HTMLElement | null = null;
         if(typeof replacing_element==="string"){
             iframe_replace_node = document.getElementById(replacing_element);
+        } else {
+            iframe_replace_node = replacing_element;
         }
         const playerVars = content.playerVars || {};
         let playerVars_pass_over = {};
@@ -100,8 +102,9 @@ class mep_youtube{
             this.endSeconds = playerVars.endSeconds;
             (playerVars_pass_over as any).end = playerVars.endSeconds;
         }
-        this.el = iframe_replace_node;
-        this.YT_player = new YT.Player(iframe_replace_node,{
+        if (iframe_replace_node) {
+            this.el = iframe_replace_node;
+            this.YT_player = new YT.Player(iframe_replace_node,{
             height: "315",
             width: "560",
             videoId: content.videoId,
@@ -112,9 +115,10 @@ class mep_youtube{
                 "onError":(e: { data: number })=>{this.#error_event_handler(e)},
                 "onStateChange":()=>{this.#dispatchEvent(new CustomEvent("onStateChange",{detail:this.getPlayerState()}));if(this.getPlayerState()==4){this.#dispatchEvent(new Event("onEndVideo"))}}
             }
-        });
-        if(!this.autoplay){
-            this.player.addEventListener("onReady",()=>{this.pauseVideo()},{once: true});
+            });
+            if(!this.autoplay){
+                this.player.addEventListener("onReady",()=>{this.pauseVideo()},{once: true});
+            }
         }
     }
 

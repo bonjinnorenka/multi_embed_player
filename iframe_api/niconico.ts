@@ -35,6 +35,18 @@ interface mep_niconico_playerVars {
  * @property {number} height - The height of the player.
  * @property {mep_niconico_playerVars} playerVars - The player variables.
  */
+interface NiconicoPlayerState {
+    isRepeat: boolean;
+    playerStatus: number;
+    currentTime?: number;        // ミリ秒単位
+    duration?: number;           // ミリ秒単位
+    muted?: boolean;             // ミュート状態
+    volume?: number;             // 0-1の範囲
+    videoInfo?: {
+        title?: string;          // 動画タイトル
+    };
+}
+
 interface mep_niconico_content {
     videoId: string;
     width: number;
@@ -42,11 +54,55 @@ interface mep_niconico_content {
     playerVars?: mep_niconico_playerVars;
 }
 
+interface NiconicoPlayMessage {
+    eventName: 'play';
+}
+
+interface NiconicoPauseMessage {
+    eventName: 'pause';
+}
+
+interface NiconicoSeekMessage {
+    eventName: 'seek';
+    data: {
+        time: number;  // ミリ秒
+    };
+}
+
+interface NiconicoCommentVisibilityMessage {
+    eventName: 'commentVisibilityChange';
+    data: {
+        commentVisibility: boolean;
+    };
+}
+
+interface NiconicoMuteMessage {
+    eventName: 'mute';
+    data: {
+        mute: boolean;
+    };
+}
+
+interface NiconicoVolumeMessage {
+    eventName: 'volumeChange';
+    data: {
+        volume: number;  // 0-1の範囲
+    };
+}
+
+type NiconicoPostMessage = 
+    | NiconicoPlayMessage 
+    | NiconicoPauseMessage 
+    | NiconicoSeekMessage 
+    | NiconicoCommentVisibilityMessage 
+    | NiconicoMuteMessage 
+    | NiconicoVolumeMessage;
+
 /**
  * Class representing a Niconico player.
  */
 class mep_niconico{
-    state: any;
+    state: NiconicoPlayerState;
     startSeconds: number;
     player: HTMLIFrameElement;
     playerId: string;
@@ -310,7 +366,7 @@ class mep_niconico{
      * Post a message to the player.
      * @param {Object} request - The request to post.
      */
-    #postMessage(request: any): void {
+    #postMessage(request: NiconicoPostMessage): void {
         const message = Object.assign({
             sourceConnectorType: 1,
             playerId: this.playerId
