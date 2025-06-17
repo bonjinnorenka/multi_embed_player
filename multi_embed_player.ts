@@ -12,8 +12,8 @@ declare var YT: any;
  * @param {HTMLElement} failed_send_error_target - The target to send the error to.
  * @returns {Promise}
  */
-const multi_embed_player_fetch_iframe_api = async(service,videoid,use_cors,image_proxy,GDPR_access_accept,failed_send_error=false,failed_send_error_target=null)=>{
-    const xml_first_search = (data,search_string,start=0)=>{
+const multi_embed_player_fetch_iframe_api = async(service: string, videoid: string, use_cors: boolean, image_proxy: boolean, GDPR_access_accept: boolean, failed_send_error: boolean = false, failed_send_error_target: HTMLElement | null = null): Promise<void> => {
+    const xml_first_search = (data: string, search_string: string, start: number = 0): string => {
 		return data.substring(data.indexOf("<"+search_string+">",start)+search_string.length+2,data.indexOf("</"+search_string+">",start))
 	}
     const possible_direct_access = GDPR_access_accept&&multi_embed_player.possible_direct_access_services.includes(service);
@@ -164,10 +164,10 @@ class multi_embed_player extends HTMLElement{
     static script_origin = "http://localhost:5500/dist/";
     static iframe_api_endpoint = "https://iframe_api.ryokuryu.workers.dev";
     static mep_status_load_api = {youtube:0,niconico:0,bilibili:0,soundcloud:0};
-    static mep_load_api_promise = {youtube:[],niconico:[],bilibili:[],soundcloud:[]};
+    static mep_load_api_promise: Record<'youtube' | 'niconico' | 'bilibili' | 'soundcloud', (() => void)[]> = {youtube:[],niconico:[],bilibili:[],soundcloud:[]};
     static api_cache = {niconico:{},bilibili:{},soundcloud:{},youtube:{}};
     static api_promise = {niconico:{},bilibili:{},soundcloud:{},youtube:{}};
-    static GDPR_accept_promise = {youtube:[],niconico:[],bilibili:[],soundcloud:[]};
+    static GDPR_accept_promise: Record<'youtube' | 'niconico' | 'bilibili' | 'soundcloud', (() => void)[]> = {youtube:[],niconico:[],bilibili:[],soundcloud:[]};
     static iframe_api_class = {};
     static GDPR_accepted = {youtube:false,niconico:false,bilibili:false,soundcloud:false};
     static possible_direct_access_services = ["youtube","soundcloud"];
@@ -232,7 +232,7 @@ class multi_embed_player extends HTMLElement{
      * @param {string} img_url - The URL of the image to check.
      * @returns {Promise<boolean>} - A promise that resolves to true if the image loads successfully, false otherwise.
      */
-    async #check_image_status(img_url){
+    async #check_image_status(img_url: string): Promise<boolean> {
         if(typeof img_url !== "string"){
             return false;
         }
@@ -245,7 +245,7 @@ class multi_embed_player extends HTMLElement{
      * @param {Event} e - The event that triggered the function. Default is null.
      * @param {boolean} sub - A flag to indicate whether the iframe is a subframe. Default is false.
      */
-    async #add_iframe(e=null,sub=false){
+    async #add_iframe(e: Event | null = null, sub: boolean = false): Promise<void> {
         let content = new mep_playitem(this.getAttribute("service"),this.getAttribute("videoid"));
         if(this.getAttribute("start")!=null){
             content.startSeconds = this.getAttribute("start");
@@ -267,7 +267,7 @@ class multi_embed_player extends HTMLElement{
      * @param {string} [filetype=null] - The type of file to fetch.
      * @returns {Promise<string>} - A promise that resolves with the image URL.
      */
-    async #mep_imageurl(videoid,service,filetype=null){//必ずawaitを使って叩くこと
+    async #mep_imageurl(videoid: string, service: string, filetype: string | null = null): Promise<string> {//必ずawaitを使って叩くこと
         let GDPR_accepted = false;
         if (!this.follow_GDPR) {
             GDPR_accepted = true;
@@ -369,7 +369,7 @@ class multi_embed_player extends HTMLElement{
      * @param {boolean} [sub=false] - Whether or not to load a subtitle. deprecated
      * @returns {Promise<void>}
      */
-    async loadVideoById(data,autoplay=true,sub=false){
+    async loadVideoById(data: any, autoplay: boolean = true, sub: boolean = false): Promise<void> {
         this.autoplay = autoplay;
         if(this.player!=undefined){
             let service_changed = false;
@@ -484,7 +484,7 @@ class multi_embed_player extends HTMLElement{
         }
     }
 
-    #error_event_handler(e){
+    #error_event_handler(e: any): void {
         console.error("error occured");
         if(!this.error_not_declare){
             this.dispatchEvent(new CustomEvent("onError",{detail:{code:e.detail.code}}));
@@ -498,7 +498,7 @@ class multi_embed_player extends HTMLElement{
      * Sets event listeners for the player.
      * @param {HTMLElement} element - The element to set the event listeners on.
      */
-    #setEvent(element){
+    #setEvent(element?: HTMLElement): void {
         try{
             if(typeof element === "undefined"){
                 if(Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
@@ -532,7 +532,7 @@ class multi_embed_player extends HTMLElement{
      * Removes event listeners for the current player service.
      * @returns {void}
      */
-    #deleteEvent(){//plese before change service
+    #deleteEvent(): void {//plese before change service
         try{
             if(Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
                 this.player.player.removeEventListener("onReady",()=>{this.dispatchEvent(new Event("onReady"))});//need bind
@@ -549,27 +549,27 @@ class multi_embed_player extends HTMLElement{
     /**
      * Plays the video.
      */
-    playVideo(){
+    playVideo(): void {
         this.player.playVideo();
     }
     /**
      * Pauses the video.
      */
-    pauseVideo(){
+    pauseVideo(): void {
         this.player.pauseVideo();
     }
     /**
      * Stops the video.
      * @deprecated
      */
-    stopVideo(){//depricated
+    stopVideo(): void {//depricated
         this.player.pauseVideo();
     }
     /**
      * Returns the current time of the video.
      * @returns {Promise<number>} - A promise that resolves with the current time of the video. promise only bilibili
      */
-    async getCurrentTime(){
+    async getCurrentTime(): Promise<number> {
         if(this.service=="bilibili"){
             return await this.player.getCurrentTime();
         }
@@ -581,54 +581,54 @@ class multi_embed_player extends HTMLElement{
      * Seeks to a given time in the video.
      * @param {number} seconds - if service is bilibili, return promise
      */
-    async seekTo(seconds){
+    async seekTo(seconds: number): Promise<void> {
         await this.player.seekTo(seconds);
     }
     /**
      * Mutes the video.
      */
-    mute(){
+    mute(): void {
         this.player.mute();
     }
     /**
      * Unmutes the video.
      */
-    unMute(){
+    unMute(): void {
         this.player.unMute();
     }
     /**
      * Returns whether the video is muted.
      * @returns {boolean} - Whether the video is muted.if service is bilibili, return promise
      */
-    isMuted(){
+    isMuted(): boolean | Promise<boolean> {
         return this.player.isMuted();
     }
     /**
      * Set the volume of the player.
      * @param {number} volume - The volume level to set.
      */
-    setVolume(volume){
+    setVolume(volume: number): void {
         this.player.setVolume(Number(volume));
     }
     /**
      * Returns the current volume of the player.
      * @returns {number} The current volume of the player.
      */
-    getVolume(){
+    getVolume(): number {
         return this.player.getVolume();
     }
     /**
      * Returns the duration of the current video.
      * @returns {number} The duration of the current video in seconds.
      */
-    getDuration(){
+    getDuration(): number {
         return this.player.getDuration();
     }
     /**
      * Returns the real duration of the video based on the start and end seconds.
      * @returns {number} The real duration of the video.
      */
-    getRealDulation(){
+    getRealDulation(): number {
         if(Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
             return this.player.getRealDulation();
         }
@@ -640,28 +640,28 @@ class multi_embed_player extends HTMLElement{
      * Returns the relative current time by subtracting the start time from the current time.
      * @returns {Promise<number>} The relative current time.
      */
-    async getRelativeCurrentTime(){
+    async getRelativeCurrentTime(): Promise<number> {
         return await this.getCurrentTime() - this.startSeconds;
     }
     /**
      * Calculates the percentage of the current time relative to the total duration of the media.
      * @returns {number} The percentage of the current time.
      */
-    async getPercentOfCurremtTime(){//notice sometimes over 100%
+    async getPercentOfCurremtTime(): Promise<number> {//notice sometimes over 100%
         return ((await this.getRelativeCurrentTime())/this.getRealDulation())*100
     }
     /**
      * Seeks to a relative position in the video based on the current time.
      * @param {number} seconds - The number of seconds to seek relative to the current time.
      */
-    relativeSeekTo_ct(seconds){//current time + seek time
-        this.seekTo(seconds + this.getCurrentTime());
+    async relativeSeekTo_ct(seconds: number): Promise<void> {//current time + seek time
+        this.seekTo(seconds + await this.getCurrentTime());
     }
     /**
      * Start seeking from the given seconds plus the startSeconds.
      * @param {number} seconds - The seconds to seek from.
      */
-    relativeSeekTo_ss(seconds){//startSeconds + seek time
+    relativeSeekTo_ss(seconds: number): void {//startSeconds + seek time
         this.seekTo(seconds + this.startSeconds);
     }
     /**
@@ -674,7 +674,7 @@ class multi_embed_player extends HTMLElement{
      * 3 -> pause
      * 4 -> video ended
      */
-    getPlayerState(){
+    getPlayerState(): number {
         if(Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
             return this.player.getPlayerState();
         }
@@ -692,7 +692,7 @@ class multi_embed_player extends HTMLElement{
      * @param {string|null} subService - The service provider for the subtitle (optional).
      * @param {string|null} subVideoid - The ID of the subtitle video (optional).
      */
-    #PlayOnPlayer(playerid,service,videoid,start,end,subService,subVideoid){
+    #PlayOnPlayer(playerid: string, service: string, videoid: string, start: number | string | null, end: number | string | null, subService: string | null, subVideoid: string | null): void {
         let playdoc = document.getElementById(playerid);
         let content = new mep_playitem(service,videoid);
         if(start!=null){
@@ -713,7 +713,7 @@ class multi_embed_player extends HTMLElement{
      * If the API is currently being loaded, the Promise will resolve when the API is ready.
      * @returns {Promise<void>} A Promise that resolves when the YouTube API is ready.
      */
-    async youtube_api_loader(){
+    async youtube_api_loader(): Promise<void> {
         return new Promise<void>(async(resolve,reject)=>{
             if((window as any).multi_embed_player.mep_status_load_api.youtube===0){
                 let script_url = "https://www.youtube.com/iframe_api";
@@ -735,7 +735,7 @@ class multi_embed_player extends HTMLElement{
      * @param {string} service - The name of the service whose API needs to be loaded.
      * @returns {Promise<void>} A promise that resolves when the API is loaded.
      */
-    async iframe_api_loader(service){
+    async iframe_api_loader(service: string): Promise<void> {
         return new Promise<void>(async(resolve,reject)=>{
             if((window as any).multi_embed_player.mep_status_load_api[service]===0){
                 (window as any).multi_embed_player.mep_status_load_api[service] = 1;
@@ -771,7 +771,7 @@ class multi_embed_player extends HTMLElement{
      * @param {string} src - The URL of the script to be loaded.
      * @returns {Promise<void>} - A promise that resolves when the script is loaded successfully or rejects when there is an error.
      */
-    async mep_promise_script_loader(src){
+    async mep_promise_script_loader(src: string): Promise<void> {
         return new Promise<void>((resolve,reject)=>{
             let script_document = document.createElement("script");
             script_document.src = src;
@@ -792,7 +792,7 @@ class multi_embed_player extends HTMLElement{
      * @memberof Player
      * @returns {void}
      */
-    #addPlaylist(){
+    #addPlaylist(): void {
         let k_data = new mep_playitem(this.getAttribute("service"),this.getAttribute("videoid"));
         if(this.getAttribute("start")!=null){
             k_data.startSeconds = this.getAttribute("start");

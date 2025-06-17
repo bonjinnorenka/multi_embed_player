@@ -4,34 +4,31 @@ declare var YT: any;
 // So some of the comments may include wrong
 // Please refer to documents https://multi-embed-player.pages.dev/docs/reference/iframe_class/#mep_youtube
 
-/**
- * @typedef {Object} mep_youtube_load_object
- * @property {string} videoId - The ID of the video.
- * @property {number} [startSeconds] - The start time of the video.
- * @property {number} [endSeconds] - The end time of the video.
- */
+interface MepYoutubeLoadObject {
+    videoId: string;
+    startSeconds?: number;
+    endSeconds?: number;
+}
 
-/**
- * @typedef {Object} mep_youtube_playerVars
- * @property {number} [autoplay] - Whether to autoplay the initial video.
- * @property {number} [startSeconds] - The start time of the video.
- * @property {number} [endSeconds] - The end time of the video.
- */
+interface MepYoutubePlayerVars {
+    autoplay?: number;
+    startSeconds?: number;
+    endSeconds?: number;
+}
 
-/**
- * @typedef {Object} mep_youtube_content
- * @property {string} id - The ID of the video.
- * @property {mep_youtube_playerVars} [playerVars] - Player parameters.
- * @property {number} width - The width of the video player.
- * @property {number} height - The height of the video player.
- */
+interface MepYoutubeContent {
+    videoId: string;
+    playerVars?: MepYoutubePlayerVars;
+    width?: number;
+    height?: number;
+}
 
 /**
  * Class representing a YouTube player.
  */
 class mep_youtube{
-    static youtube_api_loaded = 0;
-    static youtube_api_promise = [];
+    static youtube_api_loaded: number = 0;
+    static youtube_api_promise: (() => void)[] = [];
     
     player: any;
     autoplay: any;
@@ -65,21 +62,15 @@ class mep_youtube{
 
     /**
      * Create a new YouTube player instance.
-     * @param {string|HTMLElement} replacing_element - The element to replace with the player.
-     * @param {mep_youtube_content} content - The content options for the player.
-     * @param {function} [player_set_event_function] - Function to set events on the player.
      */
-    constructor(replacing_element: any, content: any, player_set_event_function: any){
+    constructor(replacing_element: string | HTMLElement, content: MepYoutubeContent, player_set_event_function?: (player: HTMLElement) => void){
         this.#load(replacing_element,content,player_set_event_function);
     }
 
     /**
      * Load the YouTube player.
-     * @param {string|HTMLElement} replacing_element - The element to replace with the player or the ID of the element.
-     * @param {mep_youtube_content} content - The content options for the player.
-     * @param {function} [player_set_event_function] - Function to set events on the player.
      */
-    async #load(replacing_element: any, content: any, player_set_event_function: any){
+    async #load(replacing_element: string | HTMLElement, content: MepYoutubeContent, player_set_event_function?: (player: HTMLElement) => void): Promise<void>{
         this.player = document.createElement("div");//dummy
         if(typeof player_set_event_function === "function"){
             player_set_event_function(this.player);
@@ -118,7 +109,7 @@ class mep_youtube{
             host: "https://www.youtube-nocookie.com",
             events:{
                 "onReady":()=>{this.#dispatchEvent(new Event("onReady"))},
-                "onError":(e)=>{this.#error_event_handler(e)},
+                "onError":(e: { data: number })=>{this.#error_event_handler(e)},
                 "onStateChange":()=>{this.#dispatchEvent(new CustomEvent("onStateChange",{detail:this.getPlayerState()}));if(this.getPlayerState()==4){this.#dispatchEvent(new Event("onEndVideo"))}}
             }
         });
@@ -129,9 +120,8 @@ class mep_youtube{
 
     /**
      * Handle error events from the player.
-     * @param {Object} event - The error event. Event or CustomEvent.
      */
-    #error_event_handler(event){
+    #error_event_handler(event: { data: number }): void{
         //change status code to mep error code
         let code = 520;
         switch(event.data){
@@ -168,25 +158,22 @@ class mep_youtube{
 
     /**
      * Get the current time of the video.
-     * @returns {number} The current time in seconds.
      */
-    getCurrentTime(){
+    getCurrentTime(): number{
         return this.YT_player.getCurrentTime();
     }
 
     /**
      * Get the duration of the video.
-     * @returns {number} The duration in seconds.
      */
-    getDuration(){
+    getDuration(): number{
         return this.YT_player.getDuration();
     }
 
     /**
      * Get the actual duration between the start and end times.
-     * @returns {number} The actual duration in seconds.
      */
-    getRealDulation(){
+    getRealDulation(): number{
         if(this.endSeconds==-1){
             return this.getDuration() - this.startSeconds;
         }
@@ -197,9 +184,8 @@ class mep_youtube{
 
     /**
      * Seek to a specific time in the video.
-     * @param {number} time - The time to seek to in seconds.
      */
-    seekTo(time){
+    seekTo(time: number): void{
         //try to time as number
         time = Number(time);
         if(isNaN(time)){
@@ -214,9 +200,8 @@ class mep_youtube{
 
     /**
      * Set the volume of the player.
-     * @param {number} volume - The volume level (0-100).
      */
-    setVolume(volume){
+    setVolume(volume: number): void{
         if(typeof volume==="number"&&volume>=0&&volume<=100){
             this.YT_player.setVolume(volume);
         }
@@ -241,25 +226,22 @@ class mep_youtube{
 
     /**
      * Check if the player is muted.
-     * @returns {boolean} Whether the player is muted.
      */
-    isMuted(){
+    isMuted(): boolean{
         return this.YT_player.isMuted();
     }
 
     /**
      * Get the current volume of the player.
-     * @returns {number} The current volume level (0-100).
      */
-    getVolume(){
+    getVolume(): number{
         return this.YT_player.getVolume();
     }
 
     /**
      * Get the current state of the player.
-     * @returns {number} The player state.
      */
-    getPlayerState(){
+    getPlayerState(): number{
         let nowstatus = this.YT_player.getPlayerState();
         if((this.getCurrentTime()>this.getDuration()-1&&this.getCurrentTime()!=0&&this.getDuration()!=0)||(this.endSeconds!=-1&&this.endSeconds-1<=this.getCurrentTime())){
             return 4
@@ -283,18 +265,15 @@ class mep_youtube{
 
     /**
      * Get the title of the currently loaded video.
-     * @returns {string} The video title.
      */
-    getTitle(){
+    getTitle(): string{
         return this.YT_player.getVideoData().title;
     }
 
     /**
      * Load a new video by ID.
-     * @param {mep_youtube_load_object|string} content - The video content or ID.
-     * @param {number} [startSeconds] - The start time of the video.
      */
-    loadVideoById(content,startSeconds){
+    loadVideoById(content: MepYoutubeLoadObject | string, startSeconds?: number): void{
         if(typeof content==="object"){
             this.YT_player.loadVideoById(content);
         }
@@ -305,10 +284,8 @@ class mep_youtube{
 
     /**
      * Cue a new video by ID.
-     * @param {mep_youtube_load_object|string} content - The video content or ID.
-     * @param {number} [startSeconds] - The start time of the video.
      */
-    cueVideoById(content,startSeconds){
+    cueVideoById(content: MepYoutubeLoadObject | string, startSeconds?: number): void{
         if(typeof content==="object"){
             this.YT_player.cueVideoById(content);
         }
@@ -319,9 +296,8 @@ class mep_youtube{
 
     /**
      * Dispatch an event on the player.
-     * @param {Event} event - The event to dispatch.
      */
-    #dispatchEvent(event){
+    #dispatchEvent(event: Event): void{
         try{
             this.player.dispatchEvent(event);
         }
