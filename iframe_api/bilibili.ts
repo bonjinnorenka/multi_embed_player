@@ -2,23 +2,51 @@
 // So some of this JSDOC is not correct.
 // Please refer to documents https://multi-embed-player.pages.dev/docs/reference/iframe_class/#mep_bilibili-class
 
-/**
- * @typedef {Object} mep_bilibili_playerVars
- * @property {number} [startSeconds=0] - The time from which the video should start playing.
- * @property {number} [endSeconds=-1] - The time at which the video should stop playing. If not set or set to -1, the video will play until the end.
- * @property {number} [autoplay=0] - Whether to autoplay the video. If set to 1, the video will autoplay.
- * @property {number} [displayComment=1] - Whether to display comments. If set to 1, the comments will be displayed.
- * @property {number} [fastLoad=0] - Whether to use fast load. If set to 1, the video will be loaded faster. Only works when the multi embed player extension is installed.
- * @property {number} [play_control_wrap=1] - Whether to display the play control wrap. If set to 1, the play control wrap will be displayed.
- */
+interface mep_bilibili_playerVars {
+    startSeconds?: number;
+    endSeconds?: number;
+    autoplay?: number;
+    displayComment?: number;
+    fastLoad?: number;
+    play_control_wrap?: number;
+}
 
-/**
- * @typedef {Object} mep_bilibili_content
- * @property {string} videoId - The video ID of the video to load.
- * @property {number} width - The width of the player.
- * @property {number} height - The height of the player.
- * @property {mep_bilibili_playerVars} playerVars - The player variables to set.
- */
+interface mep_bilibili_content {
+    videoId: string;
+    width: number;
+    height: number;
+    playerVars: mep_bilibili_playerVars;
+    overwrite?: boolean;
+    displayComment?: number;
+    play_control_wrap?: number;
+    startSeconds?: number;
+    endSeconds?: number;
+}
+
+interface BilibiliApiResponse {
+    code: number;
+    data?: {
+        title: string;
+        duration: number;
+        pic?: string;
+    };
+    image_base64?: string | null;
+}
+
+interface BilibiliPlayerState {
+    getPlayerState: string;
+    currentTime?: number;
+    dulation?: number;
+    volumeValue?: number;
+    getTitle?: string;
+}
+
+interface BilibiliQuery {
+    bvid: string;
+    t?: number;
+    autoplay: 0 | 1;
+    danmaku: 0 | 1;
+}
 
 /**
  * Class representing a Bilibili player.
@@ -37,17 +65,48 @@
  * @param {Function} player_set_event_function - The function to set the player event.
  */
 class mep_bilibili{
+    player: HTMLIFrameElement | HTMLElement = document.createElement("iframe");
+    play_control_wrap: boolean = false;
+    front_error_code: number | undefined;
+    loading: boolean = false;
+    before_mute_volume: number = 100;
+    content_width: number = 0;
+    content_height: number = 0;
+    videoid: string = "";
+    original_replacing_element: HTMLElement = document.createElement("div");
+    player_set_event: ((player: HTMLIFrameElement) => void) | undefined;
+    seek_time: number = 0;
+    seek_time_used: boolean = false;
+    noextention_count_stop: number = 0;
+    state: BilibiliPlayerState = { getPlayerState: "0" };
+    apicache: Record<string, any> = {};
+    no_extention_pause: boolean = false;
+    startSeconds: number = 0;
+    innerStartSeconds: number = 0;
+    autoplay_flag: boolean = false;
+    displayCommentMode: boolean = false;
+    fastload: boolean = false;
+    no_extention_estimate_stop: boolean = false;
+    play_start_time: number = 0;
+    play_start_count_interval: number | undefined;
+    endSeconds: number = -1;
+    end_point_observe: number | undefined;
+    custom_state: number | undefined;
+    estimate_time: number | undefined;
+    start_event_count: number = 0;
+    end_event_count: number = 0;
+    
     static error_description = {0:"unknown error occurred",1:"data api endpoint invalid or throw error",2:"can't access local storage",3:"data api throw error",4:"player throw error direct"};
-    static localStorageCheck = null;//ニコニコと同じくlocalstorageにアクセスできないと死ぬため
+    static localStorageCheck: boolean | null = null;//ニコニコと同じくlocalstorageにアクセスできないと死ぬため
     static mep_extension_bilibili = false;//拡張機能ないとまともに動かん
     static api_endpoint = "https://iframe_api.ryokuryu.workers.dev";//please change this if you use
     static no_extention_error = "you seems not to install mep_extention yet.if it not installed in your browser,you can't exac some function(mute unMute setVolume etc) and some function(getDulation,getPlayerState etc) will return incorrect data which is not reflect real data";
     static player_base_url = "";//"https://www.bilibili.com/blackboard/webplayer/embed-old.html?"
-    static bilibili_api_cache = {};
+    static bilibili_api_cache: Record<string, BilibiliApiResponse> = {};
     static cors_proxy = "";
     static currentTime_delay = 2;
-    static bilibili_api_promise = {};
-    constructor(replacing_element,content,player_set_event_function){
+    static bilibili_api_promise: Record<string, {res: ((value: BilibiliApiResponse) => void)[], rej: ((reason?: any) => void)[]}>  = {};
+    constructor(replacing_element: HTMLElement | string, content: mep_bilibili_content, player_set_event_function?: (player: HTMLIFrameElement) => void){
         if(mep_bilibili.player_base_url==""){
             const ua = navigator.userAgent;
             if(ua.indexOf("Firefox")!=-1||ua.indexOf("Edg")!=-1){
@@ -69,21 +128,21 @@ class mep_bilibili{
     async #image_player(first_load = false){
         try{
             let exist_img_children = false;
-            this.player.parentElement.childNodes.forEach((node)=>{if(node.nodeName==="IMG"){exist_img_children = true}if(node.nodeName==="DIV"&&node.classList.contains("mep_bilibili_transparent")){node.remove()}});
+            this.player.parentElement?.childNodes.forEach((node)=>{if(node.nodeName==="IMG"){exist_img_children = true}if(node.nodeName==="DIV"&&(node as Element).classList.contains("mep_bilibili_transparent")){(node as Element).remove()}});
             if(!exist_img_children&&this.play_control_wrap){
                 const img_element = document.createElement("img");
-                img_element.src = (await this.#getVideodataApi())["image_base64"];
-                img_element.width = this.player.width;
-                img_element.height = this.player.height;
+                img_element.src = (await this.#getVideodataApi())["image_base64"] || "";
+                img_element.width = Number((this.player as HTMLIFrameElement).width);
+                img_element.height = Number((this.player as HTMLIFrameElement).height);
                 img_element.style.width = "100%";
                 img_element.style.height = "100%";
                 img_element.style.objectFit = "cover";
                 img_element.style.cursor = "pointer";
                 img_element.addEventListener("click",()=>{this.playVideo()});
-                this.player.parentElement.prepend(img_element);
+                this.player.parentElement?.prepend(img_element);
             }
             this.player.hidden = true;
-            this.player.src = "";
+            (this.player as HTMLIFrameElement).src = "";
             if(first_load){
                 this.player.dispatchEvent(new Event("onReady"));
             }
@@ -99,7 +158,7 @@ class mep_bilibili{
      */
     #set_pause_transparent(){
         let exist_div_children = false;
-        this.player.parentElement.childNodes.forEach((node)=>{if(node.nodeName==="DIV"&&node.classList.contains("mep_bilibili_transparent")){exist_div_children = true}});
+        this.player.parentElement?.childNodes.forEach((node)=>{if(node.nodeName==="DIV"&&(node as Element).classList.contains("mep_bilibili_transparent")){exist_div_children = true}});
         if(!exist_div_children&&this.play_control_wrap){
             const div_element = document.createElement("div");
             div_element.classList.add("mep_bilibili_transparent");
@@ -109,7 +168,7 @@ class mep_bilibili{
             div_element.style.position = "absolute";
             div_element.style.cursor = "pointer";
             div_element.addEventListener("click",()=>{this.pauseVideo()});
-            this.player.parentElement.prepend(div_element);
+            this.player.parentElement?.prepend(div_element);
         }
     }
     /**
@@ -143,7 +202,7 @@ class mep_bilibili{
             document.head.appendChild(style_element);
         }
         let exist_animation_div = false;
-        this.player.parentElement.childNodes.forEach((node)=>{if(node.nodeName==="DIV"&&node.classList.contains("mep_loading_animation")){exist_animation_div = true}});
+        this.player.parentElement?.childNodes.forEach((node)=>{if(node.nodeName==="DIV"&&(node as Element).classList.contains("mep_loading_animation")){exist_animation_div = true}});
         if(!exist_animation_div){
             const div_element = document.createElement("div");
             div_element.classList.add("mep_loading_animation");
@@ -151,7 +210,7 @@ class mep_bilibili{
             div_element.style.top = "calc(50% - 50px)";
             div_element.style.left = "calc(50% - 50px)";
             div_element.style.position = "absolute";
-            this.player.parentElement.prepend(div_element);
+            this.player.parentElement?.prepend(div_element);
         }
     }
     /**
@@ -159,7 +218,7 @@ class mep_bilibili{
      * This function will be called when player is loaded.
      */
     #remove_loading_animation(){
-        this.player.parentElement.childNodes.forEach((node)=>{if(node.nodeName==="DIV"&&node.classList.contains("mep_loading_animation")){node.remove()}});
+        this.player.parentElement?.childNodes.forEach((node)=>{if(node.nodeName==="DIV"&&(node as Element).classList.contains("mep_loading_animation")){(node as Element).remove()}});
     }
     /**
      * @private
@@ -170,14 +229,14 @@ class mep_bilibili{
         error_description_document.style.width = "100%";
         error_description_document.style.height = "100%";
         let error_message = "unknown error occurred";
-        if(this.front_error_code!=undefined&&mep_bilibili.error_description[this.front_error_code]!=undefined){
-            error_message = mep_bilibili.error_description[this.front_error_code] + "\n front end error code:" + String(this.front_error_code);
+        if(this.front_error_code!=undefined&&(window as any).mep_bilibili.error_description[this.front_error_code]!=undefined){
+            error_message = (window as any).mep_bilibili.error_description[this.front_error_code] + "\n front end error code:" + String(this.front_error_code);
         }
         error_description_document.innerText = error_message;
         this.player.replaceWith(error_description_document);
         this.player = error_description_document;
         try{
-            this.player.parentElement.style.backgroundImage = "";
+            this.player.parentElement!.style.backgroundImage = "";
         }
         catch{}
     }
@@ -212,7 +271,7 @@ class mep_bilibili{
         this.player.replaceWith(error_description_document);
         this.player = error_description_document;
         try{
-            this.player.parentElement.style.backgroundImage = "";
+            this.player.parentElement!.style.backgroundImage = "";
         }
         catch{}
     }
@@ -222,7 +281,7 @@ class mep_bilibili{
      * @param {Object} content - The content object containing the video ID and player variables.
      * @param {Function} player_set_event_function - The function to set event listeners on the player.
      */
-    async #element_constructor(replacing_element,content,player_set_event_function){
+    async #element_constructor(replacing_element: HTMLElement | string, content: mep_bilibili_content, player_set_event_function?: (player: HTMLIFrameElement) => void): Promise<void> {
         this.loading = true;
         this.before_mute_volume = 100;
         this.content_width = content.width;
@@ -235,7 +294,9 @@ class mep_bilibili{
         }
         this.videoid = content["videoId"];
         if(typeof replacing_element === "string"){
-            replacing_element = document.getElementById(replacing_element);
+            const element = document.getElementById(replacing_element);
+            if (!element) throw new Error(`Element with id '${replacing_element}' not found`);
+            replacing_element = element;
         }
         this.original_replacing_element = replacing_element;
         let bilibili_doc = document.createElement("iframe");
@@ -245,11 +306,11 @@ class mep_bilibili{
         this.player.addEventListener("onReady",()=>{this.#remove_loading_animation();this.loading = false},{once:true});
         this.player.addEventListener("onError",()=>{this.#remove_loading_animation();this.#add_error_description()},{once:true});
         if(typeof player_set_event_function == "function"){
-            player_set_event_function(this.player);
+            player_set_event_function(this.player as HTMLIFrameElement);
             this.player_set_event = player_set_event_function;
         }
         const api_response = await this.#getVideodataApi();
-        if(api_response?.code!==0){//video can play or not if code not 0 such as 69002 the video maybe delete.
+        if((api_response as any)?.code!==0){//video can play or not if code not 0 such as 69002 the video maybe delete.
             console.error("error occured when get bilibili api. Are you sure you overwrite iframe_api endpoint? or cors proxy is not working? or videoid is invalid?");
             this.front_error_code = 1;
             this.player.dispatchEvent(new CustomEvent("onError",{detail:{code:1100}}));
@@ -265,10 +326,10 @@ class mep_bilibili{
             getPlayerState: "PAUSE"
         };
         this.apicache = {};
-        if(mep_bilibili.localStorageCheck!=true){
+        if((window as any).mep_bilibili.localStorageCheck!=true){
             await this.#checkLocalstorage();
         }
-        if(mep_bilibili.localStorageCheck===false){
+        if((window as any).mep_bilibili.localStorageCheck===false){
             this.#add_local_storage_error_description();
             return;
         }
@@ -278,7 +339,7 @@ class mep_bilibili{
         this.innerStartSeconds = 0;
         if(content?.playerVars?.startSeconds!=undefined){
             this.startSeconds = content?.playerVars?.startSeconds;
-            this.innerStartSeconds = parseInt(content?.playerVars?.startSeconds);
+            this.innerStartSeconds = parseInt(content?.playerVars?.startSeconds.toString());
         }
         this.autoplay_flag = false;
         if(content?.playerVars?.autoplay==1){//終わり次第再生
@@ -295,33 +356,37 @@ class mep_bilibili{
                 this.displayCommentMode = false;
             }
         }
-        let bilibili_query = {};
+        let bilibili_query: BilibiliQuery = {
+            bvid: "",
+            autoplay: 0,
+            danmaku: 0
+        };
         if(content["videoId"]==undefined){
             console.log("invalid videoid:" + content["videoId"] + "so stop loading");
             return
         }
-        bilibili_query["bvid"] = content["videoId"];
+        bilibili_query.bvid = content["videoId"];
         if(this.startSeconds>0){
-            bilibili_query["t"] = this.startSeconds;
+            bilibili_query.t = this.startSeconds;
         }
         if(this.autoplay_flag){
-            bilibili_query["autoplay"] = 1;
+            bilibili_query.autoplay = 1;
         }
         else{
-            bilibili_query["autoplay"] = 0;
+            bilibili_query.autoplay = 0;
         }
-        if(!this.autoplay_flag&&!mep_bilibili.mep_extension_bilibili){
+        if(!this.autoplay_flag&&!(window as any).mep_bilibili.mep_extension_bilibili){
             this.no_extention_pause = true;
         }
         if(this.displayCommentMode){
-            bilibili_query["danmaku"] = 1;
+            bilibili_query.danmaku = 1;
         }
         else{
-            bilibili_query["danmaku"] = 0;
+            bilibili_query.danmaku = 0;
         }
         this.fastload = false;
         if(content?.playerVars?.fastLoad!=undefined){
-            if(!mep_bilibili.mep_extension_bilibili){
+            if(!(window as any).mep_bilibili.mep_extension_bilibili){
                 console.log("fast load ignored because of mep extention not installed in your browser")
             }
             else{
@@ -331,13 +396,19 @@ class mep_bilibili{
             }
         }
         let query_string = "";
-        let bilibili_query_keys = Object.keys(bilibili_query);
+        let bilibili_query_keys = Object.keys(bilibili_query) as (keyof BilibiliQuery)[];
         for(let x=0;x<bilibili_query_keys.length;x++){
-            query_string += bilibili_query_keys[x] + "=" + String(bilibili_query[bilibili_query_keys[x]]) + "&";
+            const key = bilibili_query_keys[x];
+            if(key !== undefined) {
+                const value = bilibili_query[key];
+                if(value !== undefined){
+                    query_string += key + "=" + String(value) + "&";
+                }
+            }
         }
         query_string = query_string.slice(0,-1);
         if(this.autoplay_flag){
-            if(!mep_bilibili.mep_extension_bilibili){//時間カウント用プログラムの追加
+            if(!(window as any).mep_bilibili.mep_extension_bilibili){//時間カウント用プログラムの追加
                 this.no_extention_estimate_stop = true;
                 this.#set_pause_transparent();
                 this.player.addEventListener("load",()=>{this.play_start_time = new Date().getTime();this.no_extention_estimate_stop = false;this.play_start_count_interval = setInterval(this.#observe_load_time.bind(this),500);this.player.dispatchEvent(new Event("onReady"))},{once:true});
@@ -346,20 +417,20 @@ class mep_bilibili{
                 this.player.addEventListener("onReady",()=>{if(this.fastload&&this.startSeconds!=0){this.seekTo(this.startSeconds)};if(this.fastload&&this.autoplay_flag){this.playVideo()}})
             }
         }
-        if(this.autoplay_flag||mep_bilibili.mep_extension_bilibili===true){
-            bilibili_doc.src = mep_bilibili.player_base_url + query_string;
+        if(this.autoplay_flag||(window as any).mep_bilibili.mep_extension_bilibili===true){
+            bilibili_doc.src = (window as any).mep_bilibili.player_base_url + query_string;
         }
         else{
             this.#image_player(true);
         }
         this.#add_player_css_style();
         bilibili_doc.classList.add("mep_bilibili_player");
-        bilibili_doc.width = parseInt(content.width);
-        bilibili_doc.height = parseInt(content.height);
+        bilibili_doc.width = String(content.width);
+        bilibili_doc.height = String(content.height);
         bilibili_doc.allow = "autoplay";//fix bug not autoplay on chrome
         bilibili_doc.allowFullscreen = true;//fix bug can't watch on full screen(all browser)
         bilibili_doc.style.border = "none";//fix bug display border on outer frame
-        try{bilibili_doc.parentElement.setEvent()}catch{}
+        try{(bilibili_doc.parentElement as any).setEvent()}catch{}
         //bilibili_doc.sandbox = "allow-scripts";
         this.endSeconds = -1;
         if(content?.playerVars?.endSeconds!=undefined){
@@ -377,7 +448,7 @@ class mep_bilibili{
     async #checkLocalstorage(){
         //check whether cross domain iframe can use local storage
         //if can't ,it will not load bilibili embed
-        if(mep_bilibili.localStorageCheck==null){
+        if((window as any).mep_bilibili.localStorageCheck==null){
             let selected_localStorageCheck_url = "";
             if(!location.origin.includes("pages.dev")){
                 selected_localStorageCheck_url = "https://multi-embed-player.pages.dev/localStorageCheck";
@@ -390,15 +461,15 @@ class mep_bilibili{
             cdls.height = "0";
             cdls.src = selected_localStorageCheck_url;//if you don't prefer you can change this file.But you must change origin.If you this embed example.com,you must not this otherdomain.example.com
             //and if extention exists,it will redirect to send information about exist browser extention
-            cdls.style = "border:none;"
+            cdls.style.cssText = "border:none;"
             const origin = new URL(selected_localStorageCheck_url).origin;
             document.body.appendChild(cdls);
-            const return_localstorage_status = await new Promise(function(resolve,reject){
+            const return_localstorage_status = await new Promise<boolean>(function(resolve: (value: boolean) => void, reject: (reason?: any) => void){
                 window.addEventListener("message",function(ms){
                     if(ms.origin==origin){
                         try{
                             if(ms.data.extention){
-                                mep_bilibili.mep_extension_bilibili = true;
+                                (window as any).mep_bilibili.mep_extension_bilibili = true;
                             }
                         }
                         catch{}
@@ -408,15 +479,15 @@ class mep_bilibili{
             }.bind(origin));
             cdls.remove();
             if(!return_localstorage_status){
-                mep_bilibili.localStorageCheck = false;
+                (window as any).mep_bilibili.localStorageCheck = false;
                 this.front_error_code = 2;
                 this.player.dispatchEvent(new CustomEvent("onError",{detail:{code:1200}}));//can't play bilibili video
             }
             else{
-                mep_bilibili.localStorageCheck = true;
+                (window as any).mep_bilibili.localStorageCheck = true;
             }
         }
-        else if(mep_bilibili.localStorageCheck==false){
+        else if((window as any).mep_bilibili.localStorageCheck==false){
             this.front_error_code = 2;
             this.player.dispatchEvent(new CustomEvent("onError",{detail:{code:1200}}));//can't play bilibili video
             console.log("error")
@@ -431,22 +502,22 @@ class mep_bilibili{
             let now_time = new Date().getTime();
             if(!this.no_extention_estimate_stop){
                 if(this.innerStartSeconds!=undefined&&this.innerStartSeconds!=0){
-                    this.estimate_time = (now_time - this.play_start_time)/1000 + this.innerStartSeconds - mep_bilibili.currentTime_delay;
+                    this.estimate_time = (now_time - this.play_start_time)/1000 + this.innerStartSeconds - (window as any).mep_bilibili.currentTime_delay;
                 }
                 else if(this.seek_time!=undefined&&this.seek_time!=0){
-                    this.estimate_time = (now_time - this.play_start_time)/1000 + this.seek_time - mep_bilibili.currentTime_delay;
+                    this.estimate_time = (now_time - this.play_start_time)/1000 + this.seek_time - (window as any).mep_bilibili.currentTime_delay;
                 }
                 else{
-                    this.estimate_time = (now_time - this.play_start_time)/1000 + this.startSeconds - mep_bilibili.currentTime_delay;
+                    this.estimate_time = (now_time - this.play_start_time)/1000 + this.startSeconds - (window as any).mep_bilibili.currentTime_delay;
                 }
             }
-            if(this.endSeconds!=-1&&this.estimate_time>this.endSeconds){
+            if(this.endSeconds!=-1&&this.estimate_time!==undefined&&this.estimate_time>this.endSeconds){
                 this.custom_state = 4;
                 this.player.dispatchEvent(new Event("onEndVideo"));//再生を終了したことにする
                 clearInterval(this.play_start_count_interval);//確認を消去
                 this.pauseVideo();
             }
-            if(this.endSeconds===-1&&this.estimate_time>=(await this.getDuration())){
+            if(this.endSeconds===-1&&this.estimate_time!==undefined&&this.estimate_time>=(await this.getDuration())){
                 this.player.dispatchEvent(new Event("onEndVideo"));//再生を終了したことにする
                 clearInterval(this.play_start_count_interval);//確認を消去
                 this.pauseVideo();
@@ -477,15 +548,15 @@ class mep_bilibili{
      * Loads the video player with the specified content in cue mode.
      * @param {Object} content - The content to display in the player.
      */
-    cueVideoById(content){
+    cueVideoById(content: Partial<mep_bilibili_content>): void {
         if(content["overwrite"]==undefined){
             content["overwrite"] = true;
         }
         if(content["startSeconds"]!=undefined&&content["overwrite"]==true){
             this.startSeconds = content["startSeconds"];
         }
-        if(typeof content["startSeconds"] !== "undefined"){
-            this.innerStartSeconds = parseInt(content["startSeconds"]);
+        if(typeof content.startSeconds !== "undefined"){
+            this.innerStartSeconds = parseInt(content.startSeconds.toString());
         }
         else{
             this.innerStartSeconds = 0;
@@ -496,7 +567,7 @@ class mep_bilibili{
         this.autoplay_flag = false;
         this.no_extention_pause = true;
         if(content["overwrite"]==true){
-            this.videoid = content["videoId"];
+            this.videoid = content["videoId"] || "";
         }
         this.#image_player();
     }
@@ -504,15 +575,15 @@ class mep_bilibili{
      * Loads the video player with the specified content in play mode.
      * @param {Object} content - The content to display in the player.
      */
-    loadVideoById(content){
+    loadVideoById(content: Partial<mep_bilibili_content>): void {
         if(content["overwrite"]==undefined){
             content["overwrite"] = true;
         }
         if(content["startSeconds"]!=undefined&&content["overwrite"]==true){
             this.startSeconds = content["startSeconds"];
         }
-        if(typeof content["startSeconds"] !== "undefined"){
-            this.innerStartSeconds = parseInt(content["startSeconds"]);
+        if(typeof content.startSeconds !== "undefined"){
+            this.innerStartSeconds = parseInt(content.startSeconds.toString());
         }
         else{
             this.innerStartSeconds = 0;
@@ -530,33 +601,37 @@ class mep_bilibili{
      * @returns {Promise<void>} - A Promise that resolves when the video player is loaded.
      * @private
      */
-    async #video_loader(content){
+    async #video_loader(content: Partial<mep_bilibili_content>): Promise<void> {
         if(this.player===undefined){
             this.player = this.original_replacing_element;
         }
         this.loading = true;
         this.#add_loading_animation();
-        if(mep_bilibili.localStorageCheck===false){
+        if((window as any).mep_bilibili.localStorageCheck===false){
             this.#add_local_storage_error_description();
             return;
         }
-        this.player.parentElement.childNodes.forEach((node)=>{if(node.tagName==="IMG"){node.remove()}});
-        let bilibili_query = {};
+        this.player.parentElement?.childNodes.forEach((node)=>{if((node as Element).tagName==="IMG"){(node as Element).remove()}});
+        let bilibili_query: BilibiliQuery = {
+            bvid: "",
+            autoplay: 0,
+            danmaku: 0
+        };
         if(this.videoid!=content?.videoId){//when load other video
             this.seek_time = -1;
             this.seek_time_used = true;
             this.estimate_time = undefined;
             this.noextention_count_stop = 0;
         }
-        this.videoid = content?.videoId;
-        if((await this.#getVideodataApi())?.code!=0){//video can play or not if code not 0 such as 69002 the video maybe delete.
+        this.videoid = content?.videoId || "";
+        if(((await this.#getVideodataApi()) as any)?.code!=0){//video can play or not if code not 0 such as 69002 the video maybe delete.
             this.front_error_code = 3;
-            this.player.dispatchEvent(new CustomEvent("onError"),{detail:{code:404}});
+            this.player.dispatchEvent(new CustomEvent("onError",{detail:{code:404}}));
             return;
         }
-        bilibili_query["bvid"] = content?.videoId;
-        if(content?.startSeconds>0){
-            bilibili_query["t"] = content?.startSeconds;
+        bilibili_query.bvid = content?.videoId || "";
+        if(content?.startSeconds && content.startSeconds>0){
+            bilibili_query.t = content.startSeconds;
         }
         if(this.autoplay_flag){
             bilibili_query.autoplay = 1;
@@ -576,32 +651,38 @@ class mep_bilibili{
             }
         }
         if(this.displayCommentMode){
-            bilibili_query["danmaku"] = 1;
+            bilibili_query.danmaku = 1;
         }
         else{
-            bilibili_query["danmaku"] = 0;
+            bilibili_query.danmaku = 0;
         }
         let query_string = "";
-        let bilibili_query_keys = Object.keys(bilibili_query);
+        let bilibili_query_keys = Object.keys(bilibili_query) as (keyof BilibiliQuery)[];
         for(let x=0;x<bilibili_query_keys.length;x++){
-            query_string += bilibili_query_keys[x] + "=" + String(bilibili_query[bilibili_query_keys[x]]) + "&";
+            const key = bilibili_query_keys[x];
+            if(key !== undefined) {
+                const value = bilibili_query[key];
+                if(value !== undefined){
+                    query_string += key + "=" + String(value) + "&";
+                }
+            }
         }
         query_string = query_string.slice(0,-1);
         const new_player = document.createElement("iframe");
         this.player.replaceWith(new_player);
         this.player = new_player;
         if(typeof this.player_set_event == "function"){
-            this.player_set_event(this.player);
+            this.player_set_event(this.player as HTMLIFrameElement);
         }
         else{
             try{
-                this.player.parentElement.setEvent();
+                (this.player.parentElement as any).setEvent();
             }
             catch{}
         }
         this.player.addEventListener("onReady",()=>{this.#remove_loading_animation();this.loading = false},{once:true});
         this.player.addEventListener("onError",()=>{this.#remove_loading_animation();this.#add_error_description()},{once:true});
-        if(!mep_bilibili.mep_extension_bilibili){//時間カウント用プログラムの追加
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){//時間カウント用プログラムの追加
             this.no_extention_estimate_stop = true;
             if(this.autoplay_flag){
                 this.#set_pause_transparent();
@@ -611,12 +692,12 @@ class mep_bilibili{
             }
             new_player.addEventListener("load",()=>{this.play_start_time = new Date().getTime();this.no_extention_estimate_stop = false;this.play_start_count_interval = setInterval(this.#observe_load_time.bind(this),500);this.player.dispatchEvent(new Event("onReady"))},{once:true});
         }
-        this.player.src = mep_bilibili.player_base_url + query_string;
-        this.player.allow = "autoplay";//fix bug not autoplay on chrome
-        this.player.allowFullscreen = true;//fix bug can't watch on full screen(all browser)
+        (this.player as HTMLIFrameElement).src = (window as any).mep_bilibili.player_base_url + query_string;
+        (this.player as HTMLIFrameElement).allow = "autoplay";//fix bug not autoplay on chrome
+        (this.player as HTMLIFrameElement).allowFullscreen = true;//fix bug can't watch on full screen(all browser)
         this.player.style.border = "none";//fix bug display border on outer frame
-        this.player.width = this.content_width;
-        this.player.height = this.content_height;
+        (this.player as HTMLIFrameElement).width = String(this.content_width);
+        (this.player as HTMLIFrameElement).height = String(this.content_height);
         this.#add_player_css_style();
         this.player.classList.add("mep_bilibili_player");
         this.player.hidden = false;
@@ -629,8 +710,8 @@ class mep_bilibili{
      * Returns the current time of the video.
      * @returns {Promise<number>} - The current time of the video.
      */
-    getCurrentTime(){
-        if(!mep_bilibili.mep_extension_bilibili){
+    getCurrentTime(): number {
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
             if(this.loading){
                 return this.startSeconds;
             }
@@ -645,53 +726,53 @@ class mep_bilibili{
             }
         }
         else{
-            return this.state.currentTime;
+            return this.state.currentTime || 0;
         }
     }
     /**
      * Plays the video. If the Bilibili extension is not installed, loads the video with the specified parameters.
      * If the extension is installed, sends a message to the extension to play the video.
      */
-    playVideo(){
-        if(!mep_bilibili.mep_extension_bilibili){
+    playVideo(): void {
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
             this.#set_pause_transparent();
             this.no_extention_pause = false;
             this.noextention_count_stop = 0;
-            let generate_sorce = {"videoId":this.videoid,"overwrite":false};
+            let generate_sorce: Partial<mep_bilibili_content> = {"videoId":this.videoid,"overwrite":false};
             if(this.endSeconds!=-1){
-                generate_sorce["endSeconds"] = this.endSeconds;
+                generate_sorce.endSeconds = this.endSeconds;
             }
             if(this.seek_time!=-1&&!this.seek_time_used){
                 this.seek_time_used = true;
-                generate_sorce["startSeconds"] = this.seek_time;
+                generate_sorce.startSeconds = this.seek_time;
             }
             else if(this.estimate_time!=0){
-                generate_sorce["startSeconds"] = this.estimate_time;
+                generate_sorce.startSeconds = this.estimate_time;
             }
             else if(this.startSeconds!=0){
-                generate_sorce["startSeconds"] = this.startSeconds;
+                generate_sorce.startSeconds = this.startSeconds;
             }
             this.loadVideoById(generate_sorce);
         }
         else{
-            this.player.contentWindow.postMessage({eventName:"play"},"*");
+            (this.player as HTMLIFrameElement).contentWindow?.postMessage({eventName:"play"},"*");
         }
     }
     /**
      * Pauses the video playback. If the Bilibili extension is not detected, it replaces the player with an image and stops the play start count interval.
      * @function
      */
-    pauseVideo(){
-        if(!mep_bilibili.mep_extension_bilibili){
+    pauseVideo(): void {
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
             clearInterval(this.play_start_count_interval);
             this.no_extention_pause = true;
             this.noextention_count_stop = 1;
             this.#image_player();
-            this.seek_time = this.estimate_time;
-            try{this.player.parentElement.deleteEvent()}catch{}
+            this.seek_time = this.estimate_time || 0;
+            try{(this.player.parentElement as any).deleteEvent()}catch{}
         }
         else{
-            this.player.contentWindow.postMessage({eventName:"pause"},"*");
+            (this.player as HTMLIFrameElement).contentWindow?.postMessage({eventName:"pause"},"*");
         }
     }
     /**
@@ -699,13 +780,13 @@ class mep_bilibili{
      * @async
      * @param {number} seektime - The time to seek to, in seconds.
      */
-    async seekTo(seektime){
-        if(!mep_bilibili.mep_extension_bilibili){
-            let generate_sorce = {"videoId":this.videoid,"overwrite":false};
+    async seekTo(seektime: number): Promise<void> {
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
+            let generate_sorce: Partial<mep_bilibili_content> = {"videoId":this.videoid,"overwrite":false};
             if(this.endSeconds!=-1){
-                generate_sorce["endSeconds"] = this.endSeconds;
+                generate_sorce.endSeconds = this.endSeconds;
             }
-            generate_sorce["startSeconds"] = seektime;
+            generate_sorce.startSeconds = seektime;
             this.seek_time = seektime;
             this.seek_time_used = false;
             let player_state = await this.getPlayerState();
@@ -719,7 +800,7 @@ class mep_bilibili{
             }
         }
         else{
-            this.player.contentWindow.postMessage({eventName:"seek",seekTime:Number(seektime)},"*");
+            (this.player as HTMLIFrameElement).contentWindow?.postMessage({eventName:"seek",seekTime:Number(seektime)},"*");
         }
     }
     /**
@@ -728,7 +809,7 @@ class mep_bilibili{
      * @function
      * @returns {Promise<number>} The real duration of the video.
      */
-    async getRealDulation(){//original function
+    async getRealDulation(): Promise<number> {//original function
         if(this.endSeconds==-1){
             return await this.getDuration() - this.startSeconds;
         }
@@ -740,11 +821,11 @@ class mep_bilibili{
      * Asynchronously retrieves video data API for Bilibili.
      * @returns {Promise<Object>} Promise object representing the video data API for Bilibili.
      */
-    async #getVideodataApi(){
+    async #getVideodataApi(): Promise<BilibiliApiResponse> {
         return new Promise(async(resolve,reject)=>{
             let multi_embed_player_class_usable = false;
             try{
-                if(multi_embed_player.cors_proxy){};
+                if(typeof multi_embed_player !== 'undefined' && multi_embed_player.cors_proxy){};
                 multi_embed_player_class_usable = true;
             }
             catch{
@@ -752,34 +833,40 @@ class mep_bilibili{
             }
             let url = "";
             if(multi_embed_player_class_usable){
-                url = multi_embed_player.cors_proxy;
+                url = (typeof multi_embed_player !== 'undefined') ? multi_embed_player.cors_proxy : '';
             }
             else{
-                url = mep_bilibili.cors_proxy;
+                url = (window as any).mep_bilibili.cors_proxy;
             }
             if(multi_embed_player_class_usable){
-                if(!(this.videoid in multi_embed_player.api_cache.bilibili)){
-                    await multi_embed_player_fetch_iframe_api("bilibili",this.videoid,!multi_embed_player.cors_proxy==="",true,false,true,this.player);
+                if(typeof multi_embed_player !== 'undefined' && !(this.videoid in multi_embed_player.api_cache.bilibili)){
+                    if(typeof multi_embed_player_fetch_iframe_api !== 'undefined'){
+                        await multi_embed_player_fetch_iframe_api("bilibili",this.videoid,multi_embed_player.cors_proxy!=="",true,false,true,this.player);
+                    }
                 }
-                resolve(multi_embed_player.api_cache.bilibili[this.videoid]);
+                if(typeof multi_embed_player !== 'undefined'){
+                    resolve(multi_embed_player.api_cache.bilibili[this.videoid]);
+                } else {
+                    reject('multi_embed_player not available');
+                }
             }
             else{
-                if(!(this.videoid in mep_bilibili.bilibili_api_cache)){
-                    if(mep_bilibili.bilibili_api_promise[this.videoid]==undefined){
-                        mep_bilibili.bilibili_api_promise[this.videoid] = {res:[],rej:[]};
+                if(!(this.videoid in (window as any).mep_bilibili.bilibili_api_cache)){
+                    if((window as any).mep_bilibili.bilibili_api_promise[this.videoid]==undefined){
+                        (window as any).mep_bilibili.bilibili_api_promise[this.videoid] = {res:[],rej:[]};
                         try{
-                            if(mep_bilibili.cors_proxy===""){
-                                mep_bilibili.bilibili_api_cache[this.videoid] = await(await fetch(`${mep_bilibili.api_endpoint}?route=bilibili&videoid=${this.videoid}&image_base64=1`)).json();
+                            if((window as any).mep_bilibili.cors_proxy===""){
+                                (window as any).mep_bilibili.bilibili_api_cache[this.videoid] = await(await fetch(`${(window as any).mep_bilibili.api_endpoint}?route=bilibili&videoid=${this.videoid}&image_base64=1`)).json();
                             }
                             else{
-                                let json_response_bilibili = await(await fetch(url + `https://api.bilibili.com/x/web-interface/view?bvid=${videoid}`)).json();
+                                let json_response_bilibili = await(await fetch(url + `https://api.bilibili.com/x/web-interface/view?bvid=${this.videoid}`)).json();
                                 if(json_response_bilibili?.data?.pic===undefined){
                                     json_response_bilibili["image_base64"] = null;
                                 }
                                 else{
                                     json_response_bilibili["image_base64"] = url + json_response_bilibili.data.pic;
                                 }
-                                mep_bilibili.bilibili_api_cache[this.videoid] = json_response_bilibili;
+                                (window as any).mep_bilibili.bilibili_api_cache[this.videoid] = json_response_bilibili;
                             }
                         }
                         catch{
@@ -787,17 +874,17 @@ class mep_bilibili{
                             this.front_error_code = 1;
                             this.player.dispatchEvent(new CustomEvent("onError",{detail:{code:1100}}));
                         }
-                        mep_bilibili.bilibili_api_promise[this.videoid].res.forEach((resolve)=>{resolve(mep_bilibili.bilibili_api_cache[this.videoid])});
-                        resolve(mep_bilibili.bilibili_api_cache[this.videoid]);
+                        (window as any).mep_bilibili.bilibili_api_promise[this.videoid].res.forEach((resolve: (value: BilibiliApiResponse) => void)=>{resolve((window as any).mep_bilibili.bilibili_api_cache[this.videoid])});
+                        resolve((window as any).mep_bilibili.bilibili_api_cache[this.videoid]);
                     }
                     else{
-                        mep_bilibili.bilibili_api_promise[this.videoid].res.push(resolve);
-                        mep_bilibili.bilibili_api_promise[this.videoid].rej.push(reject);
+                        (window as any).mep_bilibili.bilibili_api_promise[this.videoid].res.push(resolve);
+                        (window as any).mep_bilibili.bilibili_api_promise[this.videoid].rej.push(reject);
                         return;
                     }
                 }
                 else{
-                    resolve(mep_bilibili.bilibili_api_cache[this.videoid]);
+                    resolve((window as any).mep_bilibili.bilibili_api_cache[this.videoid]);
                 }
             }
         });
@@ -808,13 +895,13 @@ class mep_bilibili{
      * @async
      * @returns {Promise<number>} The duration of the video in seconds.
      */
-    async getDuration(){
-        if(!mep_bilibili.mep_extension_bilibili){
+    async getDuration(): Promise<number> {
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
             let videodata_api = await this.#getVideodataApi();
-            return videodata_api["data"]["duration"];
+            return videodata_api["data"]?.["duration"] || 0;
         }
         else{
-            return this.state.dulation
+            return this.state.dulation || 0
         }
     }
 
@@ -822,13 +909,13 @@ class mep_bilibili{
      * Gets the title of the video.
      * @returns {Promise<string>} The title of the video.
      */
-    async getTitle(){
-        if(!mep_bilibili.mep_extension_bilibili){
+    async getTitle(): Promise<string> {
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
             let videodata_api = await this.#getVideodataApi();
-            return videodata_api["data"]["title"];
+            return videodata_api["data"]?.["title"] || "";
         }
         else{
-            return this.state.getTitle
+            return this.state.getTitle || ""
         }
     }
     /**
@@ -841,11 +928,11 @@ class mep_bilibili{
      * 3 - Player is paused.
      * 4 - Player was ended.
      */
-    async getPlayerState(){
-        if(!mep_bilibili.mep_extension_bilibili){
+    async getPlayerState(): Promise<number> {
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
             const realDulationCache = await this.getRealDulation();
             const currentTimeCahce = await this.getCurrentTime();
-            if(this.loading||currentTimeCahce==undefined||realDulationCache==undefined||realDulationCache==NaN){
+            if(this.loading||currentTimeCahce==undefined||realDulationCache==undefined||Number.isNaN(realDulationCache)){
                 return 0//1のほうが適切かもしれない
             }
             else if(this.innerStartSeconds==currentTimeCahce){
@@ -882,6 +969,7 @@ class mep_bilibili{
                     }
                 }
             }
+            return 0; // Default return value
         }
     }
     /**
@@ -889,12 +977,12 @@ class mep_bilibili{
      * When not install extention, this function will not work.
      * @param {number} volume - The volume level to set, between 0 and 100.
      */
-    setVolume(volume){
-        if(!mep_bilibili.mep_extension_bilibili){
-            console.warn(mep_bilibili.no_extention_error);
+    setVolume(volume: number): void {
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
+            console.warn((window as any).mep_bilibili.no_extention_error);
         }
         else{
-            this.player.contentWindow.postMessage({eventName:"setVolume",volume:Number(volume/100)},"*");//100で割って差をなくす
+            (this.player as HTMLIFrameElement).contentWindow?.postMessage({eventName:"setVolume",volume:Number(volume/100)},"*");//100で割って差をなくす
         }
     }
     /**
@@ -902,9 +990,10 @@ class mep_bilibili{
      * When not install extention, this function will not work.
      * @returns {number} The current volume value.
      */
-    getVolume(){
-        if(!mep_bilibili.mep_extension_bilibili){
-            console.warn(mep_bilibili.no_extention_error);
+    getVolume(): number | undefined {
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
+            console.warn((window as any).mep_bilibili.no_extention_error);
+            return undefined;
         }
         else{
             return this.state.volumeValue
@@ -915,9 +1004,10 @@ class mep_bilibili{
      * When not install extention, this function will not work.
      * @returns {boolean} True if the player is muted, false otherwise.
      */
-    isMuted(){
-        if(!mep_bilibili.mep_extension_bilibili){
-            console.warn(mep_bilibili.no_extention_error);
+    isMuted(): boolean | undefined {
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
+            console.warn((window as any).mep_bilibili.no_extention_error);
+            return undefined;
         }
         else{
             if(this.getVolume()!=0){
@@ -934,12 +1024,12 @@ class mep_bilibili{
      * @function
      * @returns {void}
      */
-    mute(){
-        if(!mep_bilibili.mep_extension_bilibili){
-            console.warn(mep_bilibili.no_extention_error);
+    mute(): void {
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
+            console.warn((window as any).mep_bilibili.no_extention_error);
         }
         else{
-            rhis.before_mute_volume = this.getVolume();
+            this.before_mute_volume = this.getVolume() || 0;
             this.setVolume(0);
         }
     }
@@ -949,9 +1039,9 @@ class mep_bilibili{
      * @function
      * @returns {void}
      */
-    unMute(){
-        if(!mep_bilibili.mep_extension_bilibili){
-            console.warn(mep_bilibili.no_extention_error);
+    unMute(): void {
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
+            console.warn((window as any).mep_bilibili.no_extention_error);
         }
         else{
             this.setVolume(this.before_mute_volume);
@@ -963,12 +1053,12 @@ class mep_bilibili{
      * @param {string} mode - The visibility mode of the comments. Possible values are "visible" or "hidden".
      * @returns {void}
      */
-    displayComment(mode){
-        if(!mep_bilibili.mep_extension_bilibili){
-            console.warn(mep_bilibili.no_extention_error);
+    displayComment(mode: string): void {
+        if(!(window as any).mep_bilibili.mep_extension_bilibili){
+            console.warn((window as any).mep_bilibili.no_extention_error);
         }
         else{
-            this.player.contentWindow.postMessage({eventName:"displayComment",commentVisibility:mode},"*");
+            (this.player as HTMLIFrameElement).contentWindow?.postMessage({eventName:"displayComment",commentVisibility:mode},"*");
         }
     }
     /**
@@ -976,7 +1066,7 @@ class mep_bilibili{
      * @private
      * This function only run multi embed player extension installed.
      */
-    #messageListener(){
+    #messageListener(): void {
         this.start_event_count = 0;
         this.end_event_count = 0;
         window.addEventListener("message",(data)=>{
@@ -999,6 +1089,7 @@ class mep_bilibili{
     }
 }
 // after loading a class, call the function to set the variable before use this class.
-if(typeof multi_embed_player_set_variable === "function"){
+if(typeof multi_embed_player_set_variable !== 'undefined' && typeof multi_embed_player_set_variable === "function"){
     multi_embed_player_set_variable(mep_bilibili);
 }
+(window as any).mep_bilibili = mep_bilibili;

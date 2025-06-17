@@ -20,7 +20,7 @@
             //class_name.follow_GDPR = true;
         }
     </script>
-    <script src="https://cdn.jsdelivr.net/gh/bonjinnorenka/multi_embed_player@latest/multi_embed_player.js"></script>
+    <script src="http://localhost:5500/dist/multi_embed_player.js"></script>
     <h2>embed section</h2>
     <h3>single</h3>
     <h4>youtube</h4>
@@ -102,7 +102,7 @@
     <input type="range" min="0" max="100" value="100" oninput="document.getElementById('mep_player').setVolume(this.value)">
     <!--seek to input box value max is not define seekTo button click-->
     <input type="number" id="seek_to_input" value="0">
-    <button onclick="document.getElementById('mep_player').seekTo(document.getElementById('seek_to_input').value)">seekTo</button>
+    <button onclick="document.getElementById('mep_player').seekTo(Number(document.getElementById('seek_to_input').value))">seekTo</button>
     <!--under this getter function !sometimes! return promise-->
     <!--print to console about currenttime-->
     <button onclick="(async()=>{console.log(await document.getElementById('mep_player').getCurrentTime())})()">get current time</button>
