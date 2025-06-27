@@ -3,7 +3,7 @@
     "main":"./dist/multi_embed_player.js",
     "module": "./dist/multi_embed_player.js",
     "types":"./dist/multi_embed_player.d.ts",
-    "version": "3.2.2",
+    "version": "3.2.4",
     "license": "Apache-2.0",
     "style":"./multi_embed_player.css",
     "description": "some video site embed and control playing",
