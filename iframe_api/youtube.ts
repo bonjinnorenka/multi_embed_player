@@ -36,6 +36,7 @@ class mep_youtube{
     endSeconds: number = -1;
     el: HTMLElement = document.createElement("div");
     YT_player: any;
+    use_nocookie: boolean = true;
 
     /**
      * Load YouTube Iframe API asynchronously.
@@ -106,7 +107,7 @@ class mep_youtube{
             width: "560",
             videoId: content.videoId,
             playerVars: playerVars_pass_over,
-            host: "https://www.youtube-nocookie.com",
+            host: this.use_nocookie ? "https://www.youtube-nocookie.com" : "https://www.youtube.com",
             events:{
                 "onReady":()=>{this.#dispatchEvent(new Event("onReady"))},
                 "onError":(e: { data: number })=>{this.#error_event_handler(e)},
