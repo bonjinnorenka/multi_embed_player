@@ -26,11 +26,11 @@ Need install service list
 
 ### Use iframe api
 
-#### Install iframe_api to cloudflare workers
+#### Install iframe-api-ts to cloudflare workers
 
 ```bash
 git clone https://github.com/bonjinnorenka/multi_embed_player.git
-cd multi_embed_player/player_api_gate/iframe_api
+cd multi_embed_player/player_api_gate/iframe-api-ts
 npm install
 npm run deploy
 ```
@@ -49,7 +49,7 @@ If you use bilibili, you may need to use http proxy because some request seems t
 <!--before multi_embed_player.js script tag-->
 <script type="text/javascript">
     const multi_embed_player_set_variable = (classname)=>{
-        classname.iframe_api_endpoint = "YOUR IFRAME API ENDPOINT LIKE https://iframe_api.ryokuryu.workers.dev";
+        classname.iframe_api_endpoint = "YOUR IFRAME API ENDPOINT LIKE https://iframe-api-ts.ryokuryu.workers.dev";
     }
 </script>
 ```

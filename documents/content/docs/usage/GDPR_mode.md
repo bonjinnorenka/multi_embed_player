@@ -28,7 +28,7 @@ You need to set `follow_GDPR` to `true` in `multi_embed_player_set_variable` fun
         classname.follow_GDPR = true;
 
         //if you use iframe api
-        //classname.iframe_api_endpoint = "YOUR IFRAME API ENDPOINT LIKE https://iframe_api.ryokuryu.workers.dev";
+        //classname.iframe_api_endpoint = "YOUR IFRAME API ENDPOINT LIKE https://iframe-api-ts.ryokuryu.workers.dev";
 
         //if you use cors proxy
         //classname.cors_proxy_url = "YOUR CORS PROXY URL LIKE https://cors-anywhere.herokuapp.com";

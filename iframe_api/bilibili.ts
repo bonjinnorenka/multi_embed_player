@@ -99,7 +99,7 @@ class mep_bilibili{
     static error_description = {0:"unknown error occurred",1:"data api endpoint invalid or throw error",2:"can't access local storage",3:"data api throw error",4:"player throw error direct"};
     static localStorageCheck: boolean | null = null;//ニコニコと同じくlocalstorageにアクセスできないと死ぬため
     static mep_extension_bilibili = false;//拡張機能ないとまともに動かん
-    static api_endpoint = "https://iframe_api.ryokuryu.workers.dev";//please change this if you use
+    static api_endpoint = "https://iframe-api-ts.ryokuryu.workers.dev";//please change this if you use
     static no_extention_error = "you seems not to install mep_extention yet.if it not installed in your browser,you can't exac some function(mute unMute setVolume etc) and some function(getDulation,getPlayerState etc) will return incorrect data which is not reflect real data";
     static player_base_url = "";//"https://www.bilibili.com/blackboard/webplayer/embed-old.html?"
     static bilibili_api_cache: Record<string, BilibiliApiResponse> = {};

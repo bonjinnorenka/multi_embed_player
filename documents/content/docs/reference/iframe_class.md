@@ -106,7 +106,7 @@ defined at [bilibili.js](https://github.com/bonjinnorenka/multi_embed_player/blo
 |---|---|---|---|
 |localStorageCheck|null or boolean|null|localStorage check result|
 | mep_extention_bilibili| boolean |false| extention mode|
-| api_endpoint| string |https://iframe_api.ryokuryu.workers.dev| api endpoint you must change it or set cors proxy|
+| api_endpoint| string |https://iframe-api-ts.ryokuryu.workers.dev| api endpoint you must change it or set cors proxy|
 | no_extention_error| string | "No extention error description"| error message when extention is not found|
 | player_base_url| string | ""| base url for player it will auto select|
 |bilibili_api_cache|Object{videoId:video_info}|{}|cache for bilibili api|

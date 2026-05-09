@@ -208,7 +208,7 @@ class multi_embed_player extends HTMLElement{
     startSeconds: number = 0;
     endSeconds: number = -1;
     static script_origin = "https://cdn.jsdelivr.net/npm/multi_embed_player@v3/dist/";
-    static iframe_api_endpoint = "https://iframe_api.ryokuryu.workers.dev";
+    static iframe_api_endpoint = "https://iframe-api-ts.ryokuryu.workers.dev";
     static mep_status_load_api: ServiceStatusMap = {youtube:0,niconico:0,bilibili:0,soundcloud:0};
     static mep_load_api_promise: Record<'youtube' | 'niconico' | 'bilibili' | 'soundcloud', (() => void)[]> = {youtube:[],niconico:[],bilibili:[],soundcloud:[]};
     static api_cache: ServiceApiCache = {niconico:{},bilibili:{},soundcloud:{},youtube:{}};
