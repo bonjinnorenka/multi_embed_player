@@ -8,7 +8,7 @@
     "description": "some video site embed and control playing",
     "repository": {
         "type": "git",
-        "url": "https://github.com/bonjinnorenka/multi_embed_player"
+        "url": "git+https://github.com/bonjinnorenka/multi_embed_player.git"
     },
     "bugs": {
         "url": "https://github.com/bonjinnorenka/multi_embed_player/issues"
