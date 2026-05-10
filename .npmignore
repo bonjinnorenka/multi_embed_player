@@ -19,6 +19,10 @@ node_modules/
 .git/
 .gitignore
 .gitmodules
+CLAUDE.md
+add_exports.js
+add_types.sh
+types.js
 
 # Documentation build
 documents/

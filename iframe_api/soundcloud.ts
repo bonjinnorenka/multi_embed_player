@@ -341,6 +341,9 @@ class mep_soundcloud{
             return this.endSeconds - this.first_seek_time;
         }
     }
+    getRealDuration(){
+        return this.getRealDulation();
+    }
     /**
      * Load a new video into the player.
      * @param {mep_soundcloud_load_object} content 

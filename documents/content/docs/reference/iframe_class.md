@@ -207,7 +207,7 @@ defined at [youtube.js](https://github.com/bonjinnorenka/multi_embed_player/blob
 |pauseVideo|||Pause video for player|
 |getCurrentTime||number (seconds)|Get current time of video|
 |getDuration||number (seconds)|Get duration of video|
-|getRealDulation||number (seconds)|Get actual duration between start and end times|
+|getRealDuration||number (seconds)|Get actual duration between start and end times|
 |seekTo|time: number (seconds)||Seek to specified time in video|
 |setVolume|volume: number (0-100)||Set volume for player|
 |mute|||Mute player|

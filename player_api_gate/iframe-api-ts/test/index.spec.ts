@@ -21,7 +21,18 @@ describe('Iframe API Router', () => {
 		const testEnv = { ...env, WhiteList: '["https://authorized.com"]' };
 		const response = await worker.fetch(request, testEnv, ctx);
 		await waitOnExecutionContext(ctx);
-		
+
+		expect(response.status).toBe(403);
+		expect(await response.text()).toBe('access from this origin is not allowed');
+	});
+
+	it('rejects Apple Music metadata without origin when whitelist is configured', async () => {
+		const request = new IncomingRequest('http://example.com/?route=applemusic&videoid=2037093406');
+		const ctx = createExecutionContext();
+		const testEnv = { ...env, WhiteList: '["https://authorized.com"]' };
+		const response = await worker.fetch(request, testEnv, ctx);
+		await waitOnExecutionContext(ctx);
+
 		expect(response.status).toBe(403);
 		expect(await response.text()).toBe('access from this origin is not allowed');
 	});

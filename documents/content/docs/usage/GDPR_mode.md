@@ -31,7 +31,7 @@ You need to set `follow_GDPR` to `true` in `multi_embed_player_set_variable` fun
         //classname.iframe_api_endpoint = "YOUR IFRAME API ENDPOINT LIKE https://iframe-api-ts.ryokuryu.workers.dev";
 
         //if you use cors proxy
-        //classname.cors_proxy_url = "YOUR CORS PROXY URL LIKE https://cors-anywhere.herokuapp.com";
+        //classname.cors_proxy = "YOUR CORS PROXY URL LIKE https://cors-anywhere.herokuapp.com";
     }
 </script>
 ```

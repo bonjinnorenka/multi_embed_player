@@ -27,5 +27,7 @@ This is only listed original or unique value.
 | picture_tag   | string of HTML | false    | null          | picture tag inner content it use instead of video id thumbnail       |
 | for            | string | false    | null          | player id to play valid only thumbnail-click       |
 | play_control_wrap | boolen | false    | true         | wrap play control or not only valid on bilibili     |
+| kind           | string | false    | songs         | Apple Music resource kind. v1 supports songs only     |
+| storefront     | string | false    | api default   | Apple Music storefront such as jp or us     |
 
 {{< /table >}}

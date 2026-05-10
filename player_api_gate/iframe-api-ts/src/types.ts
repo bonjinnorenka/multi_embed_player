@@ -3,6 +3,12 @@ interface Env {
   PROXY_VIA_URL?: string;
   PROXY_AUTH?: string;
   NON_PROFIT?: string;
+  APPLE_MUSIC_TEAM_ID?: string;
+  APPLE_MUSIC_KEY_ID?: string;
+  APPLE_MUSIC_PRIVATE_KEY?: string;
+  APPLE_MUSIC_ALLOWED_ORIGINS?: string;
+  APPLE_MUSIC_TOKEN_TTL_SECONDS?: string;
+  APPLE_MUSIC_STOREFRONT?: string;
 }
 
 interface BaseResponse {
@@ -98,18 +104,34 @@ interface SoundCloudResponse extends BaseResponse {
   image_base64?: string;
 }
 
+interface AppleMusicResponse extends BaseResponse {
+  code?: number;
+  id?: string;
+  kind?: string;
+  storefront?: string;
+  name?: string;
+  title?: string;
+  artistName?: string;
+  albumName?: string;
+  duration?: number;
+  thumbnail_url?: string;
+  url?: string;
+  image_base64?: string;
+}
+
 interface CommonHeaders {
   'content-type': string;
   'Access-Control-Allow-Origin': string;
   'cache-control': string;
 }
 
-export type { 
+export type {
   Env,
   BaseResponse,
   BilibiliResponse,
   YouTubeResponse,
   NiconicoResponse,
   SoundCloudResponse,
+  AppleMusicResponse,
   CommonHeaders
 };

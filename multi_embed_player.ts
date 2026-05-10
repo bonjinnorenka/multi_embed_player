@@ -1,9 +1,21 @@
 // 型定義
-type ServiceType = 'youtube' | 'niconico' | 'bilibili' | 'soundcloud';
+type ServiceType = 'youtube' | 'niconico' | 'bilibili' | 'soundcloud' | 'applemusic';
+type AppleMusicKind = 'songs';
 
 interface ApiPromiseData {
   res: Array<(value: any) => void>;
   rej: Array<(reason?: any) => void>;
+}
+
+interface AppleMusicOptions {
+  kind?: AppleMusicKind;
+  storefront?: string;
+}
+
+interface AppleMusicAuthorizationStatus {
+  configured: boolean;
+  isAuthorized: boolean;
+  storefrontId?: string;
 }
 
 interface PlaylistItem {
@@ -15,6 +27,8 @@ interface PlaylistItem {
   endSeconds?: number;
   subService?: ServiceType;
   subVideoId?: string;
+  kind?: AppleMusicKind;
+  storefront?: string;
   [key: string]: any;
 }
 
@@ -40,10 +54,34 @@ declare var YT: any;
  * @param {HTMLElement} failed_send_error_target - The target to send the error to.
  * @returns {Promise}
  */
-const multi_embed_player_fetch_iframe_api = async(service: ServiceType, videoid: string, use_cors: boolean, image_proxy: boolean, GDPR_access_accept: boolean, failed_send_error: boolean = false, failed_send_error_target: HTMLElement | null = null): Promise<void> => {
+const multi_embed_player_applemusic_cache_key = (videoid: string, options?: AppleMusicOptions): string => {
+    return `${options?.kind || "songs"}:${options?.storefront || ""}:${videoid}`;
+}
+
+const multi_embed_player_iframe_api_cache_key = (service: ServiceType, videoid: string, options?: AppleMusicOptions): string => {
+    if(service==="applemusic"){
+        return multi_embed_player_applemusic_cache_key(videoid,options);
+    }
+    return videoid;
+}
+
+const multi_embed_player_applemusic_query = (options?: AppleMusicOptions): string => {
+    const params = new URLSearchParams();
+    if(options?.kind){
+        params.set("kind",options.kind);
+    }
+    if(options?.storefront){
+        params.set("storefront",options.storefront);
+    }
+    const query = params.toString();
+    return query===""?"":`&${query}`;
+}
+
+const multi_embed_player_fetch_iframe_api = async(service: ServiceType, videoid: string, use_cors: boolean, image_proxy: boolean, GDPR_access_accept: boolean, failed_send_error: boolean = false, failed_send_error_target: HTMLElement | null = null, options?: AppleMusicOptions): Promise<void> => {
     const xml_first_search = (data: string, search_string: string, start: number = 0): string => {
 		return data.substring(data.indexOf("<"+search_string+">",start)+search_string.length+2,data.indexOf("</"+search_string+">",start))
 	}
+    const cacheKey = multi_embed_player_iframe_api_cache_key(service,videoid,options);
     const possible_direct_access = GDPR_access_accept&&multi_embed_player.possible_direct_access_services.includes(service);
     if(use_cors||possible_direct_access){
         let url = "";
@@ -57,13 +95,13 @@ const multi_embed_player_fetch_iframe_api = async(service: ServiceType, videoid:
             url = `${multi_embed_player.iframe_api_endpoint}?route=url_proxy&url=`;
         }
         let first_access = false;
-        if(multi_embed_player.api_promise[service][videoid]===undefined){
-            multi_embed_player.api_promise[service][videoid] = {res:[],rej:[]};
+        if(multi_embed_player.api_promise[service][cacheKey]===undefined){
+            multi_embed_player.api_promise[service][cacheKey] = {res:[],rej:[]};
             first_access = true;
         }
         else{
             await new Promise<void>((resolve,reject)=>{
-                const promiseData = multi_embed_player.api_promise[service][videoid];
+                const promiseData = multi_embed_player.api_promise[service][cacheKey];
                 if (promiseData) {
                     promiseData.res.push(resolve);
                     promiseData.rej.push(reject);
@@ -85,7 +123,7 @@ const multi_embed_player_fetch_iframe_api = async(service: ServiceType, videoid:
                         const oembed_response_fetch = await fetch(url + encodeURI(url_oembed));
                         let oembed_response = await oembed_response_fetch.json();
                         oembed_response["image_base64"] = url + oembed_response["thumbnail_url"];
-                        multi_embed_player.api_cache[service][videoid] = oembed_response;
+                        multi_embed_player.api_cache[service][cacheKey] = oembed_response;
                         break;
                     case 'niconico':
                         const xml_response = await(await fetch(url + `https://ext.nicovideo.jp/api/getthumbinfo/${videoid}`)).text();
@@ -110,7 +148,7 @@ const multi_embed_player_fetch_iframe_api = async(service: ServiceType, videoid:
                                 }
                             });
                         }
-                        multi_embed_player.api_cache[service][videoid] = return_data;
+                        multi_embed_player.api_cache[service][cacheKey] = return_data;
                         break;
                     case 'bilibili':
                         let json_response_bilibili = await(await fetch(url + `https://api.bilibili.com/x/web-interface/view?bvid=${videoid}`)).json();
@@ -120,46 +158,46 @@ const multi_embed_player_fetch_iframe_api = async(service: ServiceType, videoid:
                         else{
                             json_response_bilibili["image_base64"] = url + json_response_bilibili.data.pic;
                         }
-                        multi_embed_player.api_cache[service][videoid] = json_response_bilibili;
+                        multi_embed_player.api_cache[service][cacheKey] = json_response_bilibili;
                         break;
                     case "youtube":
                         try{
                             let json_response_youtube = await(await fetch(url + `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoid}&format=json`)).json();
                             json_response_youtube["image_base64"] = url + json_response_youtube["thumbnail_url"];
-                            multi_embed_player.api_cache[service][videoid] = json_response_youtube;
+                            multi_embed_player.api_cache[service][cacheKey] = json_response_youtube;
                         }
                         catch{
-                            multi_embed_player.api_cache[service][videoid] = {};
+                            multi_embed_player.api_cache[service][cacheKey] = {};
                         }
                         break;
                 }
-                multi_embed_player.api_promise[service][videoid].res.forEach((resolve: (value: any) => void)=>resolve(undefined));
+                multi_embed_player.api_promise[service][cacheKey].res.forEach((resolve: (value: any) => void)=>resolve(undefined));
             }
         }
         catch{
-            const promiseData = multi_embed_player.api_promise[service][videoid];
+            const promiseData = multi_embed_player.api_promise[service][cacheKey];
             if(promiseData && Object.keys(promiseData).includes("rej")){
                 promiseData.rej.forEach((reject: (reason?: any) => void)=>reject());
             }
             if(failed_send_error&&failed_send_error_target!=null){
                 failed_send_error_target.dispatchEvent(new CustomEvent("onError",{detail:{code:1100}}));
             }
-            multi_embed_player.api_cache[service][videoid] = {};
+            multi_embed_player.api_cache[service][cacheKey] = {};
         }
     }
     else{
         let fetch_response;
         try{
-            const url = `${multi_embed_player.iframe_api_endpoint}?route=${service}&videoid=${videoid}` + (image_proxy?"&image_base64=1":"");
-            if(multi_embed_player.api_promise[service][videoid]===undefined){
-                multi_embed_player.api_promise[service][videoid] = {res:[],rej:[]};
+            const url = `${multi_embed_player.iframe_api_endpoint}?route=${service}&videoid=${videoid}` + (image_proxy?"&image_base64=1":"") + multi_embed_player_applemusic_query(options);
+            if(multi_embed_player.api_promise[service][cacheKey]===undefined){
+                multi_embed_player.api_promise[service][cacheKey] = {res:[],rej:[]};
                 fetch_response = await fetch(url);
-                multi_embed_player.api_cache[service][videoid] = await fetch_response.json();
-                multi_embed_player.api_promise[service][videoid].res.forEach((resolve: (value: any) => void)=>resolve(undefined));
+                multi_embed_player.api_cache[service][cacheKey] = await fetch_response.json();
+                multi_embed_player.api_promise[service][cacheKey].res.forEach((resolve: (value: any) => void)=>resolve(undefined));
             }
             else{
                 await new Promise<void>((resolve,reject)=>{
-                    const promiseData = multi_embed_player.api_promise[service][videoid];
+                    const promiseData = multi_embed_player.api_promise[service][cacheKey];
                     if (promiseData) {
                         promiseData.res.push(resolve);
                         promiseData.rej.push(reject);
@@ -168,7 +206,7 @@ const multi_embed_player_fetch_iframe_api = async(service: ServiceType, videoid:
             }
         }
         catch(e){
-            const promiseData = multi_embed_player.api_promise[service][videoid];
+            const promiseData = multi_embed_player.api_promise[service][cacheKey];
             if(promiseData && Object.keys(promiseData).includes("rej")){
                 promiseData.rej.forEach((reject: (reason?: any) => void)=>reject());
             }
@@ -176,8 +214,8 @@ const multi_embed_player_fetch_iframe_api = async(service: ServiceType, videoid:
                 failed_send_error_target.dispatchEvent(new CustomEvent("onError",{detail:{code:1100}}));
             }
             else{
-                multi_embed_player.api_cache[service][videoid] = {};
-            }   
+                multi_embed_player.api_cache[service][cacheKey] = {};
+            }
         }
     }
 }
@@ -209,17 +247,63 @@ class multi_embed_player extends HTMLElement{
     endSeconds: number = -1;
     static script_origin = "https://cdn.jsdelivr.net/npm/multi_embed_player@v3/dist/";
     static iframe_api_endpoint = "https://iframe-api-ts.ryokuryu.workers.dev";
-    static mep_status_load_api: ServiceStatusMap = {youtube:0,niconico:0,bilibili:0,soundcloud:0};
-    static mep_load_api_promise: Record<'youtube' | 'niconico' | 'bilibili' | 'soundcloud', (() => void)[]> = {youtube:[],niconico:[],bilibili:[],soundcloud:[]};
-    static api_cache: ServiceApiCache = {niconico:{},bilibili:{},soundcloud:{},youtube:{}};
-    static api_promise: ServiceApiPromise = {niconico:{},bilibili:{},soundcloud:{},youtube:{}};
-    static GDPR_accept_promise: Record<'youtube' | 'niconico' | 'bilibili' | 'soundcloud', (() => void)[]> = {youtube:[],niconico:[],bilibili:[],soundcloud:[]};
+    static mep_status_load_api: ServiceStatusMap = {youtube:0,niconico:0,bilibili:0,soundcloud:0,applemusic:0};
+    static mep_load_api_promise: Record<ServiceType, (() => void)[]> = {youtube:[],niconico:[],bilibili:[],soundcloud:[],applemusic:[]};
+    static api_cache: ServiceApiCache = {niconico:{},bilibili:{},soundcloud:{},youtube:{},applemusic:{}};
+    static api_promise: ServiceApiPromise = {niconico:{},bilibili:{},soundcloud:{},youtube:{},applemusic:{}};
+    static GDPR_accept_promise: Record<ServiceType, (() => void)[]> = {youtube:[],niconico:[],bilibili:[],soundcloud:[],applemusic:[]};
     static iframe_api_class: IframeApiClassMap = {};
-    static GDPR_accepted: ServiceBooleanMap = {youtube:false,niconico:false,bilibili:false,soundcloud:false};
+    static GDPR_accepted: ServiceBooleanMap = {youtube:false,niconico:false,bilibili:false,soundcloud:false,applemusic:false};
     static possible_direct_access_services: ServiceType[] = ["youtube","soundcloud"];
     static cors_proxy: string = "";//if cors_proxy is not empty string,it use instead of iframe_api_endpoint and follow gdpr
-    static tearms_policy_service: ServiceUrlMap = {"youtube":"https://www.youtube.com/t/terms","niconico":"https://account.nicovideo.jp/rules/account?language=en-us","bilibili":"https://www.bilibili.com/blackboard/protocal/activity-lc1L-pIoh.html","soundcloud":"https://soundcloud.com/pages/privacy"};
+    static tearms_policy_service: ServiceUrlMap = {"youtube":"https://www.youtube.com/t/terms","niconico":"https://account.nicovideo.jp/rules/account?language=en-us","bilibili":"https://www.bilibili.com/blackboard/protocal/activity-lc1L-pIoh.html","soundcloud":"https://soundcloud.com/pages/privacy","applemusic":"https://www.apple.com/legal/internet-services/itunes/"};
     static follow_GDPR: boolean = false;
+    static applemusic_api_loaded: number = 0;
+    static applemusic_api_promise: Array<{resolve: () => void,reject: () => void}> = [];
+    static async #load_applemusic_api_class(): Promise<void>{
+        return new Promise<void>((resolve,reject)=>{
+            if((window as any).mep_applemusic!==undefined){
+                resolve();
+                return;
+            }
+            if(multi_embed_player.applemusic_api_loaded===0){
+                multi_embed_player.applemusic_api_loaded = 1;
+                const script_document = document.createElement("script");
+                script_document.src = `${multi_embed_player.script_origin}iframe_api/applemusic.js`;
+                script_document.async = true;
+                script_document.addEventListener("load",()=>{
+                    multi_embed_player.applemusic_api_loaded = 2;
+                    const promise_queue = multi_embed_player.applemusic_api_promise ?? [];
+                    multi_embed_player.applemusic_api_promise = [];
+                    promise_queue.forEach((func)=>func.resolve());
+                    resolve();
+                },{once:true});
+                script_document.addEventListener("error",()=>{
+                    multi_embed_player.applemusic_api_loaded = 0;
+                    const promise_queue = multi_embed_player.applemusic_api_promise ?? [];
+                    multi_embed_player.applemusic_api_promise = [];
+                    promise_queue.forEach((func)=>func.reject());
+                    reject();
+                },{once:true});
+                document.body.appendChild(script_document);
+            }
+            else if(multi_embed_player.applemusic_api_loaded===1){
+                multi_embed_player.applemusic_api_promise ??= [];
+                multi_embed_player.applemusic_api_promise.push({resolve:resolve,reject:reject});
+            }
+            else{
+                resolve();
+            }
+        });
+    }
+    static async authorizeAppleMusic(options?: AppleMusicOptions): Promise<AppleMusicAuthorizationStatus>{
+        await multi_embed_player.#load_applemusic_api_class();
+        return await (window as any).mep_applemusic.authorizeAppleMusic(options);
+    }
+    static async getAppleMusicAuthorizationStatus(): Promise<AppleMusicAuthorizationStatus>{
+        await multi_embed_player.#load_applemusic_api_class();
+        return await (window as any).mep_applemusic.getAuthorizationStatus();
+    }
     constructor(){
         super();
         this.videoid = null;
@@ -242,7 +326,7 @@ class multi_embed_player extends HTMLElement{
             }
             else{
                 if (this.videoid && this.service) {
-                    this.image_url = await this.#mep_imageurl(this.videoid, this.service);
+                    this.image_url = await this.#mep_imageurl(this.videoid, this.service, null, this.#applemusic_options_from_attributes());
                 } else {
                     this.image_url = null;
                 }
@@ -282,6 +366,18 @@ class multi_embed_player extends HTMLElement{
             this.addEventListener("addPlaylist",()=>{if(this.getPlayerState()===-1||this.getPlayerState()===4){if(this.playlist.length>0){this.loadVideoById(this.playlist.shift())}}});
         }
     }
+    #applemusic_options_from_attributes(): AppleMusicOptions{
+        const options: AppleMusicOptions = {};
+        const kind = this.getAttribute("kind");
+        const storefront = this.getAttribute("storefront");
+        if(kind==="songs"){
+            options.kind = kind;
+        }
+        if(storefront!=null){
+            options.storefront = storefront;
+        }
+        return options;
+    }
     /**
      * Checks the status of an image URL.
      * @async
@@ -309,6 +405,14 @@ class multi_embed_player extends HTMLElement{
         if(this.getAttribute("end")!=null){
             content.endSeconds = Number(this.getAttribute("end"));
         }
+        const kind = this.getAttribute("kind");
+        const storefront = this.getAttribute("storefront");
+        if(kind==="songs"){
+            content.kind = kind;
+        }
+        if(storefront!=null){
+            content.storefront = storefront;
+        }
         if(this.getAttribute("subvideoid")!=null&&this.getAttribute("subservice")!=null){
             content.subVideoid = this.getAttribute("subvideoid") || undefined;
             content.subService = this.getAttribute("subservice") as ServiceType;
@@ -323,7 +427,7 @@ class multi_embed_player extends HTMLElement{
      * @param {string} [filetype=null] - The type of file to fetch.
      * @returns {Promise<string>} - A promise that resolves with the image URL.
      */
-    async #mep_imageurl(videoid: string, service: ServiceType, filetype: string | null = null): Promise<string> {//必ずawaitを使って叩くこと
+    async #mep_imageurl(videoid: string, service: ServiceType, filetype: string | null = null, options?: AppleMusicOptions): Promise<string> {//必ずawaitを使って叩くこと
         let GDPR_accepted = false;
         if (!this.follow_GDPR) {
             GDPR_accepted = true;
@@ -346,11 +450,12 @@ class multi_embed_player extends HTMLElement{
         if((window as any).multi_embed_player.cors_proxy!==""){
             use_cors= true;
         }
-        if(!GDPR_accepted||service==="bilibili"){//if follow gdpr or bilibili(bilibili don't allow to fetch thumbnail from crossorigin)
-            if(!(videoid in (window as any).multi_embed_player.api_cache[service])){
-                await multi_embed_player_fetch_iframe_api(service,videoid,use_cors,true,false);
+        const cacheKey = multi_embed_player_iframe_api_cache_key(service,videoid,options);
+        if(!GDPR_accepted||service==="bilibili"||service==="applemusic"){//if follow gdpr or bilibili(bilibili don't allow to fetch thumbnail from crossorigin)
+            if(!(cacheKey in (window as any).multi_embed_player.api_cache[service])){
+                await multi_embed_player_fetch_iframe_api(service,videoid,service==="applemusic"?false:use_cors,true,false,false,null,options);
             }
-            return (window as any).multi_embed_player.api_cache[service][videoid]["image_base64"];
+            return (window as any).multi_embed_player.api_cache[service][cacheKey]["image_base64"] || (window as any).multi_embed_player.api_cache[service][cacheKey]["thumbnail_url"];
         }
         /*else if(service==="niconico"){
             if(!(videoid in (window as any).multi_embed_player.api_cache[service])){
@@ -359,21 +464,21 @@ class multi_embed_player extends HTMLElement{
             return image_url + (window as any).multi_embed_player.api_cache[service][videoid]["image"];
         }*/
         else if(service==="soundcloud"||service==="youtube"||service==="niconico"){
-            if(!(videoid in (window as any).multi_embed_player.api_cache[service])){
+            if(!(cacheKey in (window as any).multi_embed_player.api_cache[service])){
                 await multi_embed_player_fetch_iframe_api(service,videoid,use_cors,!GDPR_accepted,GDPR_accepted);
             }
             if(!GDPR_accepted){
-                return (window as any).multi_embed_player.api_cache[service][videoid]["image_base64"];
+                return (window as any).multi_embed_player.api_cache[service][cacheKey]["image_base64"];
             }
             else{
-                return (window as any).multi_embed_player.api_cache[service][videoid]["thumbnail_url"];
+                return (window as any).multi_embed_player.api_cache[service][cacheKey]["thumbnail_url"];
             }
         }
         else{
             image_url = "invalid_url";
             return image_url
         }
-        
+
     }
     /**
      * Asynchronously accepts GDPR for a given service.
@@ -463,7 +568,7 @@ class multi_embed_player extends HTMLElement{
                     this.previousData = data;
                     if(typeof data.subVideoId==="string"&&typeof data.subService==="string"){
                         this.error_not_declare = true;
-                        this.addEventListener("executeSecound",()=>{this.loadVideoById(null,autoplay,false)},{once:true}); 
+                        this.addEventListener("executeSecound",()=>{this.loadVideoById(null,autoplay,false)},{once:true});
                     }
                     if(data.service!=this.player.service){
                         this.#deleteEvent();
@@ -491,15 +596,24 @@ class multi_embed_player extends HTMLElement{
             }
             this.setAttribute("videoid",data.videoId);//いらないけど勘違い防止用に
             this.setAttribute("service",data.service);
+            if(data.kind!=undefined){
+                this.setAttribute("kind",data.kind);
+            }
+            if(data.storefront!=undefined){
+                this.setAttribute("storefront",data.storefront);
+            }
             if(this.service && Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
                 await this.iframe_api_loader(this.service);
                 if(service_changed==false){
                     //動画idを変えてiframeを再読み込み
                     if(autoplay){
-                        this.player.loadVideoById(data);
+                        await this.player.loadVideoById(data);
+                        if(this.service==="applemusic"){
+                            await this.player.playVideo();
+                        }
                     }
                     else{
-                        this.player.cueVideoById(data);
+                        await this.player.cueVideoById(data);
                     }
                 }
                 else{
@@ -523,6 +637,12 @@ class multi_embed_player extends HTMLElement{
                         "height":"315",
                         "playerVars":playerVars
                     };
+                    if(data.kind!=undefined){
+                        player_argument["kind"] = data.kind;
+                    }
+                    if(data.storefront!=undefined){
+                        player_argument["storefront"] = data.storefront;
+                    }
                     if(this.service=="bilibili"&&this.getAttribute("play_control_wrap")==="false"){
                         player_argument["play_control_wrap"] = false;
                     }
@@ -532,6 +652,9 @@ class multi_embed_player extends HTMLElement{
                     if (this.service) {
                         this.player = new (window as any).multi_embed_player.iframe_api_class[this.service](divdoc,player_argument,this.#setEvent.bind(this));
                         this.player.service = this.service;
+                        if(this.service==="applemusic"&&autoplay){
+                            await this.player.playVideo();
+                        }
                     }
                 }
             }
@@ -594,6 +717,9 @@ class multi_embed_player extends HTMLElement{
      */
     #deleteEvent(): void {//plese before change service
         try{
+            if(typeof this.player?.destroy === "function"){
+                this.player.destroy();
+            }
             if(this.service && Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
                 this.player.player.removeEventListener("onReady",()=>{this.dispatchEvent(new Event("onReady"))});//need bind
                 this.player.player.removeEventListener("onError",(e: Event)=>{this.#error_event_handler(e)});
@@ -688,13 +814,19 @@ class multi_embed_player extends HTMLElement{
      * Returns the real duration of the video based on the start and end seconds.
      * @returns {number} The real duration of the video.
      */
-    getRealDulation(): number {
+    getRealDuration(): number | Promise<number> {
         if(this.service && Object.keys((window as any).multi_embed_player.mep_load_api_promise).includes(this.service)){
+            if(typeof this.player.getRealDuration === "function"){
+                return this.player.getRealDuration();
+            }
             return this.player.getRealDulation();
         }
         else{
             return 0;
         }
+    }
+    getRealDulation(): number | Promise<number> {
+        return this.getRealDuration();
     }
     /**
      * Returns the relative current time by subtracting the start time from the current time.
@@ -707,8 +839,11 @@ class multi_embed_player extends HTMLElement{
      * Calculates the percentage of the current time relative to the total duration of the media.
      * @returns {number} The percentage of the current time.
      */
-    async getPercentOfCurremtTime(): Promise<number> {//notice sometimes over 100%
-        return ((await this.getRelativeCurrentTime())/this.getRealDulation())*100
+    async getPercentOfCurrentTime(): Promise<number> {//notice sometimes over 100%
+        return ((await this.getRelativeCurrentTime())/await this.getRealDuration())*100
+    }
+    async getPercentOfCurremtTime(): Promise<number> {
+        return await this.getPercentOfCurrentTime();
     }
     /**
      * Seeks to a relative position in the video based on the current time.
@@ -765,6 +900,14 @@ class multi_embed_player extends HTMLElement{
             content.subVideoid = subVideoid;
             content.subService = subService as ServiceType;
         }
+        const kind = this.getAttribute("kind");
+        const storefront = this.getAttribute("storefront");
+        if(kind==="songs"){
+            content.kind = kind;
+        }
+        if(storefront!=null){
+            content.storefront = storefront;
+        }
         (playdoc as any).loadVideoById(content.toData());
     }
     /**
@@ -814,6 +957,9 @@ class multi_embed_player extends HTMLElement{
                     case "soundcloud":
                         (window as any).multi_embed_player.iframe_api_class["soundcloud"] = mep_soundcloud;
                         break;
+                    case "applemusic":
+                        (window as any).multi_embed_player.iframe_api_class["applemusic"] = (window as any).mep_applemusic;
+                        break;
                 }
                 (window as any).multi_embed_player.mep_load_api_promise[service].forEach((func: any)=>func());
                 resolve();
@@ -860,6 +1006,14 @@ class multi_embed_player extends HTMLElement{
         if(this.getAttribute("end")!=null){
             k_data.endSeconds = Number(this.getAttribute("end"));
         }
+        const kind = this.getAttribute("kind");
+        const storefront = this.getAttribute("storefront");
+        if(kind==="songs"){
+            k_data.kind = kind;
+        }
+        if(storefront!=null){
+            k_data.storefront = storefront;
+        }
         if(this.getAttribute("subService")!=null&&this.getAttribute("subVideoid")!=null){
             k_data.subService = this.getAttribute("subService") as ServiceType;
             k_data.subVideoid = this.getAttribute("subVideoid") || undefined;
@@ -882,7 +1036,9 @@ class mep_playitem{
     endSeconds: number | undefined;
     subService: ServiceType | undefined;
     subVideoid: string | undefined;
-    
+    kind: AppleMusicKind | undefined;
+    storefront: string | undefined;
+
     constructor(service: any, videoid: any){
         this.service = service;
         this.videoid = videoid;
@@ -891,7 +1047,16 @@ class mep_playitem{
     toData(): PlaylistItem{
         let content: PlaylistItem = {"service":this?.service,"videoId":this?.videoid,call_array:this.call_array,call_index:0};
         if(this.service!==undefined&&this.videoid!==undefined){
-            content.call_array.push({videoId:this.videoid,service:this.service});
+            const callItem: any = {videoId:this.videoid,service:this.service};
+            if(this.kind!==undefined){
+                callItem.kind = this.kind;
+                content.kind = this.kind;
+            }
+            if(this.storefront!==undefined){
+                callItem.storefront = this.storefront;
+                content.storefront = this.storefront;
+            }
+            content.call_array.push(callItem);
         }
         if(this.startSeconds!=undefined){
             content.startSeconds = this.startSeconds;
@@ -909,18 +1074,18 @@ class mep_playitem{
 }
 class mep_parallel{
     data: mep_parallel_inner[];
-    
+
     constructor(){
         this.data = [];//class mep_parallel_inner
     }
     parse(){
-        
+
     }
 }
 class mep_parallel_inner{
     service: ServiceType;
     videoid: string;
-    
+
     constructor(service: any, videoid: any){
         this.service = service;
         this.videoid = videoid;

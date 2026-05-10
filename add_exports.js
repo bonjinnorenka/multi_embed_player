@@ -9,18 +9,21 @@ const jsPath = path.join(__dirname, 'dist', 'multi_embed_player.js');
 // .d.ts ファイルの処理
 if (fs.existsSync(dtsPath)) {
     let content = fs.readFileSync(dtsPath, 'utf8');
-    
+
     // 既にexport文が存在するかチェック
     if (!content.includes('// ES Modules support')) {
         // export文を追加
         const exportStatement = `
 // ES Modules support
-export { 
-  multi_embed_player, 
-  ServiceType, 
-  PlaylistItem, 
-  mep_playitem, 
-  mep_parallel, 
+export {
+  multi_embed_player,
+  ServiceType,
+  AppleMusicKind,
+  AppleMusicOptions,
+  AppleMusicAuthorizationStatus,
+  PlaylistItem,
+  mep_playitem,
+  mep_parallel,
   mep_parallel_inner,
   multi_embed_player_fetch_iframe_api,
   multi_embed_player_save_GDPR_status,
@@ -32,7 +35,7 @@ export as namespace MultiEmbedPlayer;`;
 
         // ソースマップの行の前に挿入
         content = content.replace('//# sourceMappingURL=', exportStatement + '\n//# sourceMappingURL=');
-        
+
         fs.writeFileSync(dtsPath, content);
         console.log('✓ Export文を multi_embed_player.d.ts に追加しました');
     } else {
@@ -46,13 +49,13 @@ export as namespace MultiEmbedPlayer;`;
 // .js ファイルの処理
 if (fs.existsSync(jsPath)) {
     let jsContent = fs.readFileSync(jsPath, 'utf8');
-    
+
     // 既存の不適切な追加を削除
     if (jsContent.includes('module.exports = { multi_embed_player')) {
         jsContent = jsContent.replace(/module\.exports = \{ multi_embed_player[^}]+\};\s*$/g, '');
         console.log('✓ 既存の不適切なexportを削除しました');
     }
-    
+
     // 既にexport文が存在するかチェック
     if (!jsContent.includes('// CommonJS/ES Modules export')) {
         // JavaScriptファイルにも条件付きexportを追加
@@ -73,7 +76,7 @@ if (typeof module !== 'undefined' && module.exports && typeof window === 'undefi
 
         // ソースマップの行の前に挿入
         jsContent = jsContent.replace('//# sourceMappingURL=', jsExportStatement + '\n//# sourceMappingURL=');
-        
+
         fs.writeFileSync(jsPath, jsContent);
         console.log('✓ 条件付きExport文を multi_embed_player.js に追加しました');
     } else {

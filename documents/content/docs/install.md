@@ -23,6 +23,7 @@ Need install service list
 
 - bilibili
 - nicovideo
+- Apple Music
 
 ### Use iframe api
 
@@ -42,6 +43,15 @@ you may be need to add some options to iframe api.
 If you use nicovideo, you need to set NON_PROFIT environment variable to TRUE in cloudflare workers because [nicovideo official search api](https://site.nicovideo.jp/search-api-docs/snapshot) is only available for non-profit use
 
 If you use bilibili, you may need to use http proxy because some request seems to be blocked by bilibili.
+
+If you use Apple Music, set these Cloudflare Workers environment variables.
+
+- `APPLE_MUSIC_TEAM_ID`: Apple Developer Team ID
+- `APPLE_MUSIC_KEY_ID`: MusicKit private key ID
+- `APPLE_MUSIC_PRIVATE_KEY`: MusicKit private key PEM. Escaped `\n` line breaks are supported.
+- `APPLE_MUSIC_ALLOWED_ORIGINS`: comma-separated allowed browser origins for `route=applemusic-token`
+- `APPLE_MUSIC_STOREFRONT`: optional default storefront such as `jp` or `us`
+- `APPLE_MUSIC_TOKEN_TTL_SECONDS`: optional developer token lifetime in seconds
 
 #### Set option in html
 
@@ -68,7 +78,7 @@ Cors proxie requirement
 <!--before multi_embed_player.js script tag-->
 <script type="text/javascript">
     const multi_embed_player_set_variable = (classname)=>{
-        classname.cors_proxy_url = "YOUR CORS PROXY URL LIKE https://cors-anywhere.herokuapp.com";
+        classname.cors_proxy = "YOUR CORS PROXY URL LIKE https://cors-anywhere.herokuapp.com";
     }
 </script>
 ```

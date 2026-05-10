@@ -11,16 +11,139 @@
             width: 480px;
             height: 270px;
         }
+        .mep-test-config{
+            display: grid;
+            gap: 8px;
+            max-width: 920px;
+            margin: 12px 0 20px;
+            padding: 12px;
+            border: 1px solid #ccc;
+        }
+        .mep-test-config label{
+            display: grid;
+            gap: 4px;
+        }
+        .mep-test-config input{
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .mep-test-config-buttons{
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
     </style>
 </head>
 <body>
     <script>
-        multi_embed_player_set_variable = (class_name)=>{
+        const mep_test_defaults = Object.freeze({
+            scriptUrl: "http://localhost:5500/dist/multi_embed_player.js",
+            iframeApiEndpoint: "https://iframe-api-ts.ryokuryu.workers.dev"
+        });
+        const mep_test_params = new URLSearchParams(window.location.search);
+        const mep_test_script_origin_from_url = (scriptUrl)=>{
+            if(scriptUrl.endsWith("/")){
+                return scriptUrl;
+            }
+            try{
+                const url = new URL(scriptUrl, window.location.href);
+                url.pathname = url.pathname.substring(0,url.pathname.lastIndexOf("/") + 1);
+                url.search = "";
+                url.hash = "";
+                return url.toString();
+            }
+            catch{
+                return scriptUrl.substring(0,scriptUrl.lastIndexOf("/") + 1);
+            }
+        };
+        window.mep_test_config = {
+            scriptUrl: mep_test_params.get("mep_script_url") || mep_test_defaults.scriptUrl,
+            iframeApiEndpoint: mep_test_params.get("mep_iframe_api_endpoint") || mep_test_defaults.iframeApiEndpoint
+        };
+        window.mep_test_config.scriptOrigin = mep_test_script_origin_from_url(window.mep_test_config.scriptUrl);
+        window.multi_embed_player_set_variable = (class_name)=>{
+            if(class_name == null){
+                return;
+            }
+            if("iframe_api_endpoint" in class_name){
+                class_name.iframe_api_endpoint = window.mep_test_config.iframeApiEndpoint;
+            }
+            if("api_endpoint" in class_name){
+                class_name.api_endpoint = window.mep_test_config.iframeApiEndpoint;
+            }
+            if("script_origin" in class_name){
+                class_name.script_origin = window.mep_test_config.scriptOrigin;
+            }
             //class_name.cors_proxy = "https://iframe-api-ts.ryokuryu.workers.dev?route=url_proxy&url="
             //class_name.follow_GDPR = true;
         }
+        window.addEventListener("DOMContentLoaded",()=>{
+            const form = document.getElementById("mep_test_config_form");
+            const scriptUrlInput = document.getElementById("mep_script_url");
+            const iframeApiEndpointInput = document.getElementById("mep_iframe_api_endpoint");
+            const scriptOriginOutput = document.getElementById("mep_script_origin");
+            const resetButton = document.getElementById("mep_reset_config");
+            scriptUrlInput.value = window.mep_test_config.scriptUrl;
+            iframeApiEndpointInput.value = window.mep_test_config.iframeApiEndpoint;
+            scriptOriginOutput.textContent = window.mep_test_config.scriptOrigin;
+            form.addEventListener("submit",(event)=>{
+                event.preventDefault();
+                const url = new URL(window.location.href);
+                const nextScriptUrl = scriptUrlInput.value.trim() || mep_test_defaults.scriptUrl;
+                const nextIframeApiEndpoint = iframeApiEndpointInput.value.trim() || mep_test_defaults.iframeApiEndpoint;
+                if(nextScriptUrl===mep_test_defaults.scriptUrl){
+                    url.searchParams.delete("mep_script_url");
+                }
+                else{
+                    url.searchParams.set("mep_script_url",nextScriptUrl);
+                }
+                if(nextIframeApiEndpoint===mep_test_defaults.iframeApiEndpoint){
+                    url.searchParams.delete("mep_iframe_api_endpoint");
+                }
+                else{
+                    url.searchParams.set("mep_iframe_api_endpoint",nextIframeApiEndpoint);
+                }
+                window.location.assign(url.toString());
+            });
+            resetButton.addEventListener("click",()=>{
+                const url = new URL(window.location.href);
+                url.searchParams.delete("mep_script_url");
+                url.searchParams.delete("mep_iframe_api_endpoint");
+                window.location.assign(url.toString());
+            });
+        });
+        const mep_test_script = document.createElement("script");
+        mep_test_script.src = window.mep_test_config.scriptUrl;
+        mep_test_script.async = false;
+        mep_test_script.addEventListener("error",()=>{
+            console.error("failed to load multi_embed_player script:", window.mep_test_config.scriptUrl);
+        });
+        document.head.appendChild(mep_test_script);
     </script>
-    <script src="http://localhost:5500/dist/multi_embed_player.js"></script>
+    <section class="mep-test-config">
+        <form id="mep_test_config_form">
+            <label>
+                multi_embed_player.js URL
+                <input id="mep_script_url" name="mep_script_url" list="mep_script_url_options" type="text" inputmode="url">
+            </label>
+            <datalist id="mep_script_url_options">
+                <option value="http://localhost:5500/dist/multi_embed_player.js"></option>
+                <option value="https://cdn.jsdelivr.net/npm/multi_embed_player@v3/dist/multi_embed_player.js"></option>
+            </datalist>
+            <label>
+                iframe API endpoint
+                <input id="mep_iframe_api_endpoint" name="mep_iframe_api_endpoint" list="mep_iframe_api_endpoint_options" type="text" inputmode="url">
+            </label>
+            <datalist id="mep_iframe_api_endpoint_options">
+                <option value="https://iframe-api-ts.ryokuryu.workers.dev"></option>
+            </datalist>
+            <div>script origin: <code id="mep_script_origin"></code></div>
+            <div class="mep-test-config-buttons">
+                <button type="submit">Apply and reload</button>
+                <button id="mep_reset_config" type="button">Reset</button>
+            </div>
+        </form>
+    </section>
     <h2>embed section</h2>
     <h3>single</h3>
     <h4>youtube</h4>
@@ -45,6 +168,18 @@
     <multi-embed-player videoid="8izwhpwkfuor/step" service="soundcloud" type="embed"></multi-embed-player>
     <p>start and stop(20s~30s)</p>
     <multi-embed-player videoid="557856309" service="soundcloud" type="embed" start="20" end="30"></multi-embed-player>
+    <h4>applemusic</h4>
+    <p>authorize + embed</p>
+    <button onclick="multi_embed_player.authorizeAppleMusic({storefront:'jp'}).then(console.log).catch(console.error)">
+        authorize
+    </button>
+    <multi-embed-player
+        videoid="1838377419"
+        service="applemusic"
+        type="embed"
+        kind="songs"
+        storefront="jp">
+    </multi-embed-player>
     <h3>multi</h3>
     <p>youtube->youtube</p>
     <multi-embed-player videoid="gt-HCcUtG_o" service="youtube" subVideoid="L7PCS7afS3Y" subService="youtube"></multi-embed-player>
@@ -134,6 +269,11 @@
         <!--load soundcloud video-->
         <input value="dada-qada/koisashi" type="text" placeholder="soundcloud video id" id="soundcloud_video_id">
         <button onclick="document.getElementById('mep_player').loadVideoById({'videoId':document.getElementById('soundcloud_video_id').value, service:'soundcloud'})">load soundcloud video</button>
+    </div>
+    <div style="display: flex;">
+        <!--load applemusic video-->
+        <input value="1838377419" type="text" placeholder="applemusic video id" id="applemusic_video_id">
+        <button onclick="document.getElementById('mep_player').loadVideoById({'videoId':document.getElementById('applemusic_video_id').value, service:'applemusic', kind:'songs', storefront:'jp'})">load applemusic video</button>
     </div>
     <script>
         //set event to mep element

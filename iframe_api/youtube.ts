@@ -183,6 +183,9 @@ class mep_youtube{
             return this.endSeconds - this.startSeconds;
         }
     }
+    getRealDuration(): number{
+        return this.getRealDulation();
+    }
 
     /**
      * Seek to a specific time in the video.

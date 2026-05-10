@@ -17,7 +17,7 @@ Defined at [multi_embed_player.js](https://github.com/bonjinnorenka/multi_embed_
 
 |variable name|type|default value|description|
 |---|---|---|---|
-|cors_proxy_url|string||cors proxy url|
+|cors_proxy|string||cors proxy url|
 |iframe_api_endpoint|string|https://iframe-api-ts.ryokuryu.workers.dev|[iframe api endpoint](/docs/reference/iframe_api)|
 |follow_GDPR|boolean|false|follow GDPR mode|
 |script_origin|string|https://cdn.jsdelivr.net/npm/multi_embed_player@v3/dist/|script origin|
@@ -28,7 +28,9 @@ Defined at [multi_embed_player.js](https://github.com/bonjinnorenka/multi_embed_
 |iframe_api_class|Object|{}|iframe sub api class<br>add value after iframe sub api loaded|
 |GDPR_accepted|Object|{serviceName:boolean}|GDPR accepted status|
 |possible_direct_access_services|string[]|[servicename]|services that can be accessed directly when GDPR accepted|
-|tearms_policy_service|string|{servicename:policy url}|tearms policy url for specific service|
+|tearms_policy_service|string|{servicename:policy url}|terms policy url for specific service|
+|applemusic_api_loaded|number|0|Apple Music iframe API load status|
+|applemusic_api_promise|Array||waiting Apple Music iframe API load promises|
 
 {{< /table >}}
 
@@ -45,7 +47,7 @@ Not include function start with '#'.
 |playVideo|||play video for player|
 |pauseVideo|||pause video for player|
 |stopVideo|||pause video for player **compatibility**|
-|getcurentTime||bilibili->Promise of number(seconds) <br>others -> number(seconds)|get curent time for player|
+|getCurrentTime||bilibili->Promise of number(seconds) <br>others -> number(seconds)|get current time for player|
 |seekTo|number(seconds)||seek to time for player|
 |mute|||mute for player|
 |unMute|||unmute for player|
@@ -55,10 +57,21 @@ Not include function start with '#'.
 |getDuration||bilibili->promise of number(seconds)<br>others->(seconds)|get duration for player|
 |getRealDuration||bilibili->promise of number(seconds)<br>others->number(seconds)|return duration between start and end seconds|
 |getRelativeCurrentTime||bilibili->promise of number(seconds)<br>others->number(seconds)|return current time count from start seconds|
-|getPercentOfCurrentTime||bilibili->promise of number(seconds)<br>others->number(seconds)|return current time percent from dulation<br>NOTE:sometimes return over 100% value|
-|relativeSeekTo_ct|number(seconds)||seek to time count from current secounds|
-|relativeSeekTo_ss|number(seconds)||seek to time count from start secounds|
+|getPercentOfCurrentTime||Promise of number|return current time percent from duration<br>NOTE:sometimes return over 100% value|
+|relativeSeekTo_ct|number(seconds)||seek to time count from current seconds|
+|relativeSeekTo_ss|number(seconds)||seek to time count from start seconds|
 |getPlayerState||number|get player state<br>-1->not set video mainly before embed<br>0->not playing only thumbnail<br>1->onloaded(include cue)<br>2->playing<br>3->paused<br>4->video ended|
+
+{{< /table >}}
+
+## static function list of multi_embed_player class
+
+{{< table "table-responsive" >}}
+
+|function name|arguments|response|description|
+|---|---|---|---|
+|authorizeAppleMusic|AppleMusicOptions(optional)|Promise&lt;AppleMusicAuthorizationStatus&gt;|authorize Apple Music playback using MusicKit JS|
+|getAppleMusicAuthorizationStatus||Promise&lt;AppleMusicAuthorizationStatus&gt;|get Apple Music authorization status|
 
 {{< /table >}}
 
@@ -87,9 +100,11 @@ Not include function start with '#'.
 |startSeconds|number|false|0|start seconds|
 |endSeconds|number|false||end seconds|
 |call_array|[call_video_object]|false||call array|
-|call_array_index|number|false|0|call array index|
+|call_index|number|false|0|call array index|
 |subVideoId|string|false||sub video id **compatibility**|
 |subService|string|false||sub service name **compatibility**|
+|kind|string|false|songs|Apple Music resource kind. v1 supports songs only|
+|storefront|string|false|api default|Apple Music storefront such as jp or us|
 
 {{< /table >}}
 

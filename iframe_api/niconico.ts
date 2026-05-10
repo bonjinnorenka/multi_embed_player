@@ -248,6 +248,9 @@ class mep_niconico{
             return this.endSeconds - this.startSeconds;
         }
     }
+    getRealDuration(): number{
+        return this.getRealDulation();
+    }
     /**
      * Play the video.
      */

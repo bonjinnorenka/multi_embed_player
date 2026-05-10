@@ -735,3 +735,110 @@ GET ?route=soundcloud&videoid=tkrism/reflection-feat-nicamoq&image_base64=1
   "status": "error not found?"
 }
 ```
+
+## Apple Music API
+
+Apple Music support uses the Apple Music API for metadata and MusicKit JS for playback. The iframe API must be configured with Apple Music developer credentials.
+
+### Metadata API endpoint
+
+```URL
+GET ?route=applemusic&videoid=${song id}
+```
+
+### Query parameter
+
+{{< table "table-responsive" >}}
+
+| Parameter Name | Required | Type   | Description                                                                  |
+| -------------- | -------- | ------ | ---------------------------------------------------------------------------- |
+| route          | Yes      | String | The route to the specific API endpoint. Must be **applemusic**               |
+| videoid        | Yes      | String | The Apple Music catalog song ID.                                             |
+| kind           | No       | String | Apple Music resource kind. v1 supports **songs** only. Default is songs.     |
+| storefront     | No       | String | Apple Music storefront such as jp or us. Defaults to the API gate setting.   |
+| image_base64   | No       | Number | If set to 1, the response will include a base64 encoded image. Default is 0. |
+
+{{< /table >}}
+
+### Success response
+
+```URL
+GET ?route=applemusic&videoid=2037093406&kind=songs&storefront=jp&image_base64=1
+```
+
+```JSON
+{
+  "status": "success",
+  "id": "2037093406",
+  "kind": "songs",
+  "storefront": "jp",
+  "name": "Song name",
+  "title": "Song name",
+  "artistName": "Artist name",
+  "albumName": "Album name",
+  "duration": 180,
+  "thumbnail_url": "https://is1-ssl.mzstatic.com/image/thumb/...",
+  "url": "https://music.apple.com/...",
+  "image_base64": "<BASE64 ENCODED JPEG IMAGE DATA>"
+}
+```
+
+{{< table "table-responsive" >}}
+
+| Parameter Name | Parameter Description                                                     |
+| -------------- | ------------------------------------------------------------------------- |
+| status         | The request status.                                                       |
+| id             | The Apple Music catalog song ID.                                          |
+| kind           | The Apple Music resource kind.                                            |
+| storefront     | The storefront used for the catalog request.                              |
+| name           | The song name.                                                            |
+| title          | The song title. Same value as name.                                       |
+| artistName     | The artist name.                                                          |
+| albumName      | The album name.                                                           |
+| duration       | The song duration in seconds.                                             |
+| thumbnail_url  | The artwork URL.                                                          |
+| url            | The Apple Music web URL.                                                  |
+| image_base64   | The base64 image (only show image_base64 parameter to 1).                 |
+
+{{< /table >}}
+
+### Failed response
+
+```JSON
+{
+  "status": "not_found",
+  "code": 404,
+  "message": "Apple Music catalog song not found"
+}
+```
+
+## Apple Music token API
+
+The browser player requests a MusicKit developer token from this route. It only allows origins configured in `APPLE_MUSIC_ALLOWED_ORIGINS`.
+
+### API endpoint
+
+```URL
+GET ?route=applemusic-token
+```
+
+### Success response
+
+```JSON
+{
+  "status": "success",
+  "developerToken": "<MUSICKIT DEVELOPER TOKEN>",
+  "expiresAt": 1767225600,
+  "storefront": "jp"
+}
+```
+
+### Failed response
+
+```JSON
+{
+  "status": "failed",
+  "message": "Apple Music token origin is not allowed",
+  "product_type": "applemusic token api"
+}
+```

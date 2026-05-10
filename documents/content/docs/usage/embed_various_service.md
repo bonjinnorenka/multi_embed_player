@@ -25,6 +25,7 @@ toc: true
 - bilibili
 - nicovideo
 - soundcloud
+- applemusic
 
 ## Embed various service
 
@@ -63,6 +64,16 @@ toc: true
 
 <!--live demo-->
 <multi-embed-player videoid="tkrism/reflection-feat-nicamoq" service="soundcloud"></multi-embed-player>
+
+### Apple Music
+
+Apple Music uses MusicKit JS. The player API gate must be configured to issue developer tokens.
+
+```html
+<multi-embed-player videoid="2037093406" service="applemusic" kind="songs" storefront="jp"></multi-embed-player>
+```
+
+For v1, only `kind="songs"` is playable. `storefront` is optional and defaults to the API gate default.
 
 ## Error redirect
 

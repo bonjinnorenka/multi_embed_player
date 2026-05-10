@@ -5,7 +5,8 @@ support service list of multi embed player
 - Youtube
 - Bilbili
 - SoundCloud
-- Niconico(**temporarily unavailable if your site not accepted by niconico**)
+- Niconico
+- Apple Music(**Need Apple Developer Program membership**)
 
 ## Document and Demo Page
 

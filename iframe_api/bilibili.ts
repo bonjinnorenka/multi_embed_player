@@ -817,6 +817,9 @@ class mep_bilibili{
             return this.endSeconds - this.startSeconds;
         }
     }
+    async getRealDuration(): Promise<number> {
+        return await this.getRealDulation();
+    }
     /**
      * Asynchronously retrieves video data API for Bilibili.
      * @returns {Promise<Object>} Promise object representing the video data API for Bilibili.
