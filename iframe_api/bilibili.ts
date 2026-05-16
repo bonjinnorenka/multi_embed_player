@@ -101,21 +101,12 @@ class mep_bilibili{
     static mep_extension_bilibili = false;//拡張機能ないとまともに動かん
     static api_endpoint = "https://iframe-api-ts.ryokuryu.workers.dev";//please change this if you use
     static no_extention_error = "you seems not to install mep_extention yet.if it not installed in your browser,you can't exac some function(mute unMute setVolume etc) and some function(getDulation,getPlayerState etc) will return incorrect data which is not reflect real data";
-    static player_base_url = "";//"https://www.bilibili.com/blackboard/webplayer/embed-old.html?"
+    static player_base_url = "https://player.bilibili.com/player.html?";//load often lazy in japan but this can mute auto play
     static bilibili_api_cache: Record<string, BilibiliApiResponse> = {};
     static cors_proxy = "";
     static currentTime_delay = 2;
     static bilibili_api_promise: Record<string, {res: ((value: BilibiliApiResponse) => void)[], rej: ((reason?: any) => void)[]}>  = {};
     constructor(replacing_element: HTMLElement | string, content: mep_bilibili_content, player_set_event_function?: (player: HTMLIFrameElement) => void){
-        if(mep_bilibili.player_base_url==""){
-            const ua = navigator.userAgent;
-            if(ua.indexOf("Firefox")!=-1||ua.indexOf("Edg")!=-1){
-                mep_bilibili.player_base_url = "https://www.bilibili.com/blackboard/webplayer/embed-old.html?";//fast
-            }
-            else{
-                mep_bilibili.player_base_url = "https://player.bilibili.com/player.html?";//load often lazy in japan but this can mute auto play
-            }
-        }
         (async()=>{
             await this.#element_constructor(replacing_element,content,player_set_event_function);
         })();
