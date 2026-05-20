@@ -59,6 +59,7 @@ interface BilibiliQuery {
  * @property {string} player_base_url - The base URL for the player.
  * @property {Object} bilibili_api_cache - The cache for the Bilibili API.
  * @property {string} cors_proxy - The CORS proxy for the player.
+ * @property {RequestCredentials} api_credentials - The credentials mode for iframe API endpoint requests.
  * @constructor
  * @param {HTMLElement|String} replacing_element - The element to replace with the player or the ID of the element to replace with the player.
  * @param {Object} content - The content to display in the player.
@@ -100,6 +101,7 @@ class mep_bilibili{
     static localStorageCheck: boolean | null = null;//ニコニコと同じくlocalstorageにアクセスできないと死ぬため
     static mep_extension_bilibili = false;//拡張機能ないとまともに動かん
     static api_endpoint = "https://iframe-api-ts.ryokuryu.workers.dev";//please change this if you use
+    static api_credentials: RequestCredentials = "same-origin";
     static no_extention_error = "you seems not to install mep_extention yet.if it not installed in your browser,you can't exac some function(mute unMute setVolume etc) and some function(getDulation,getPlayerState etc) will return incorrect data which is not reflect real data";
     static player_base_url = "https://player.bilibili.com/player.html?";//load often lazy in japan but this can mute auto play
     static bilibili_api_cache: Record<string, BilibiliApiResponse> = {};
@@ -850,7 +852,9 @@ class mep_bilibili{
                         (window as any).mep_bilibili.bilibili_api_promise[this.videoid] = {res:[],rej:[]};
                         try{
                             if((window as any).mep_bilibili.cors_proxy===""){
-                                (window as any).mep_bilibili.bilibili_api_cache[this.videoid] = await(await fetch(`${(window as any).mep_bilibili.api_endpoint}?route=bilibili&videoid=${this.videoid}&image_base64=1`)).json();
+                                const credentials = (window as any).mep_bilibili.api_credentials as RequestCredentials;
+                                const requestInit: RequestInit | undefined = credentials==="same-origin"?undefined:{credentials};
+                                (window as any).mep_bilibili.bilibili_api_cache[this.videoid] = await(await fetch(`${(window as any).mep_bilibili.api_endpoint}?route=bilibili&videoid=${this.videoid}&image_base64=1`,requestInit)).json();
                             }
                             else{
                                 let json_response_bilibili = await(await fetch(url + `https://api.bilibili.com/x/web-interface/view?bvid=${this.videoid}`)).json();

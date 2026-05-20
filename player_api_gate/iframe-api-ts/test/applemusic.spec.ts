@@ -48,6 +48,7 @@ test('applemusic token route returns strict cors headers for allowed origin', as
   expect(response.status).toBe(200);
   expect(response.headers.get('Access-Control-Allow-Origin')).toBe('https://vsing.info');
   expect(response.headers.get('Access-Control-Allow-Origin')).not.toBe('*');
+  expect(response.headers.get('Access-Control-Allow-Credentials')).toBe('true');
   expect(response.headers.get('Vary')).toBe('Origin');
   expect(data.status).toBe('success');
   expect(data.developerToken.split('.')).toHaveLength(3);

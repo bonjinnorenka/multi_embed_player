@@ -12,6 +12,39 @@ export const createProxyHeaders = (contentType: string): Record<string, string> 
   'cache-control': 'max-age=2592000'
 });
 
+const appendVaryOrigin = (headers: Headers): void => {
+  const vary = headers.get('Vary');
+  if (!vary) {
+    headers.set('Vary', 'Origin');
+    return;
+  }
+  const varyValues = vary.split(',').map((value) => value.trim().toLowerCase());
+  if (!varyValues.includes('origin')) {
+    headers.set('Vary', `${vary}, Origin`);
+  }
+};
+
+export const applyCredentialCorsHeaders = (response: Response, request: Request, whiteList: string[]): Response => {
+  if (whiteList.length === 0) {
+    return response;
+  }
+  const origin = request.headers.get('origin');
+  if (!origin || !whiteList.includes(origin)) {
+    return response;
+  }
+
+  const headers = new Headers(response.headers);
+  headers.set('Access-Control-Allow-Origin', origin);
+  headers.set('Access-Control-Allow-Credentials', 'true');
+  appendVaryOrigin(headers);
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  });
+};
+
 export const createErrorResponse = (message: string, productType: string): Response => {
   const errorData = {
     status: 'failed',

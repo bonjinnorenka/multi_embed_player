@@ -38,6 +38,8 @@ class mep_applemusic{
     static developer_token: string = "";
     static token_expires_at: number = 0;
     static default_storefront: string = "jp";
+    static api_endpoint = "https://iframe-api-ts.ryokuryu.workers.dev";
+    static api_credentials: RequestCredentials = "same-origin";
     static musickit_instance: any = null;
     static token_refresh_margin_seconds: number = 300;
 
@@ -120,8 +122,10 @@ class mep_applemusic{
         if(mep_applemusic.configured&&mep_applemusic.musickit_instance&&mep_applemusic.token_expires_at-mep_applemusic.token_refresh_margin_seconds>now){
             return mep_applemusic.musickit_instance;
         }
-        const endpoint = (window as any).multi_embed_player?.iframe_api_endpoint || "https://iframe-api-ts.ryokuryu.workers.dev";
-        const response = await fetch(`${endpoint}?route=applemusic-token`);
+        const endpoint = (window as any).multi_embed_player?.iframe_api_endpoint || mep_applemusic.api_endpoint;
+        const credentials = ((window as any).multi_embed_player?.iframe_api_credentials || mep_applemusic.api_credentials) as RequestCredentials | undefined;
+        const requestInit: RequestInit | undefined = credentials&&credentials!=="same-origin"?{credentials}:undefined;
+        const response = await fetch(`${endpoint}?route=applemusic-token`,requestInit);
         if(!response.ok){
             throw new Error("failed to fetch Apple Music developer token");
         }

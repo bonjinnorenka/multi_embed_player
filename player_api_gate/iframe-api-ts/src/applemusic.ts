@@ -83,6 +83,7 @@ const parseAllowedOrigins = (value?: string): string[] => {
 const createCorsHeaders = (origin: string): HeadersInit => ({
   'content-type': 'application/json',
   'Access-Control-Allow-Origin': origin,
+  'Access-Control-Allow-Credentials': 'true',
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
   'Vary': 'Origin',
   'cache-control': 'no-store'

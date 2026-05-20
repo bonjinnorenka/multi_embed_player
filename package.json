@@ -1,9 +1,9 @@
 {
-    "name":"multi_embed_player",
-    "main":"./dist/multi_embed_player.js",
+    "name": "multi_embed_player",
+    "main": "./dist/multi_embed_player.js",
     "module": "./dist/multi_embed_player.js",
-    "types":"./dist/multi_embed_player.d.ts",
-    "version": "3.2.8",
+    "types": "./dist/multi_embed_player.d.ts",
+    "version": "3.2.9",
     "license": "Apache-2.0",
     "description": "some video site embed and control playing",
     "repository": {

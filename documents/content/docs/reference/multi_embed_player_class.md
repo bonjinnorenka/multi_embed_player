@@ -19,6 +19,7 @@ Defined at [multi_embed_player.js](https://github.com/bonjinnorenka/multi_embed_
 |---|---|---|---|
 |cors_proxy|string||cors proxy url|
 |iframe_api_endpoint|string|https://iframe-api-ts.ryokuryu.workers.dev|[iframe api endpoint](/docs/reference/iframe_api)|
+|iframe_api_credentials|RequestCredentials|same-origin|credentials mode for iframe api endpoint requests. Set `include` when your iframe api endpoint uses cookies or credentialed CORS|
 |follow_GDPR|boolean|false|follow GDPR mode|
 |script_origin|string|https://cdn.jsdelivr.net/npm/multi_embed_player@v3/dist/|script origin|
 |mep_status_load_api|Object|{serviceName:number}|load api status <br>0->not load<br>1->loading<br>2->loaded|

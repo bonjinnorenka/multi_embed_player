@@ -77,6 +77,24 @@ const multi_embed_player_applemusic_query = (options?: AppleMusicOptions): strin
     return query===""?"":`&${query}`;
 }
 
+const multi_embed_player_iframe_api_request_init = (): RequestInit | undefined => {
+    if(multi_embed_player.iframe_api_credentials==="same-origin"){
+        return undefined;
+    }
+    return {credentials:multi_embed_player.iframe_api_credentials};
+}
+
+const multi_embed_player_fetch_iframe_api_endpoint = (url: string): Promise<Response> => {
+    return fetch(url,multi_embed_player_iframe_api_request_init());
+}
+
+const multi_embed_player_fetch_with_optional_iframe_api_credentials = (url: string, use_iframe_api_credentials: boolean): Promise<Response> => {
+    if(use_iframe_api_credentials){
+        return multi_embed_player_fetch_iframe_api_endpoint(url);
+    }
+    return fetch(url);
+}
+
 const multi_embed_player_fetch_iframe_api = async(service: ServiceType, videoid: string, use_cors: boolean, image_proxy: boolean, GDPR_access_accept: boolean, failed_send_error: boolean = false, failed_send_error_target: HTMLElement | null = null, options?: AppleMusicOptions): Promise<void> => {
     const xml_first_search = (data: string, search_string: string, start: number = 0): string => {
 		return data.substring(data.indexOf("<"+search_string+">",start)+search_string.length+2,data.indexOf("</"+search_string+">",start))
@@ -88,13 +106,14 @@ const multi_embed_player_fetch_iframe_api = async(service: ServiceType, videoid:
         if(possible_direct_access){
             url = "";
         }
-        else if(multi_embed_player.cors_proxy!==""){
-            url = multi_embed_player.cors_proxy;
-        }
-        else{
-            url = `${multi_embed_player.iframe_api_endpoint}?route=url_proxy&url=`;
-        }
-        let first_access = false;
+	        else if(multi_embed_player.cors_proxy!==""){
+	            url = multi_embed_player.cors_proxy;
+	        }
+	        else{
+	            url = `${multi_embed_player.iframe_api_endpoint}?route=url_proxy&url=`;
+	        }
+	        const use_iframe_api_credentials = url.startsWith(multi_embed_player.iframe_api_endpoint);
+	        let first_access = false;
         if(multi_embed_player.api_promise[service][cacheKey]===undefined){
             multi_embed_player.api_promise[service][cacheKey] = {res:[],rej:[]};
             first_access = true;
@@ -120,13 +139,13 @@ const multi_embed_player_fetch_iframe_api = async(service: ServiceType, videoid:
                         else{
                             url_oembed = `https://soundcloud.com/oembed?url=https://soundcloud.com/${videoid}&format=json`;
                         }
-                        const oembed_response_fetch = await fetch(url + encodeURI(url_oembed));
+                        const oembed_response_fetch = await multi_embed_player_fetch_with_optional_iframe_api_credentials(url + encodeURI(url_oembed),use_iframe_api_credentials);
                         let oembed_response = await oembed_response_fetch.json();
                         oembed_response["image_base64"] = url + oembed_response["thumbnail_url"];
                         multi_embed_player.api_cache[service][cacheKey] = oembed_response;
                         break;
                     case 'niconico':
-                        const xml_response = await(await fetch(url + `https://ext.nicovideo.jp/api/getthumbinfo/${videoid}`)).text();
+                        const xml_response = await(await multi_embed_player_fetch_with_optional_iframe_api_credentials(url + `https://ext.nicovideo.jp/api/getthumbinfo/${videoid}`,use_iframe_api_credentials)).text();
                         let image_url = xml_first_search(xml_response,"thumbnail_url");
                         let predict_long = 43+2*(videoid.length-2);
                         let return_data: Record<string, any> = {};
@@ -151,7 +170,7 @@ const multi_embed_player_fetch_iframe_api = async(service: ServiceType, videoid:
                         multi_embed_player.api_cache[service][cacheKey] = return_data;
                         break;
                     case 'bilibili':
-                        let json_response_bilibili = await(await fetch(url + `https://api.bilibili.com/x/web-interface/view?bvid=${videoid}`)).json();
+                        let json_response_bilibili = await(await multi_embed_player_fetch_with_optional_iframe_api_credentials(url + `https://api.bilibili.com/x/web-interface/view?bvid=${videoid}`,use_iframe_api_credentials)).json();
                         if(json_response_bilibili?.data?.pic===undefined){
                             json_response_bilibili["image_base64"] = null;
                         }
@@ -162,7 +181,7 @@ const multi_embed_player_fetch_iframe_api = async(service: ServiceType, videoid:
                         break;
                     case "youtube":
                         try{
-                            let json_response_youtube = await(await fetch(url + `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoid}&format=json`)).json();
+                            let json_response_youtube = await(await multi_embed_player_fetch_with_optional_iframe_api_credentials(url + `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoid}&format=json`,use_iframe_api_credentials)).json();
                             json_response_youtube["image_base64"] = url + json_response_youtube["thumbnail_url"];
                             multi_embed_player.api_cache[service][cacheKey] = json_response_youtube;
                         }
@@ -191,7 +210,7 @@ const multi_embed_player_fetch_iframe_api = async(service: ServiceType, videoid:
             const url = `${multi_embed_player.iframe_api_endpoint}?route=${service}&videoid=${videoid}` + (image_proxy?"&image_base64=1":"") + multi_embed_player_applemusic_query(options);
             if(multi_embed_player.api_promise[service][cacheKey]===undefined){
                 multi_embed_player.api_promise[service][cacheKey] = {res:[],rej:[]};
-                fetch_response = await fetch(url);
+                fetch_response = await multi_embed_player_fetch_iframe_api_endpoint(url);
                 multi_embed_player.api_cache[service][cacheKey] = await fetch_response.json();
                 multi_embed_player.api_promise[service][cacheKey].res.forEach((resolve: (value: any) => void)=>resolve(undefined));
             }
@@ -247,6 +266,7 @@ class multi_embed_player extends HTMLElement{
     endSeconds: number = -1;
     static script_origin = "https://cdn.jsdelivr.net/npm/multi_embed_player@v3/dist/";
     static iframe_api_endpoint = "https://iframe-api-ts.ryokuryu.workers.dev";
+    static iframe_api_credentials: RequestCredentials = "same-origin";
     static mep_status_load_api: ServiceStatusMap = {youtube:0,niconico:0,bilibili:0,soundcloud:0,applemusic:0};
     static mep_load_api_promise: Record<ServiceType, (() => void)[]> = {youtube:[],niconico:[],bilibili:[],soundcloud:[],applemusic:[]};
     static api_cache: ServiceApiCache = {niconico:{},bilibili:{},soundcloud:{},youtube:{},applemusic:{}};

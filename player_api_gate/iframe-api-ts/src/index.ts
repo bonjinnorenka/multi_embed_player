@@ -1,5 +1,5 @@
 import type { Env } from './types';
-import { parseWhiteList, isWhiteListAllowed } from './utils';
+import { parseWhiteList, isWhiteListAllowed, applyCredentialCorsHeaders } from './utils';
 import { handleBilibiliRequest } from './bilibili';
 import { handleYouTubeRequest } from './youtube';
 import { handleNiconicoRequest } from './niconico';
@@ -17,23 +17,31 @@ export default {
 			return new Response("access from this origin is not allowed", { status: 403 });
 		}
 
+		let response: Response;
 		switch (route) {
 			case 'url_proxy':
-				return handleUrlProxyRequest(request, env);
+				response = await handleUrlProxyRequest(request, env);
+				break;
 			case 'niconico':
-				return handleNiconicoRequest(request, env);
+				response = await handleNiconicoRequest(request, env);
+				break;
 			case 'bilibili':
-				return handleBilibiliRequest(request, env);
+				response = await handleBilibiliRequest(request, env);
+				break;
 			case 'soundcloud':
-				return handleSoundCloudRequest(request, env);
+				response = await handleSoundCloudRequest(request, env);
+				break;
 			case 'youtube':
-				return handleYouTubeRequest(request, env);
+				response = await handleYouTubeRequest(request, env);
+				break;
 			case 'applemusic':
-				return handleAppleMusicRequest(request, env);
+				response = await handleAppleMusicRequest(request, env);
+				break;
 			case 'applemusic-token':
 				return handleAppleMusicTokenRequest(request, env);
 			default:
 				return new Response("route not found", { status: 404 });
 		}
+		return applyCredentialCorsHeaders(response, request, whiteList);
 	},
 } satisfies ExportedHandler<Env>;

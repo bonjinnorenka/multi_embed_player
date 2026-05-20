@@ -26,6 +26,21 @@ describe('Iframe API Router', () => {
 		expect(await response.text()).toBe('access from this origin is not allowed');
 	});
 
+	it('returns credentialed cors headers for whitelisted origin', async () => {
+		const request = new IncomingRequest('http://example.com/?route=youtube&videoid=dQw4w9WgXcQ', {
+			headers: { 'origin': 'https://authorized.com' }
+		});
+		const ctx = createExecutionContext();
+		const testEnv = { ...env, WhiteList: '["https://authorized.com"]' };
+		const response = await worker.fetch(request, testEnv, ctx);
+		await waitOnExecutionContext(ctx);
+
+		expect(response.status).toBe(200);
+		expect(response.headers.get('Access-Control-Allow-Origin')).toBe('https://authorized.com');
+		expect(response.headers.get('Access-Control-Allow-Credentials')).toBe('true');
+		expect(response.headers.get('Vary')).toBe('Origin');
+	});
+
 	it('rejects Apple Music metadata without origin when whitelist is configured', async () => {
 		const request = new IncomingRequest('http://example.com/?route=applemusic&videoid=2037093406');
 		const ctx = createExecutionContext();
