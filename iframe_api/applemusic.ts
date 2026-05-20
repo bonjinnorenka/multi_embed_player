@@ -55,6 +55,9 @@ class mep_applemusic{
     before_mute_volume: number = 100;
     volume: number = 100;
     end_interval: number = 0;
+    last_current_time: number = 0;
+    last_duration: number = 0;
+    end_event_dispatched: boolean = false;
     ready_promise: Promise<void>;
 
     constructor(replacing_element: string | HTMLElement, content: mep_applemusic_content, player_set_event_function?: (player: HTMLElement) => void){
@@ -205,6 +208,7 @@ class mep_applemusic{
         this.queue_ready = false;
         this.player_status = 1;
         this.autoplay = content.playerVars?.autoplay===1;
+        this.#resetEndTrackingState();
         this.#dispatchEvent(new Event("onReady"));
     }
 
@@ -234,16 +238,19 @@ class mep_applemusic{
         this.#dispatchEvent(new CustomEvent("onStateChange",{detail:this.getPlayerState()}));
     }
 
+    #resetEndTrackingState(): void{
+        this.last_current_time = 0;
+        this.last_duration = 0;
+        this.end_event_dispatched = false;
+    }
+
     #startEndTracking(): void{
         this.#clearEndTracking();
+        this.#resetEndTrackingState();
+        this.last_current_time = this.getCurrentTime();
+        this.last_duration = this.getDuration();
         this.end_interval = window.setInterval(()=>{
-            if(this.endSeconds!==-1&&this.getCurrentTime()>=this.endSeconds){
-                this.pauseVideo();
-                this.player_status = 4;
-                this.#dispatchEvent(new CustomEvent("onStateChange",{detail:this.getPlayerState()}));
-                this.#dispatchEvent(new Event("onEndVideo"));
-                this.#clearEndTracking();
-            }
+            this.#observeEndTime();
         },500);
     }
 
@@ -251,6 +258,90 @@ class mep_applemusic{
         if(this.end_interval!==0){
             window.clearInterval(this.end_interval);
             this.end_interval = 0;
+        }
+    }
+
+    #getMusicKitPlaybackState(): any{
+        const music = mep_applemusic.musickit_instance;
+        return music?.playbackState ?? music?.player?.playbackState;
+    }
+
+    #isMusicKitPlaybackEnded(): boolean{
+        const state = this.#getMusicKitPlaybackState();
+        if(state===undefined||state===null){
+            return false;
+        }
+        if(typeof state==="string"){
+            const normalized_state = state.toLowerCase();
+            return normalized_state==="ended"||normalized_state==="completed";
+        }
+        const playback_states = (window as any).MusicKit?.PlaybackStates;
+        return playback_states!==undefined&&(state===playback_states.ended||state===playback_states.completed);
+    }
+
+    #pauseMusicKitPlayback(): void{
+        try{
+            const music = mep_applemusic.musickit_instance;
+            if(music&&typeof music.pause==="function"){
+                music.pause();
+            }
+        }
+        catch{}
+    }
+
+    #stopMusicKitPlayback(): void{
+        const music = mep_applemusic.musickit_instance;
+        if(!music){
+            return;
+        }
+        if(typeof music.stop==="function"){
+            try{
+                music.stop();
+                return;
+            }
+            catch{}
+        }
+        if(typeof music.pause==="function"){
+            try{
+                music.pause();
+            }
+            catch{}
+        }
+    }
+
+    #finishPlayback(pause_music: boolean = false): void{
+        if(this.end_event_dispatched){
+            return;
+        }
+        this.end_event_dispatched = true;
+        if(pause_music){
+            this.#pauseMusicKitPlayback();
+        }
+        this.player_status = 4;
+        this.#clearEndTracking();
+        this.#dispatchEvent(new CustomEvent("onStateChange",{detail:this.getPlayerState()}));
+        this.#dispatchEvent(new Event("onEndVideo"));
+    }
+
+    #observeEndTime(): void{
+        if(this.player_status!==2){
+            return;
+        }
+        const current_time = this.getCurrentTime();
+        const duration = this.getDuration() || this.last_duration;
+        const reached_configured_end = this.endSeconds!==-1&&current_time>=this.endSeconds;
+        const reached_natural_end = this.endSeconds===-1&&duration>0&&(
+            (current_time>0&&current_time>=duration-0.5)||
+            (this.last_current_time>0&&duration-this.last_current_time<=2&&current_time<=0.5)||
+            this.#isMusicKitPlaybackEnded()
+        );
+        if(reached_configured_end||reached_natural_end){
+            this.#finishPlayback(reached_configured_end);
+            return;
+        }
+        this.last_current_time = current_time;
+        if(duration>0){
+            this.last_duration = duration;
         }
     }
 
@@ -265,6 +356,7 @@ class mep_applemusic{
         this.endSeconds = content.endSeconds!==undefined?Number(content.endSeconds):-1;
         this.queue_ready = false;
         this.player_status = 1;
+        this.#resetEndTrackingState();
         this.#dispatchEvent(new CustomEvent("onStateChange",{detail:this.getPlayerState()}));
     }
 
@@ -294,13 +386,7 @@ class mep_applemusic{
     }
 
     pauseVideo(): void{
-        try{
-            const music = mep_applemusic.musickit_instance;
-            if(music){
-                music.pause();
-            }
-        }
-        catch{}
+        this.#pauseMusicKitPlayback();
         this.player_status = 3;
         this.#clearEndTracking();
         this.#dispatchEvent(new CustomEvent("onStateChange",{detail:this.getPlayerState()}));
@@ -340,17 +426,20 @@ class mep_applemusic{
 
     getCurrentTime(): number{
         const music = mep_applemusic.musickit_instance;
-        if(music&&typeof music.currentPlaybackTime==="number"){
-            return music.currentPlaybackTime;
+        const current_time = music?.currentPlaybackTime ?? music?.player?.currentPlaybackTime;
+        if(typeof current_time==="number"){
+            return current_time;
         }
         return 0;
     }
 
     getDuration(): number{
         const music = mep_applemusic.musickit_instance;
-        const item = music?.nowPlayingItem;
-        if(typeof music?.currentPlaybackDuration==="number"){
-            return music.currentPlaybackDuration;
+        const player = music?.player;
+        const item = music?.nowPlayingItem ?? player?.nowPlayingItem;
+        const duration = music?.currentPlaybackDuration ?? player?.currentPlaybackDuration;
+        if(typeof duration==="number"){
+            return duration;
         }
         if(typeof item?.durationInMillis==="number"){
             return item.durationInMillis/1000;
@@ -399,6 +488,8 @@ class mep_applemusic{
 
     destroy(): void{
         this.#clearEndTracking();
+        this.#stopMusicKitPlayback();
+        this.player_status = 0;
     }
 
     #dispatchEvent(event: Event): void{
