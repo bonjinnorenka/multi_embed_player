@@ -29,5 +29,10 @@ This is only listed original or unique value.
 | play_control_wrap | boolen | false    | true         | wrap play control or not only valid on bilibili     |
 | kind           | string | false    | songs         | Apple Music resource kind. v1 supports songs only     |
 | storefront     | string | false    | api default   | Apple Music storefront such as jp or us     |
+| youtube_host_policy | string | false | nocookie | YouTube embed host policy. `nocookie`, `youtube`, or `nocookie-fallback-youtube` |
 
 {{< /table >}}
+
+`youtube_host_policy` is used only for YouTube embeds.
+`nocookie` uses `youtube-nocookie.com`, `youtube` uses `youtube.com`, and `nocookie-fallback-youtube` first tries `youtube-nocookie.com` and then reloads with `youtube.com` when fallback is allowed.
+When fallback is used, the player dispatches `onYoutubeHostFallback`.

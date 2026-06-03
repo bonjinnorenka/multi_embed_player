@@ -20,6 +20,7 @@ toc: true
 |videoId|string|true||video id for player|
 |startSeconds|number|false|0|start seconds for player|
 |endSeconds|number|false||end seconds for player|
+|youtubeHostPolicy|string|false|nocookie|YouTube only. Host policy value: `nocookie`, `youtube`, or `nocookie-fallback-youtube`|
 
 {{< /table >}}
 
@@ -35,6 +36,7 @@ toc: true
 |playerVars|Object{urlparameter:value}|false|{}|player vars for player|
 |width|number|true||width for player|
 |height|number|true||height for player|
+|youtubeHostPolicy|string|false|nocookie|YouTube only. Host policy value: `nocookie`, `youtube`, or `nocookie-fallback-youtube`|
 
 {{< /table >}}
 
@@ -193,8 +195,12 @@ defined at [youtube.js](https://github.com/bonjinnorenka/multi_embed_player/blob
 |---|---|---|---|
 |youtube_api_loaded|number|0|YouTube API loaded status (0: not loaded, 1: loading, 2: loaded)|
 |youtube_api_promise|Array of function|[]|Functions to call after loading YouTube API|
+|youtubeHostPolicy|string|nocookie|YouTube embed host policy. `nocookie`, `youtube`, or `nocookie-fallback-youtube`|
+|use_nocookie|boolean|true|Whether the current YouTube host uses youtube-nocookie.com|
 
 {{< /table >}}
+
+`youtubeHostPolicy` selects the host when the YouTube iframe player is created. Changing this value through `loadVideoById` or `cueVideoById` does not change the host of an existing iframe.
 
 ### function list
 
@@ -218,6 +224,7 @@ defined at [youtube.js](https://github.com/bonjinnorenka/multi_embed_player/blob
 |getTitle||string|Get title of current video|
 |loadVideoById|content: mep_youtube_load_object or string, [startSeconds: number]||Load video by ID with autoplay|
 |cueVideoById|content: mep_youtube_load_object or string, [startSeconds: number]||Cue video by ID without autoplay|
+|destroy|||Destroy YouTube iframe player|
 
 {{< /table >}}
 

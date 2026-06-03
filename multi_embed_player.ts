@@ -1,6 +1,7 @@
 // 型定義
 type ServiceType = 'youtube' | 'niconico' | 'bilibili' | 'soundcloud' | 'applemusic';
 type AppleMusicKind = 'songs';
+type YoutubeHostPolicy = 'nocookie' | 'youtube' | 'nocookie-fallback-youtube';
 
 interface ApiPromiseData {
   res: Array<(value: any) => void>;
@@ -29,6 +30,7 @@ interface PlaylistItem {
   subVideoId?: string;
   kind?: AppleMusicKind;
   storefront?: string;
+  youtubeHostPolicy?: YoutubeHostPolicy;
   [key: string]: any;
 }
 
@@ -264,9 +266,12 @@ class multi_embed_player extends HTMLElement{
     previousData: PlaylistItem | null = null;
     startSeconds: number = 0;
     endSeconds: number = -1;
+    youtubeHostPolicy: YoutubeHostPolicy = "nocookie";
+    youtubeHostFallbackUsed: boolean = false;
     static script_origin = "https://cdn.jsdelivr.net/npm/multi_embed_player@v3/dist/";
     static iframe_api_endpoint = "https://iframe-api-ts.ryokuryu.workers.dev";
     static iframe_api_credentials: RequestCredentials = "same-origin";
+    static youtube_host_policy: YoutubeHostPolicy = "nocookie";
     static mep_status_load_api: ServiceStatusMap = {youtube:0,niconico:0,bilibili:0,soundcloud:0,applemusic:0};
     static mep_load_api_promise: Record<ServiceType, (() => void)[]> = {youtube:[],niconico:[],bilibili:[],soundcloud:[],applemusic:[]};
     static api_cache: ServiceApiCache = {niconico:{},bilibili:{},soundcloud:{},youtube:{},applemusic:{}};
@@ -323,6 +328,15 @@ class multi_embed_player extends HTMLElement{
     static async getAppleMusicAuthorizationStatus(): Promise<AppleMusicAuthorizationStatus>{
         await multi_embed_player.#load_applemusic_api_class();
         return await (window as any).mep_applemusic.getAuthorizationStatus();
+    }
+    static normalizeYoutubeHostPolicy(value: any, fallback: YoutubeHostPolicy = "nocookie"): YoutubeHostPolicy{
+        if(value==="nocookie"||value==="youtube"||value==="nocookie-fallback-youtube"){
+            return value;
+        }
+        if(value!=null){
+            console.warn(`invalid youtubeHostPolicy: ${String(value)}. fallback to ${fallback}`);
+        }
+        return fallback;
     }
     constructor(){
         super();
@@ -398,6 +412,18 @@ class multi_embed_player extends HTMLElement{
         }
         return options;
     }
+    #youtube_host_policy_from_attributes(): YoutubeHostPolicy{
+        return multi_embed_player.normalizeYoutubeHostPolicy(
+            this.getAttribute("youtube_host_policy"),
+            multi_embed_player.normalizeYoutubeHostPolicy((window as any).multi_embed_player.youtube_host_policy)
+        );
+    }
+    #youtube_host_policy_from_data(data: any): YoutubeHostPolicy{
+        if(data?.service!=="youtube"){
+            return "nocookie";
+        }
+        return multi_embed_player.normalizeYoutubeHostPolicy(data?.youtubeHostPolicy,this.#youtube_host_policy_from_attributes());
+    }
     /**
      * Checks the status of an image URL.
      * @async
@@ -432,6 +458,10 @@ class multi_embed_player extends HTMLElement{
         }
         if(storefront!=null){
             content.storefront = storefront;
+        }
+        const youtubeHostPolicy = this.getAttribute("youtube_host_policy");
+        if(youtubeHostPolicy!=null){
+            content.youtubeHostPolicy = multi_embed_player.normalizeYoutubeHostPolicy(youtubeHostPolicy);
         }
         if(this.getAttribute("subvideoid")!=null&&this.getAttribute("subservice")!=null){
             content.subVideoid = this.getAttribute("subvideoid") || undefined;
@@ -580,8 +610,8 @@ class multi_embed_player extends HTMLElement{
                     service_changed = true;
                 }
                 if (this.previousData) {
-            this.previousData.call_index++;
-        }
+                    this.previousData.call_index++;
+                }
             }
             else{
                 if(sub==false){//1回目
@@ -605,6 +635,16 @@ class multi_embed_player extends HTMLElement{
                     this.service = data.subService;
                 }
             }
+            const nextYoutubeHostPolicy = this.#youtube_host_policy_from_data(data);
+            if(data.service==="youtube"){
+                data.youtubeHostPolicy = nextYoutubeHostPolicy;
+            }
+            if(data.service==="youtube"&&this.player?.service==="youtube"&&this.youtubeHostPolicy!==nextYoutubeHostPolicy){
+                this.#deleteEvent();
+                service_changed = true;
+            }
+            this.youtubeHostPolicy = nextYoutubeHostPolicy;
+            this.youtubeHostFallbackUsed = false;
             await this.#GDPR_accept(data.service);
             this.startSeconds = 0;
             if(data.startSeconds!=undefined){
@@ -663,6 +703,9 @@ class multi_embed_player extends HTMLElement{
                     if(data.storefront!=undefined){
                         player_argument["storefront"] = data.storefront;
                     }
+                    if(this.service==="youtube"){
+                        player_argument["youtubeHostPolicy"] = this.youtubeHostPolicy;
+                    }
                     if(this.service=="bilibili"&&this.getAttribute("play_control_wrap")==="false"){
                         player_argument["play_control_wrap"] = false;
                     }
@@ -687,14 +730,99 @@ class multi_embed_player extends HTMLElement{
         }
     }
 
-    #error_event_handler(e: any): void {
+    async #error_event_handler(e: any): Promise<void> {
+        const code = typeof e?.detail?.code==="number"?e.detail.code:520;
+        if(await this.#youtube_host_fallback_if_needed(code)){
+            return;
+        }
         console.error("error occured");
         if(!this.error_not_declare){
-            this.dispatchEvent(new CustomEvent("onError",{detail:{code:e.detail.code}}));
+            this.dispatchEvent(new CustomEvent("onError",{detail:{code:code}}));
         }
         else{
             this.dispatchEvent(new Event("executeSecound"));
         }
+    }
+
+    #is_mobile_like_device(): boolean{
+        if(typeof window.matchMedia==="function"&&window.matchMedia("(pointer: coarse)").matches){
+            return true;
+        }
+        return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+    }
+
+    #can_youtube_host_fallback(code: number): boolean{
+        return this.service==="youtube"
+            && this.youtubeHostPolicy==="nocookie-fallback-youtube"
+            && !this.youtubeHostFallbackUsed
+            && this.player?.use_nocookie!==false
+            && code!==401
+            && code!==403
+            && code!==404;
+    }
+
+    async #youtube_host_fallback_if_needed(code: number): Promise<boolean>{
+        if(!this.#can_youtube_host_fallback(code)){
+            return false;
+        }
+        this.youtubeHostFallbackUsed = true;
+        if(this.autoplay&&this.#is_mobile_like_device()){
+            this.#dispatch_youtube_host_fallback_event("user-gesture",code);
+            this.#show_youtube_host_fallback_button(code);
+            return true;
+        }
+        this.#dispatch_youtube_host_fallback_event("auto",code);
+        await this.#reload_youtube_with_host_policy("youtube");
+        return true;
+    }
+
+    #dispatch_youtube_host_fallback_event(mode: "auto" | "user-gesture", code: number): void{
+        this.dispatchEvent(new CustomEvent("onYoutubeHostFallback",{detail:{
+            mode:mode,
+            fromHost:"nocookie",
+            toHost:"youtube",
+            code:code
+        }}));
+    }
+
+    #youtube_host_fallback_load_data(): PlaylistItem{
+        const data: PlaylistItem = {
+            service:"youtube",
+            videoId:this.videoid || "",
+            call_array:[],
+            call_index:0,
+            youtubeHostPolicy:"youtube"
+        };
+        if(this.startSeconds!==0){
+            data.startSeconds = this.startSeconds;
+        }
+        if(this.endSeconds!==-1){
+            data.endSeconds = this.endSeconds;
+        }
+        return data;
+    }
+
+    async #reload_youtube_with_host_policy(youtubeHostPolicy: YoutubeHostPolicy): Promise<void>{
+        const previousData = this.previousData;
+        const errorNotDeclare = this.error_not_declare;
+        const data = this.#youtube_host_fallback_load_data();
+        data.youtubeHostPolicy = youtubeHostPolicy;
+        await this.loadVideoById(data,this.autoplay,false);
+        this.previousData = previousData;
+        this.error_not_declare = errorNotDeclare;
+    }
+
+    #show_youtube_host_fallback_button(code: number): void{
+        this.#deleteEvent();
+        this.innerHTML = "";
+        const button = document.createElement("button");
+        button.type = "button";
+        button.innerText = "Load from YouTube";
+        button.addEventListener("click",async()=>{
+            await this.#reload_youtube_with_host_policy("youtube");
+        },{once:true});
+        this.appendChild(button);
+        this.style.backgroundImage = "";
     }
 
     /**
@@ -928,6 +1056,10 @@ class multi_embed_player extends HTMLElement{
         if(storefront!=null){
             content.storefront = storefront;
         }
+        const youtubeHostPolicy = this.getAttribute("youtube_host_policy");
+        if(youtubeHostPolicy!=null){
+            content.youtubeHostPolicy = multi_embed_player.normalizeYoutubeHostPolicy(youtubeHostPolicy);
+        }
         (playdoc as any).loadVideoById(content.toData());
     }
     /**
@@ -1034,6 +1166,10 @@ class multi_embed_player extends HTMLElement{
         if(storefront!=null){
             k_data.storefront = storefront;
         }
+        const youtubeHostPolicy = this.getAttribute("youtube_host_policy");
+        if(youtubeHostPolicy!=null){
+            k_data.youtubeHostPolicy = multi_embed_player.normalizeYoutubeHostPolicy(youtubeHostPolicy);
+        }
         if(this.getAttribute("subService")!=null&&this.getAttribute("subVideoid")!=null){
             k_data.subService = this.getAttribute("subService") as ServiceType;
             k_data.subVideoid = this.getAttribute("subVideoid") || undefined;
@@ -1058,6 +1194,7 @@ class mep_playitem{
     subVideoid: string | undefined;
     kind: AppleMusicKind | undefined;
     storefront: string | undefined;
+    youtubeHostPolicy: YoutubeHostPolicy | undefined;
 
     constructor(service: any, videoid: any){
         this.service = service;
@@ -1075,6 +1212,10 @@ class mep_playitem{
             if(this.storefront!==undefined){
                 callItem.storefront = this.storefront;
                 content.storefront = this.storefront;
+            }
+            if(this.youtubeHostPolicy!==undefined){
+                callItem.youtubeHostPolicy = this.youtubeHostPolicy;
+                content.youtubeHostPolicy = this.youtubeHostPolicy;
             }
             content.call_array.push(callItem);
         }

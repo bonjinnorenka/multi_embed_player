@@ -32,6 +32,7 @@ Defined at [multi_embed_player.js](https://github.com/bonjinnorenka/multi_embed_
 |tearms_policy_service|string|{servicename:policy url}|terms policy url for specific service|
 |applemusic_api_loaded|number|0|Apple Music iframe API load status|
 |applemusic_api_promise|Array||waiting Apple Music iframe API load promises|
+|youtube_host_policy|string|nocookie|Default YouTube embed host policy. `nocookie`, `youtube`, or `nocookie-fallback-youtube`|
 
 {{< /table >}}
 
@@ -73,6 +74,7 @@ Not include function start with '#'.
 |---|---|---|---|
 |authorizeAppleMusic|AppleMusicOptions(optional)|Promise&lt;AppleMusicAuthorizationStatus&gt;|authorize Apple Music playback using MusicKit JS|
 |getAppleMusicAuthorizationStatus||Promise&lt;AppleMusicAuthorizationStatus&gt;|get Apple Music authorization status|
+|normalizeYoutubeHostPolicy|value:any, fallback:YoutubeHostPolicy(optional)|YoutubeHostPolicy|normalize YouTube host policy and fallback invalid values|
 
 {{< /table >}}
 
@@ -87,6 +89,7 @@ Not include function start with '#'.
 | `onStateChange` | CustomEvent | Fired when the player's state changes | player state |
 | `onEndVideo` | Event | Fired when the video playback ends | None |
 | `executeSecound` | Event | Fired to trigger secondary action (error handling) | None |
+| `onYoutubeHostFallback` | CustomEvent | Fired when YouTube host fallback is used | `{mode, fromHost, toHost, code}` |
 
 {{< /table >}}
 
@@ -106,8 +109,11 @@ Not include function start with '#'.
 |subService|string|false||sub service name **compatibility**|
 |kind|string|false|songs|Apple Music resource kind. v1 supports songs only|
 |storefront|string|false|api default|Apple Music storefront such as jp or us|
+|youtubeHostPolicy|string|false|nocookie|YouTube embed host policy. `nocookie`, `youtube`, or `nocookie-fallback-youtube`|
 
 {{< /table >}}
+
+`youtubeHostPolicy` is used only for YouTube. `nocookie` uses `youtube-nocookie.com`, `youtube` uses `youtube.com`, and `nocookie-fallback-youtube` first tries `youtube-nocookie.com` and then reloads with `youtube.com` when fallback is allowed.
 
 ### call_video_object
 

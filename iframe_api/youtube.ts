@@ -8,6 +8,7 @@ interface MepYoutubeLoadObject {
     videoId: string;
     startSeconds?: number;
     endSeconds?: number;
+    youtubeHostPolicy?: YoutubeHostPolicy;
 }
 
 interface MepYoutubePlayerVars {
@@ -21,6 +22,7 @@ interface MepYoutubeContent {
     playerVars?: MepYoutubePlayerVars;
     width?: number;
     height?: number;
+    youtubeHostPolicy?: YoutubeHostPolicy;
 }
 
 /**
@@ -37,6 +39,7 @@ class mep_youtube{
     el: HTMLElement = document.createElement("div");
     YT_player: any;
     use_nocookie: boolean = true;
+    youtubeHostPolicy: YoutubeHostPolicy = "nocookie";
 
     /**
      * Load YouTube Iframe API asynchronously.
@@ -102,6 +105,8 @@ class mep_youtube{
         }
         if (iframe_replace_node) {
             this.el = iframe_replace_node;
+            this.youtubeHostPolicy = content.youtubeHostPolicy || "nocookie";
+            this.use_nocookie = this.youtubeHostPolicy!=="youtube";
             this.YT_player = new YT.Player(iframe_replace_node,{
             height: "315",
             width: "560",
@@ -297,6 +302,12 @@ class mep_youtube{
         }
         else{
             this.YT_player.cueVideoById(content,startSeconds);
+        }
+    }
+
+    destroy(): void{
+        if(this.YT_player&&typeof this.YT_player.destroy==="function"){
+            this.YT_player.destroy();
         }
     }
 
