@@ -253,7 +253,13 @@ class mep_youtube{
      */
     getPlayerState(): number{
         let nowstatus = this.YT_player.getPlayerState();
-        if((this.getCurrentTime()>this.getDuration()-1&&this.getCurrentTime()!=0&&this.getDuration()!=0)||(this.endSeconds!=-1&&this.endSeconds-1<=this.getCurrentTime())){
+        const currentTime = this.getCurrentTime();
+        const duration = this.getDuration();
+        //再生中(1)・バッファリング中(3)は実終端のみ終了扱い。マージン付き判定は停止後限定にして終端手前で早期に4を返さない
+        const reached_end = (nowstatus==1||nowstatus==3)
+            ?((currentTime>=duration&&currentTime!=0&&duration!=0)||(this.endSeconds!=-1&&this.endSeconds<=currentTime))
+            :((currentTime>duration-1&&currentTime!=0&&duration!=0)||(this.endSeconds!=-1&&this.endSeconds-1<=currentTime));
+        if(reached_end){
             return 4
         }
         else if(nowstatus==-1){

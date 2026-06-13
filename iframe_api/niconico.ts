@@ -365,6 +365,12 @@ class mep_niconico{
      * @returns {number} The state of the player.
      */
     getPlayerState(): number{
+        if(this.state.playerStatus===2){//再生中はマージン付き判定で早期終了させない(endSeconds到達のみ終了扱い)
+            if(this.endSeconds!=-1&&this.getCurrentTime()>=this.endSeconds){
+                return 4
+            }
+            return this.state.playerStatus;
+        }
         if(this.getCurrentTime()>=this.getDuration()-0.5||(this.endSeconds!=-1&&this.getCurrentTime()>=(this.endSeconds-0.5))){//最後まで行った
             return 4
         }
@@ -412,7 +418,7 @@ class mep_niconico{
                 }
                 case 'playerStatusChange':{
                     this.player.dispatchEvent(new CustomEvent("onStateChange", {detail: this.getPlayerState()}));
-                    if(this.getCurrentTime()>=this.getDuration()-0.5||(this.endSeconds!=-1&&this.getCurrentTime()>=(this.endSeconds-0.5))){//最後まで行った
+                    if(data.playerStatus!==2&&(this.getCurrentTime()>=this.getDuration()-0.5||(this.endSeconds!=-1&&this.getCurrentTime()>=(this.endSeconds-0.5)))){//最後まで行った(再生中への遷移では終了扱いしない)
                         this.player.dispatchEvent(new Event("onEndVideo"));
                     }
                     break;
