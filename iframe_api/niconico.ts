@@ -371,7 +371,9 @@ class mep_niconico{
             }
             return this.state.playerStatus;
         }
-        if(this.getCurrentTime()>=this.getDuration()-0.5||(this.endSeconds!=-1&&this.getCurrentTime()>=(this.endSeconds-0.5))){//最後まで行った
+        const currentTime = this.getCurrentTime();
+        const duration = this.getDuration();
+        if(duration>0&&currentTime>0&&(currentTime>=duration-0.5||(this.endSeconds!=-1&&currentTime>=(this.endSeconds-0.5)))){//最後まで行った
             return 4
         }
         else{
@@ -418,6 +420,9 @@ class mep_niconico{
                 }
                 case 'playerStatusChange':{
                     this.player.dispatchEvent(new CustomEvent("onStateChange", {detail: this.getPlayerState()}));
+                    if(this.getDuration()<=0||this.getCurrentTime()<=0){
+                        break;
+                    }
                     if(data.playerStatus!==2&&(this.getCurrentTime()>=this.getDuration()-0.5||(this.endSeconds!=-1&&this.getCurrentTime()>=(this.endSeconds-0.5)))){//最後まで行った(再生中への遷移では終了扱いしない)
                         this.player.dispatchEvent(new Event("onEndVideo"));
                     }
