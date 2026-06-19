@@ -109,6 +109,8 @@ class mep_niconico{
     autoplay_flag: boolean;
     endSeconds: number;
     displayCommentMode: boolean | undefined;
+    lastNotifiedPlayerState: number = 0;
+    endPauseRequested: boolean = false;
     
     /**
      * The ID of the player.
@@ -209,6 +211,8 @@ class mep_niconico{
      * @param {mep_niconico_load_object} content - The content of the video.
      */
     cueVideoById(content: mep_niconico_load_object){
+        this.lastNotifiedPlayerState = 0;
+        this.endPauseRequested = false;
         this.startSeconds = 0;
         if(content["startSeconds"]!=undefined){
             this.startSeconds = content["startSeconds"];
@@ -225,6 +229,8 @@ class mep_niconico{
      * @param {mep_niconico_load_object} content - The content of the video.
      */
     loadVideoById(content: mep_niconico_load_object){
+        this.lastNotifiedPlayerState = 0;
+        this.endPauseRequested = false;
         this.startSeconds = 0;
         if(content["startSeconds"]!=undefined){
             this.startSeconds = content["startSeconds"];
@@ -365,15 +371,11 @@ class mep_niconico{
      * @returns {number} The state of the player.
      */
     getPlayerState(): number{
-        if(this.state.playerStatus===2){//再生中はマージン付き判定で早期終了させない(endSeconds到達のみ終了扱い)
-            if(this.endSeconds!=-1&&this.getCurrentTime()>=this.endSeconds){
-                return 4
-            }
-            return this.state.playerStatus;
-        }
         const currentTime = this.getCurrentTime();
         const duration = this.getDuration();
-        if(duration>0&&currentTime>0&&(currentTime>=duration-0.5||(this.endSeconds!=-1&&currentTime>=(this.endSeconds-0.5)))){//最後まで行った
+        const reachedNaturalEnd = duration>0&&currentTime>0&&currentTime>=duration;
+        const reachedConfiguredEnd = this.endSeconds!=-1&&currentTime>=this.endSeconds;
+        if(reachedNaturalEnd||reachedConfiguredEnd){//最後まで行った
             return 4
         }
         else{
@@ -400,6 +402,15 @@ class mep_niconico{
         window.addEventListener('message', (e) => {
           if (e.origin === (window as any).mep_niconico.origin && e.data.playerId === this.playerId) {
             const { data } = e.data;
+            this.state = Object.assign({}, this.state, data);
+            const reachedConfiguredEnd = this.endSeconds!=-1&&(this.state.currentTime ?? 0)>=this.endSeconds*1000;
+            if(reachedConfiguredEnd&&!this.endPauseRequested){
+                this.endPauseRequested = true;
+                this.pauseVideo();
+            }
+            else if(!reachedConfiguredEnd){
+                this.endPauseRequested = false;
+            }
             switch (e.data.eventName) {
                 case 'statusChange': {
                     break;
@@ -419,22 +430,17 @@ class mep_niconico{
                     break;
                 }
                 case 'playerStatusChange':{
-                    this.player.dispatchEvent(new CustomEvent("onStateChange", {detail: this.getPlayerState()}));
-                    if(this.getDuration()<=0||this.getCurrentTime()<=0){
-                        break;
-                    }
-                    if(data.playerStatus!==2&&(this.getCurrentTime()>=this.getDuration()-0.5||(this.endSeconds!=-1&&this.getCurrentTime()>=(this.endSeconds-0.5)))){//最後まで行った(再生中への遷移では終了扱いしない)
+                    const playerState = this.getPlayerState();
+                    const reachedEnd = playerState===4&&this.lastNotifiedPlayerState!==4;
+                    this.lastNotifiedPlayerState = playerState;
+                    this.player.dispatchEvent(new CustomEvent("onStateChange", {detail: playerState}));
+                    if(reachedEnd){
                         this.player.dispatchEvent(new Event("onEndVideo"));
                     }
                     break;
                 }
                 default:
                     console.log(e.data);
-            }
-            
-            this.state = Object.assign({}, this.state, data);
-            if(this.endSeconds!=-1&&(this.state.currentTime ?? 0)>=this.endSeconds*1000){//終了時間の時自動で停止
-                this.pauseVideo();
             }
           }
         });

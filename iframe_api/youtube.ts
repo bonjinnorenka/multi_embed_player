@@ -255,10 +255,9 @@ class mep_youtube{
         let nowstatus = this.YT_player.getPlayerState();
         const currentTime = this.getCurrentTime();
         const duration = this.getDuration();
-        //再生中(1)・バッファリング中(3)は実終端のみ終了扱い。マージン付き判定は停止後限定にして終端手前で早期に4を返さない
-        const reached_end = (nowstatus==1||nowstatus==3)
-            ?((currentTime>=duration&&currentTime!=0&&duration!=0)||(this.endSeconds!=-1&&this.endSeconds<=currentTime))
-            :((currentTime>duration-1&&currentTime!=0&&duration!=0)||(this.endSeconds!=-1&&this.endSeconds-1<=currentTime));
+        // プレイヤーの状態にかかわらず、実際の終端に到達した場合だけ終了扱いにする。
+        const reached_end = (duration>0&&currentTime>0&&currentTime>=duration)
+            ||(this.endSeconds!=-1&&currentTime>=this.endSeconds);
         if(reached_end){
             return 4
         }
