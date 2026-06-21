@@ -1074,7 +1074,7 @@ class mep_bilibili{
                     this.start_event_count = 1;
                     this.player.dispatchEvent(new Event("onReady"));
                 }
-                if(this.end_event_count==0&&data.data.dulation>data.data.currentTime-1&&data.data.getPlayerState=="PAUSED"){
+                if(this.end_event_count==0&&data.data.dulation>0&&data.data.currentTime>data.data.dulation-1&&data.data.getPlayerState=="PAUSED"){
                     this.player.dispatchEvent(new Event("onEndVideo"));
                     this.end_event_count = 1;
                 }

@@ -253,7 +253,12 @@ class mep_youtube{
      */
     getPlayerState(): number{
         let nowstatus = this.YT_player.getPlayerState();
-        if((this.getCurrentTime()>this.getDuration()-1&&this.getCurrentTime()!=0&&this.getDuration()!=0)||(this.endSeconds!=-1&&this.endSeconds-1<=this.getCurrentTime())){
+        const currentTime = this.getCurrentTime();
+        const duration = this.getDuration();
+        // プレイヤーの状態にかかわらず、実際の終端に到達した場合だけ終了扱いにする。
+        const reached_end = (duration>0&&currentTime>0&&currentTime>=duration)
+            ||(this.endSeconds!=-1&&currentTime>=this.endSeconds);
+        if(reached_end){
             return 4
         }
         else if(nowstatus==-1){
